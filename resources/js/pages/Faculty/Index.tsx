@@ -1,0 +1,284 @@
+import { Head } from '@inertiajs/react';
+import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, Search, Download, BarChart3, Trash2 } from 'lucide-react';
+import { Link, router } from '@inertiajs/react';
+import { useState } from 'react';
+
+interface Faculty {
+    id: number;
+    facultyID: string;
+    firstName: string;
+    middleName?: string;
+    lastName: string;
+    position?: string;
+    designation?: string;
+    email?: string;
+    ORCID?: string;
+    contactNumber?: string;
+    educationalAttainment?: string;
+    fieldOfSpecialization?: string;
+    researchInterest?: string;
+}
+
+interface Props {
+    faculties: {
+        data: Faculty[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+    };
+    filters: {
+        search?: string;
+        sort_by?: string;
+        sort_order?: string;
+    };
+}
+
+export default function FacultyIndex({ faculties, filters }: Props) {
+    const [search, setSearch] = useState(filters.search || '');
+    const [selectedFaculties, setSelectedFaculties] = useState<number[]>([]);
+
+    const handleSearch = () => {
+        router.get('/faculties', { search }, { preserveState: true });
+    };
+
+    const handleSort = (field: string) => {
+        const newOrder = filters.sort_by === field && filters.sort_order === 'asc' ? 'desc' : 'asc';
+        router.get('/faculties', { ...filters, sort_by: field, sort_order: newOrder }, { preserveState: true });
+    };
+
+    const handleBulkDelete = () => {
+        if (selectedFaculties.length === 0) return;
+        
+        if (confirm(`Are you sure you want to delete ${selectedFaculties.length} faculty member(s)?`)) {
+            router.post('/faculties/bulk-destroy', { faculty_ids: selectedFaculties });
+        }
+    };
+
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            setSelectedFaculties(faculties.data.map(f => f.id));
+        } else {
+            setSelectedFaculties([]);
+        }
+    };
+
+    const handleSelectFaculty = (id: number, checked: boolean) => {
+        if (checked) {
+            setSelectedFaculties([...selectedFaculties, id]);
+        } else {
+            setSelectedFaculties(selectedFaculties.filter(f => f !== id));
+        }
+    };
+
+    return (
+        <AppSidebarLayout>
+            <Head title="Faculty Management" />
+            
+            <div className="space-y-6">
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Faculty Management</h1>
+                        <p className="text-muted-foreground">
+                            Manage faculty members and their information
+                        </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Button asChild>
+                            <Link href="/faculties/create">
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add Faculty
+                            </Link>
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Search and Filters */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Search & Filters</CardTitle>
+                        <CardDescription>Find specific faculty members</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-center space-x-2">
+                            <Input
+                                placeholder="Search by name, ID, or email..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                                className="max-w-sm"
+                            />
+                            <Button onClick={handleSearch}>
+                                <Search className="mr-2 h-4 w-4" />
+                                Search
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Faculty Table */}
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <CardTitle>Faculty Members</CardTitle>
+                                <CardDescription>
+                                    {faculties.total} faculty member(s) found
+                                </CardDescription>
+                            </div>
+                            {selectedFaculties.length > 0 && (
+                                <Button variant="destructive" onClick={handleBulkDelete}>
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete Selected ({selectedFaculties.length})
+                                </Button>
+                            )}
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-12">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedFaculties.length === faculties.data.length && faculties.data.length > 0}
+                                            onChange={(e) => handleSelectAll(e.target.checked)}
+                                        />
+                                    </TableHead>
+                                    <TableHead 
+                                        className="cursor-pointer hover:bg-muted/50"
+                                        onClick={() => handleSort('facultyID')}
+                                    >
+                                        Faculty ID
+                                        {filters.sort_by === 'facultyID' && (
+                                            <span className="ml-1">
+                                                {filters.sort_order === 'asc' ? '↑' : '↓'}
+                                            </span>
+                                        )}
+                                    </TableHead>
+                                    <TableHead 
+                                        className="cursor-pointer hover:bg-muted/50"
+                                        onClick={() => handleSort('lastName')}
+                                    >
+                                        Name
+                                        {filters.sort_by === 'lastName' && (
+                                            <span className="ml-1">
+                                                {filters.sort_order === 'asc' ? '↑' : '↓'}
+                                            </span>
+                                        )}
+                                    </TableHead>
+                                    <TableHead>Position</TableHead>
+                                    <TableHead>Email</TableHead>
+                                    <TableHead>Contact</TableHead>
+                                    <TableHead className="w-32">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {faculties.data.map((faculty) => (
+                                    <TableRow key={faculty.id}>
+                                        <TableCell>
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedFaculties.includes(faculty.id)}
+                                                onChange={(e) => handleSelectFaculty(faculty.id, e.target.checked)}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant="secondary">{faculty.facultyID}</Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div>
+                                                <div className="font-medium">
+                                                    {faculty.lastName}, {faculty.firstName}
+                                                </div>
+                                                {faculty.middleName && (
+                                                    <div className="text-sm text-muted-foreground">
+                                                        {faculty.middleName}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            {faculty.position && (
+                                                <Badge variant="outline">{faculty.position}</Badge>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {faculty.email ? (
+                                                <a 
+                                                    href={`mailto:${faculty.email}`}
+                                                    className="text-blue-600 hover:underline"
+                                                >
+                                                    {faculty.email}
+                                                </a>
+                                            ) : (
+                                                <span className="text-muted-foreground">No email</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {faculty.contactNumber || (
+                                                <span className="text-muted-foreground">No contact</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center space-x-2">
+                                                <Button size="sm" variant="outline" asChild>
+                                                    <Link href={`/faculties/${faculty.id}`}>
+                                                        View
+                                                    </Link>
+                                                </Button>
+                                                <Button size="sm" variant="outline" asChild>
+                                                    <Link href={`/faculties/${faculty.id}/edit`}>
+                                                        Edit
+                                                    </Link>
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+
+                        {/* Pagination */}
+                        {faculties.last_page > 1 && (
+                            <div className="flex items-center justify-between mt-4">
+                                <div className="text-sm text-muted-foreground">
+                                    Showing {((faculties.current_page - 1) * faculties.per_page) + 1} to{' '}
+                                    {Math.min(faculties.current_page * faculties.per_page, faculties.total)} of{' '}
+                                    {faculties.total} results
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    {faculties.current_page > 1 && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => router.get('/faculties', { ...filters, page: faculties.current_page - 1 })}
+                                        >
+                                            Previous
+                                        </Button>
+                                    )}
+                                    {faculties.current_page < faculties.last_page && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => router.get('/faculties', { ...filters, page: faculties.current_page + 1 })}
+                                        >
+                                            Next
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
+        </AppSidebarLayout>
+    );
+}
