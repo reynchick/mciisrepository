@@ -18,8 +18,13 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'studentID',
+        'firstName',
+        'middleName',
+        'lastName',
+        'contactNumber',
         'email',
+        'role',
         'password',
     ];
 
@@ -44,5 +49,103 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the user's full name.
+     */
+    public function getFullNameAttribute(): string
+    {
+        $name = $this->firstName;
+        
+        if ($this->middleName) {
+            $name .= ' ' . $this->middleName;
+        }
+        
+        $name .= ' ' . $this->lastName;
+        
+        return $name;
+    }
+
+    /**
+     * Check if the user has a specific role.
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
+
+    /**
+     * Check if the user is a student.
+     */
+    public function isStudent(): bool
+    {
+        return $this->role === 'Student';
+    }
+
+    /**
+     * Check if the user is an administrator.
+     */
+    public function isAdministrator(): bool
+    {
+        return $this->role === 'Administrator';
+    }
+
+    /**
+     * Check if the user is faculty.
+     */
+    public function isFaculty(): bool
+    {
+        return $this->role === 'Faculty';
+    }
+
+    /**
+     * Check if the user is MCIIS staff.
+     */
+    public function isMCIISStaff(): bool
+    {
+        return $this->role === 'MCIIS Staff';
+    }
+
+    /**
+     * Format contact number for display
+     */
+    public function getFormattedContactNumberAttribute(): ?string
+    {
+        if (!$this->contactNumber) {
+            return null;
+        }
+
+        $clean = preg_replace('/[^0-9]/', '', $this->contactNumber);
+        
+        if (strlen($clean) === 11 && substr($clean, 0, 2) === '09') {
+            return '+63 ' . substr($clean, 1);
+        }
+        
+        if (strlen($clean) === 12 && substr($clean, 0, 2) === '63') {
+            return '+63 ' . substr($clean, 2);
+        }
+        
+        return $this->contactNumber;
+    }
+
+    /**
+     * Format student ID for display
+     */
+    public function getFormattedStudentIdAttribute(): ?string
+    {
+        if (!$this->studentID) {
+            return null;
+        }
+
+        $clean = preg_replace('/[^0-9]/', '', $this->studentID);
+        
+        if (strlen($clean) >= 8) {
+            $year = substr($clean, 0, 4);
+            $number = substr($clean, 4);
+            return $year . '-' . str_pad($number, 5, '0', STR_PAD_LEFT);
+        }
+        
+        return $this->studentID;
     }
 }

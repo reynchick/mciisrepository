@@ -32,8 +32,13 @@ export interface SharedData {
 
 export interface User {
     id: number;
-    name: string;
+    studentID?: string;
+    firstName: string;
+    middleName?: string;
+    lastName: string;
+    contactNumber?: string;
     email: string;
+    role: 'Administrator' | 'MCIIS Staff' | 'Faculty' | 'Student';
     avatar?: string;
     email_verified_at: string | null;
     created_at: string;
