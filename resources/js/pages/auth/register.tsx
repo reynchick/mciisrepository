@@ -122,8 +122,6 @@ export default function Register() {
                                     <SelectContent>
                                         <SelectItem value="Student">Student</SelectItem>
                                         <SelectItem value="Faculty">Faculty</SelectItem>
-                                        <SelectItem value="MCIIS Staff">MCIIS Staff</SelectItem>
-                                        <SelectItem value="Administrator">Administrator</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <InputError message={errors.role} className="mt-2" />
