@@ -34,5 +34,3 @@ class EmailVerificationPromptController extends Controller
         ]);
     }
 }
-
-
