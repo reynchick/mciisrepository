@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Models\Faculty;
+use App\Models\Research;
 use App\Policies\FacultyPolicy;
+use App\Policies\ResearchPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -23,5 +25,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(Faculty::class, FacultyPolicy::class);
+        Gate::policy(Research::class, ResearchPolicy::class);
     }
 }

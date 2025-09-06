@@ -22,10 +22,10 @@ class StoreFacultyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'facultyID' => ['required', 'string', 'max:255', 'unique:faculties,facultyID'],
-            'firstName' => ['required', 'string', 'max:255'],
-            'middleName' => ['nullable', 'string', 'max:255'],
-            'lastName' => ['required', 'string', 'max:255'],
+            'faculty_id' => ['required', 'string', 'max:255', 'unique:faculties,faculty_id'],
+            'first_name' => ['required', 'string', 'max:255'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
             'position' => ['nullable', 'string', 'max:255'],
             'designation' => ['nullable', 'string', 'max:255'],
             'email' => [
@@ -34,11 +34,11 @@ class StoreFacultyRequest extends FormRequest
                 'unique:faculties,email',
                 'regex:/^[^@]+@usep\.edu\.ph$/'
             ],
-            'ORCID' => ['nullable', 'string', 'max:255'],
-            'contactNumber' => ['nullable', 'string', 'max:255'],
-            'educationalAttainment' => ['nullable', 'string', 'max:255'],
-            'fieldOfSpecialization' => ['nullable', 'string'],
-            'researchInterest' => ['nullable', 'string'],
+            'orcid' => ['nullable', 'string', 'max:255'],
+            'contact_number' => ['nullable', 'string', 'max:255'],
+            'educational_attainment' => ['nullable', 'string', 'max:255'],
+            'field_of_specialization' => ['nullable', 'string'],
+            'research_interest' => ['nullable', 'string'],
         ];
     }
 }

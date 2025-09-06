@@ -9,18 +9,18 @@ import { Link, router } from '@inertiajs/react';
 
 interface Faculty {
     id: number;
-    facultyID: string;
-    firstName: string;
-    middleName?: string;
-    lastName: string;
+    faculty_id: string;
+    first_name: string;
+    middle_name?: string;
+    last_name: string;
     position?: string;
     designation?: string;
     email?: string;
-    ORCID?: string;
-    contactNumber?: string;
-    educationalAttainment?: string;
-    fieldOfSpecialization?: string;
-    researchInterest?: string;
+    orcid?: string;
+    contact_number?: string;
+    educational_attainment?: string;
+    field_of_specialization?: string;
+    research_interest?: string;
     created_at: string;
     updated_at: string;
 }
@@ -45,11 +45,11 @@ export default function FacultyShow({ faculty }: Props) {
     };
 
     const getFullName = () => {
-        let name = faculty.firstName;
-        if (faculty.middleName) {
-            name += ` ${faculty.middleName}`;
+        let name = faculty.first_name;
+        if (faculty.middle_name) {
+            name += ` ${faculty.middle_name}`;
         }
-        name += ` ${faculty.lastName}`;
+        name += ` ${faculty.last_name}`;
         return name;
     };
 
@@ -70,7 +70,7 @@ export default function FacultyShow({ faculty }: Props) {
                         <div>
                             <h1 className="text-3xl font-bold tracking-tight">{getFullName()}</h1>
                             <p className="text-muted-foreground">
-                                Faculty ID: {faculty.facultyID}
+                                Faculty ID: {faculty.faculty_id}
                             </p>
                         </div>
                     </div>
@@ -103,7 +103,7 @@ export default function FacultyShow({ faculty }: Props) {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <p className="text-sm font-medium text-muted-foreground">Faculty ID</p>
-                                        <p className="text-lg font-semibold">{faculty.facultyID}</p>
+                                        <p className="text-lg font-semibold">{faculty.faculty_id}</p>
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-muted-foreground">Full Name</p>
@@ -164,13 +164,13 @@ export default function FacultyShow({ faculty }: Props) {
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-muted-foreground">Contact Number</p>
-                                        {faculty.contactNumber ? (
+                                        {faculty.contact_number ? (
                                             <a 
-                                                href={`tel:${faculty.contactNumber}`}
+                                                href={`tel:${faculty.contact_number}`}
                                                 className="text-blue-600 hover:underline flex items-center"
                                             >
                                                 <Phone className="mr-2 h-4 w-4" />
-                                                {faculty.contactNumber}
+                                                {faculty.contact_number}
                                             </a>
                                         ) : (
                                             <span className="text-muted-foreground">Not provided</span>
@@ -182,15 +182,15 @@ export default function FacultyShow({ faculty }: Props) {
                                 
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">ORCID ID</p>
-                                    {faculty.ORCID ? (
+                                    {faculty.orcid ? (
                                         <a 
-                                            href={`https://orcid.org/${faculty.ORCID}`}
+                                            href={`https://orcid.org/${faculty.orcid}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="text-blue-600 hover:underline flex items-center"
                                         >
                                             <Globe className="mr-2 h-4 w-4" />
-                                            {faculty.ORCID}
+                                            {faculty.orcid}
                                         </a>
                                     ) : (
                                         <span className="text-muted-foreground">Not provided</span>
@@ -212,7 +212,7 @@ export default function FacultyShow({ faculty }: Props) {
                                     <div>
                                         <p className="text-sm font-medium text-muted-foreground">Educational Attainment</p>
                                         <p className="text-base">
-                                            {faculty.educationalAttainment || (
+                                            {faculty.educational_attainment || (
                                                 <span className="text-muted-foreground">Not specified</span>
                                             )}
                                         </p>
@@ -220,7 +220,7 @@ export default function FacultyShow({ faculty }: Props) {
                                     <div>
                                         <p className="text-sm font-medium text-muted-foreground">Field of Specialization</p>
                                         <p className="text-base">
-                                            {faculty.fieldOfSpecialization || (
+                                            {faculty.field_of_specialization || (
                                                 <span className="text-muted-foreground">Not specified</span>
                                             )}
                                         </p>
@@ -232,10 +232,10 @@ export default function FacultyShow({ faculty }: Props) {
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">Research Interests</p>
                                     <p className="text-base">
-                                        {faculty.researchInterest ? (
+                                        {faculty.research_interest ? (
                                             <span className="flex items-start">
                                                 <BookOpen className="mr-2 h-4 w-4 mt-0.5 flex-shrink-0" />
-                                                {faculty.researchInterest}
+                                                {faculty.research_interest}
                                             </span>
                                         ) : (
                                             <span className="text-muted-foreground">Not specified</span>

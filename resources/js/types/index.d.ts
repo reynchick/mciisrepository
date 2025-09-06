@@ -32,11 +32,11 @@ export interface SharedData {
 
 export interface User {
     id: number;
-    studentID?: string;
-    firstName: string;
-    middleName?: string;
-    lastName: string;
-    contactNumber?: string;
+    student_id?: string;
+    first_name: string;
+    middle_name?: string;
+    last_name: string;
+    contact_number?: string;
     email: string;
     role: 'Administrator' | 'MCIIS Staff' | 'Faculty' | 'Student';
     avatar?: string;

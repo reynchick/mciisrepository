@@ -24,7 +24,7 @@ class FacultyController extends Controller
         }
         
         // Sorting
-        $sortBy = $request->get('sort_by', 'lastName');
+        $sortBy = $request->get('sort_by', 'last_name');
         $sortOrder = $request->get('sort_order', 'asc');
         $query->orderBy($sortBy, $sortOrder);
         
@@ -133,7 +133,7 @@ class FacultyController extends Controller
         $stats = [
             'total' => Faculty::count(),
             'with_email' => Faculty::whereNotNull('email')->count(),
-            'with_orcid' => Faculty::whereNotNull('ORCID')->count(),
+            'with_orcid' => Faculty::whereNotNull('orcid')->count(),
             'by_position' => Faculty::selectRaw('position, COUNT(*) as count')
                 ->whereNotNull('position')
                 ->groupBy('position')

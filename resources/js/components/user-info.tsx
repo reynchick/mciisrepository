@@ -6,7 +6,7 @@ export function UserInfo({ user, showEmail = false }: { user: User; showEmail?: 
     const getInitials = useInitials();
 
     // Use the full name from the new fields
-    const fullName = `${user.firstName} ${user.middleName ? user.middleName + ' ' : ''}${user.lastName}`;
+    const fullName = `${user.first_name} ${user.middle_name ? user.middle_name + ' ' : ''}${user.last_name}`;
 
     return (
         <>

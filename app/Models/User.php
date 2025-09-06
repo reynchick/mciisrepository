@@ -19,13 +19,13 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var list<string>
      */
     protected $fillable = [
-        'studentID',
-        'firstName',
-        'middleName',
-        'lastName',
-        'contactNumber',
+        'student_id',
+        'first_name',
+        'middle_name',
+        'last_name',
+        'contact_number',
         'email',
-        'role',
+        'role_id',
         'password',
     ];
 
@@ -57,15 +57,20 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getFullNameAttribute(): string
     {
-        $name = $this->firstName;
+        $name = $this->first_name;
         
-        if ($this->middleName) {
-            $name .= ' ' . $this->middleName;
+        if ($this->middle_name) {
+            $name .= ' ' . $this->middle_name;
         }
         
-        $name .= ' ' . $this->lastName;
+        $name .= ' ' . $this->last_name;
         
         return $name;
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
     }
 
     /**
@@ -73,7 +78,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function hasRole(string $role): bool
     {
-        return $this->role === $role;
+        return $this->role && $this->role->name === $role;
     }
 
     /**
@@ -113,11 +118,11 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getFormattedContactNumberAttribute(): ?string
     {
-        if (!$this->contactNumber) {
+        if (!$this->contact_number) {
             return null;
         }
 
-        $clean = preg_replace('/[^0-9]/', '', $this->contactNumber);
+        $clean = preg_replace('/[^0-9]/', '', $this->contact_number);
         
         if (strlen($clean) === 11 && substr($clean, 0, 2) === '09') {
             return '+63 ' . substr($clean, 1);
@@ -127,7 +132,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return '+63 ' . substr($clean, 2);
         }
         
-        return $this->contactNumber;
+        return $this->contact_number;
     }
 
     /**
@@ -135,11 +140,11 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getFormattedStudentIdAttribute(): ?string
     {
-        if (!$this->studentID) {
+        if (!$this->student_id) {
             return null;
         }
 
-        $clean = preg_replace('/[^0-9]/', '', $this->studentID);
+        $clean = preg_replace('/[^0-9]/', '', $this->student_id);
         
         if (strlen($clean) >= 8) {
             $year = substr($clean, 0, 4);
@@ -147,7 +152,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return $year . '-' . str_pad($number, 5, '0', STR_PAD_LEFT);
         }
         
-        return $this->studentID;
+        return $this->student_id;
     }
 
     /**

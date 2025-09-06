@@ -17,18 +17,18 @@ class Faculty extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'facultyID',
-        'firstName',
-        'middleName',
-        'lastName',
+        'faculty_id',
+        'first_name',
+        'middle_name',
+        'last_name',
         'position',
         'designation',
         'email',
-        'ORCID',
-        'contactNumber',
-        'educationalAttainment',
-        'fieldOfSpecialization',
-        'researchInterest',
+        'orcid',
+        'contact_number',
+        'educational_attainment',
+        'field_of_specialization',
+        'research_interest',
     ];
 
     /**
@@ -46,9 +46,9 @@ class Faculty extends Model
     public function scopeSearch($query, $search)
     {
         return $query->where(function ($q) use ($search) {
-            $q->where('firstName', 'like', "%{$search}%")
-              ->orWhere('lastName', 'like', "%{$search}%")
-              ->orWhere('facultyID', 'like', "%{$search}%")
+            $q->where('first_name', 'like', "%{$search}%")
+              ->orWhere('last_name', 'like', "%{$search}%")
+              ->orWhere('faculty_id', 'like', "%{$search}%")
               ->orWhere('email', 'like', "%{$search}%");
         });
     }

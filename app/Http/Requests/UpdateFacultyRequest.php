@@ -25,10 +25,10 @@ class UpdateFacultyRequest extends FormRequest
         $facultyId = $this->route('faculty'); // Assuming your route parameter is 'faculty'
         
         return [
-            'facultyID' => ['required', 'string', 'max:255', Rule::unique('faculties', 'facultyID')->ignore($facultyId)],
-            'firstName' => ['required', 'string', 'max:255'],
-            'middleName' => ['nullable', 'string', 'max:255'],
-            'lastName' => ['required', 'string', 'max:255'],
+            'faculty_id' => ['required', 'string', 'max:255', Rule::unique('faculties', 'faculty_id')->ignore($facultyId)],
+            'first_name' => ['required', 'string', 'max:255'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
             'position' => ['nullable', 'string', 'max:255'],
             'designation' => ['nullable', 'string', 'max:255'],
             'email' => [
@@ -37,11 +37,11 @@ class UpdateFacultyRequest extends FormRequest
                 Rule::unique('faculties', 'email')->ignore($facultyId),
                 'regex:/^[^@]+@usep\.edu\.ph$/'
             ],
-            'ORCID' => ['nullable', 'string', 'max:255'],
-            'contactNumber' => ['nullable', 'string', 'max:255'],
-            'educationalAttainment' => ['nullable', 'string', 'max:255'],
-            'fieldOfSpecialization' => ['nullable', 'string'],
-            'researchInterest' => ['nullable', 'string'],
+            'orcid' => ['nullable', 'string', 'max:255'],
+            'contact_number' => ['nullable', 'string', 'max:255'],
+            'educational_attainment' => ['nullable', 'string', 'max:255'],
+            'field_of_specialization' => ['nullable', 'string'],
+            'research_interest' => ['nullable', 'string'],
         ];
     }
 
@@ -51,7 +51,7 @@ class UpdateFacultyRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'facultyID.unique' => 'This Faculty ID is already taken.',
+            'faculty_id.unique' => 'This Faculty ID is already taken.',
             'email.regex' => 'Email must be a valid USeP email address ending with @usep.edu.ph',
             'email.unique' => 'This email is already registered.',
         ];

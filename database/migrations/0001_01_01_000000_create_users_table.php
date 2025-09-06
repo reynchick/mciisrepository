@@ -13,20 +13,17 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('studentID')->nullable()->comment('Student ID for student roles')->unique();
-            $table->string('firstName');
-            $table->string('middleName')->nullable();
-            $table->string('lastName');
-            $table->string('contactNumber')->nullable();
+            $table->string('student_id')->nullable()->comment('Student ID for student roles')->unique();
+            $table->string('first_name');
+            $table->string('middle_name')->nullable();
+            $table->string('last_name');
+            $table->string('contact_number')->nullable();
             $table->string('email')->unique()->comment('Must end with @usep.edu.ph');
-            $table->enum('role', ['Administrator', 'MCIIS Staff', 'Faculty', 'Student'])->default('Student');
+            $table->enum('role', ['Administrator', 'MCIIS Staff', 'Faculty', 'Student'])->default('Student')->index();
             $table->string('password');
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
-            
-            // Add index for role-based queries
-            $table->index('role');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

@@ -13,7 +13,8 @@ class FacultyPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true; // Allow authenticated users to view faculty list
+        // All authenticated users can view faculty list
+        return true;
     }
 
     /**
@@ -21,7 +22,8 @@ class FacultyPolicy
      */
     public function view(User $user, Faculty $faculty): bool
     {
-        return true; // Allow authenticated users to view individual faculty
+        // All authenticated users can view individual faculty
+        return true;
     }
 
     /**
@@ -29,7 +31,8 @@ class FacultyPolicy
      */
     public function create(User $user): bool
     {
-        return true; // Allow authenticated users to create faculty
+        // Only Administrator can create faculty
+        return $user->isAdministrator();
     }
 
     /**
@@ -37,7 +40,8 @@ class FacultyPolicy
      */
     public function update(User $user, Faculty $faculty): bool
     {
-        return true; // Allow authenticated users to update faculty
+        // Only Administrator can update faculty
+        return $user->isAdministrator();
     }
 
     /**
@@ -45,7 +49,8 @@ class FacultyPolicy
      */
     public function delete(User $user, Faculty $faculty): bool
     {
-        return true; // Allow authenticated users to delete faculty
+        // Only Administrator can delete faculty
+        return $user->isAdministrator();
     }
 
     /**
@@ -53,7 +58,8 @@ class FacultyPolicy
      */
     public function restore(User $user, Faculty $faculty): bool
     {
-        return true; // Allow authenticated users to restore faculty
+        // Only Administrator can restore faculty
+        return $user->isAdministrator();
     }
 
     /**
@@ -61,6 +67,34 @@ class FacultyPolicy
      */
     public function forceDelete(User $user, Faculty $faculty): bool
     {
-        return true; // Allow authenticated users to permanently delete faculty
+        // Only Administrator can permanently delete faculty
+        return $user->isAdministrator();
+    }
+
+    /**
+     * Determine whether the user can assign faculty as advisers or panelists.
+     */
+    public function assignAdviserOrPanelist(User $user, Faculty $faculty): bool
+    {
+        // Only MCIIS Staff can assign faculty as advisers/panelists
+        return $user->isMCIISStaff();
+    }
+
+    /**
+     * Determine whether the user can generate productivity reports.
+     */
+    public function generateReport(User $user): bool
+    {
+        // Only MCIIS Staff can generate productivity reports
+        return $user->isMCIISStaff();
+    }
+
+    /**
+     * Determine whether the user can perform audit logging.
+     */
+    public function auditLog(User $user): bool
+    {
+        // Only Administrator can perform audit logging
+        return $user->isAdministrator();
     }
 }

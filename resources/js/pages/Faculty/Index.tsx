@@ -11,18 +11,18 @@ import { useState } from 'react';
 
 interface Faculty {
     id: number;
-    facultyID: string;
-    firstName: string;
-    middleName?: string;
-    lastName: string;
+    faculty_id: string;
+    first_name: string;
+    middle_name?: string;
+    last_name: string;
     position?: string;
     designation?: string;
     email?: string;
-    ORCID?: string;
-    contactNumber?: string;
-    educationalAttainment?: string;
-    fieldOfSpecialization?: string;
-    researchInterest?: string;
+    orcid?: string;
+    contact_number?: string;
+    educational_attainment?: string;
+    field_of_specialization?: string;
+    research_interest?: string;
 }
 
 interface Props {
@@ -154,10 +154,10 @@ export default function FacultyIndex({ faculties, filters }: Props) {
                                     </TableHead>
                                     <TableHead 
                                         className="cursor-pointer hover:bg-muted/50"
-                                        onClick={() => handleSort('facultyID')}
+                                        onClick={() => handleSort('faculty_id')}
                                     >
                                         Faculty ID
-                                        {filters.sort_by === 'facultyID' && (
+                                        {filters.sort_by === 'faculty_id' && (
                                             <span className="ml-1">
                                                 {filters.sort_order === 'asc' ? '↑' : '↓'}
                                             </span>
@@ -165,10 +165,10 @@ export default function FacultyIndex({ faculties, filters }: Props) {
                                     </TableHead>
                                     <TableHead 
                                         className="cursor-pointer hover:bg-muted/50"
-                                        onClick={() => handleSort('lastName')}
+                                        onClick={() => handleSort('last_name')}
                                     >
                                         Name
-                                        {filters.sort_by === 'lastName' && (
+                                        {filters.sort_by === 'last_name' && (
                                             <span className="ml-1">
                                                 {filters.sort_order === 'asc' ? '↑' : '↓'}
                                             </span>
@@ -191,16 +191,16 @@ export default function FacultyIndex({ faculties, filters }: Props) {
                                             />
                                         </TableCell>
                                         <TableCell>
-                                            <Badge variant="secondary">{faculty.facultyID}</Badge>
+                                            <Badge variant="secondary">{faculty.faculty_id}</Badge>
                                         </TableCell>
                                         <TableCell>
                                             <div>
                                                 <div className="font-medium">
-                                                    {faculty.lastName}, {faculty.firstName}
+                                                    {faculty.last_name}, {faculty.first_name}
                                                 </div>
-                                                {faculty.middleName && (
+                                                {faculty.middle_name && (
                                                     <div className="text-sm text-muted-foreground">
-                                                        {faculty.middleName}
+                                                        {faculty.middle_name}
                                                     </div>
                                                 )}
                                             </div>
@@ -223,7 +223,7 @@ export default function FacultyIndex({ faculties, filters }: Props) {
                                             )}
                                         </TableCell>
                                         <TableCell>
-                                            {faculty.contactNumber || (
+                                            {faculty.contact_number || (
                                                 <span className="text-muted-foreground">No contact</span>
                                             )}
                                         </TableCell>

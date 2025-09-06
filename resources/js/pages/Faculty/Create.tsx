@@ -10,18 +10,18 @@ import { Link } from '@inertiajs/react';
 
 export default function FacultyCreate() {
     const { data, setData, post, processing, errors } = useForm({
-        facultyID: '',
-        firstName: '',
-        middleName: '',
-        lastName: '',
+        faculty_id: '',
+        first_name: '',
+        middle_name: '',
+        last_name: '',
         position: '',
         designation: '',
         email: '',
-        ORCID: '',
-        contactNumber: '',
-        educationalAttainment: '',
-        fieldOfSpecialization: '',
-        researchInterest: '',
+        orcid: '',
+        contact_number: '',
+        educational_attainment: '',
+        field_of_specialization: '',
+        research_interest: '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -32,7 +32,7 @@ export default function FacultyCreate() {
     return (
         <AppSidebarLayout>
             <Head title="Add New Faculty Member" />
-            
+
             <div className="space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
@@ -67,16 +67,16 @@ export default function FacultyCreate() {
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="facultyID">Faculty ID *</Label>
+                                    <Label htmlFor="faculty_id">Faculty ID *</Label>
                                     <Input
-                                        id="facultyID"
-                                        value={data.facultyID}
-                                        onChange={(e) => setData('facultyID', e.target.value)}
+                                        id="faculty_id"
+                                        value={data.faculty_id}
+                                        onChange={(e) => setData('faculty_id', e.target.value)}
                                         placeholder="e.g., F2024-001"
-                                        className={errors.facultyID ? 'border-red-500' : ''}
+                                        className={errors.faculty_id ? 'border-red-500' : ''}
                                     />
-                                    {errors.facultyID && (
-                                        <p className="text-sm text-red-500">{errors.facultyID}</p>
+                                    {errors.faculty_id && (
+                                        <p className="text-sm text-red-500">{errors.faculty_id}</p>
                                     )}
                                 </div>
                                 <div className="space-y-2">
@@ -96,41 +96,41 @@ export default function FacultyCreate() {
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="firstName">First Name *</Label>
+                                    <Label htmlFor="first_name">First Name *</Label>
                                     <Input
-                                        id="firstName"
-                                        value={data.firstName}
-                                        onChange={(e) => setData('firstName', e.target.value)}
+                                        id="first_name"
+                                        value={data.first_name}
+                                        onChange={(e) => setData('first_name', e.target.value)}
                                         placeholder="First name"
-                                        className={errors.firstName ? 'border-red-500' : ''}
+                                        className={errors.first_name ? 'border-red-500' : ''}
                                     />
-                                    {errors.firstName && (
-                                        <p className="text-sm text-red-500">{errors.firstName}</p>
+                                    {errors.first_name && (
+                                        <p className="text-sm text-red-500">{errors.first_name}</p>
                                     )}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="middleName">Middle Name</Label>
+                                    <Label htmlFor="middle_name">Middle Name</Label>
                                     <Input
-                                        id="middleName"
-                                        value={data.middleName}
-                                        onChange={(e) => setData('middleName', e.target.value)}
+                                        id="middle_name"
+                                        value={data.middle_name}
+                                        onChange={(e) => setData('middle_name', e.target.value)}
                                         placeholder="Middle name (optional)"
                                     />
-                                    {errors.middleName && (
-                                        <p className="text-sm text-red-500">{errors.middleName}</p>
+                                    {errors.middle_name && (
+                                        <p className="text-sm text-red-500">{errors.middle_name}</p>
                                     )}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="lastName">Last Name *</Label>
+                                    <Label htmlFor="last_name">Last Name *</Label>
                                     <Input
-                                        id="lastName"
-                                        value={data.lastName}
-                                        onChange={(e) => setData('lastName', e.target.value)}
+                                        id="last_name"
+                                        value={data.last_name}
+                                        onChange={(e) => setData('last_name', e.target.value)}
                                         placeholder="Last name"
-                                        className={errors.lastName ? 'border-red-500' : ''}
+                                        className={errors.last_name ? 'border-red-500' : ''}
                                     />
-                                    {errors.lastName && (
-                                        <p className="text-sm text-red-500">{errors.lastName}</p>
+                                    {errors.last_name && (
+                                        <p className="text-sm text-red-500">{errors.last_name}</p>
                                     )}
                                 </div>
                             </div>
@@ -150,16 +150,16 @@ export default function FacultyCreate() {
                                     )}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="educationalAttainment">Educational Attainment</Label>
+                                    <Label htmlFor="educational_attainment">Educational Attainment</Label>
                                     <Input
-                                        id="educationalAttainment"
-                                        value={data.educationalAttainment}
-                                        onChange={(e) => setData('educationalAttainment', e.target.value)}
+                                        id="educational_attainment"
+                                        value={data.educational_attainment}
+                                        onChange={(e) => setData('educational_attainment', e.target.value)}
                                         placeholder="e.g., PhD, Master of Science, Bachelor of Arts"
-                                        className={errors.educationalAttainment ? 'border-red-500' : ''}
+                                        className={errors.educational_attainment ? 'border-red-500' : ''}
                                     />
-                                    {errors.educationalAttainment && (
-                                        <p className="text-sm text-red-500">{errors.educationalAttainment}</p>
+                                    {errors.educational_attainment && (
+                                        <p className="text-sm text-red-500">{errors.educational_attainment}</p>
                                     )}
                                 </div>
                             </div>
@@ -194,31 +194,31 @@ export default function FacultyCreate() {
                                     </p>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="contactNumber">Contact Number</Label>
+                                    <Label htmlFor="contact_number">Contact Number</Label>
                                     <Input
-                                        id="contactNumber"
-                                        value={data.contactNumber}
-                                        onChange={(e) => setData('contactNumber', e.target.value)}
+                                        id="contact_number"
+                                        value={data.contact_number}
+                                        onChange={(e) => setData('contact_number', e.target.value)}
                                         placeholder="09XXXXXXXXX or +63 9XXXXXXXXX"
-                                        className={errors.contactNumber ? 'border-red-500' : ''}
+                                        className={errors.contact_number ? 'border-red-500' : ''}
                                     />
-                                    {errors.contactNumber && (
-                                        <p className="text-sm text-red-500">{errors.contactNumber}</p>
+                                    {errors.contact_number && (
+                                        <p className="text-sm text-red-500">{errors.contact_number}</p>
                                     )}
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="ORCID">ORCID ID</Label>
+                                <Label htmlFor="orcid">ORCID ID</Label>
                                 <Input
-                                    id="ORCID"
-                                    value={data.ORCID}
-                                    onChange={(e) => setData('ORCID', e.target.value)}
+                                    id="orcid"
+                                    value={data.orcid}
+                                    onChange={(e) => setData('orcid', e.target.value)}
                                     placeholder="0000-0000-0000-0000"
-                                    className={errors.ORCID ? 'border-red-500' : ''}
+                                    className={errors.orcid ? 'border-red-500' : ''}
                                 />
-                                {errors.ORCID && (
-                                    <p className="text-sm text-red-500">{errors.ORCID}</p>
+                                {errors.orcid && (
+                                    <p className="text-sm text-red-500">{errors.orcid}</p>
                                 )}
                                 <p className="text-xs text-muted-foreground">
                                     Your unique ORCID identifier for research activities
@@ -237,31 +237,31 @@ export default function FacultyCreate() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="fieldOfSpecialization">Field of Specialization</Label>
+                                <Label htmlFor="field_of_specialization">Field of Specialization</Label>
                                 <Input
-                                    id="fieldOfSpecialization"
-                                    value={data.fieldOfSpecialization}
-                                    onChange={(e) => setData('fieldOfSpecialization', e.target.value)}
+                                    id="field_of_specialization"
+                                    value={data.field_of_specialization}
+                                    onChange={(e) => setData('field_of_specialization', e.target.value)}
                                     placeholder="e.g., Computer Science, Information Technology"
-                                    className={errors.fieldOfSpecialization ? 'border-red-500' : ''}
+                                    className={errors.field_of_specialization ? 'border-red-500' : ''}
                                 />
-                                {errors.fieldOfSpecialization && (
-                                    <p className="text-sm text-red-500">{errors.fieldOfSpecialization}</p>
+                                {errors.field_of_specialization && (
+                                    <p className="text-sm text-red-500">{errors.field_of_specialization}</p>
                                 )}
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="researchInterest">Research Interests</Label>
+                                <Label htmlFor="research_interest">Research Interests</Label>
                                 <Textarea
-                                    id="researchInterest"
-                                    value={data.researchInterest}
-                                    onChange={(e) => setData('researchInterest', e.target.value)}
+                                    id="research_interest"
+                                    value={data.research_interest}
+                                    onChange={(e) => setData('research_interest', e.target.value)}
                                     placeholder="Describe your research interests and areas of expertise..."
                                     rows={4}
-                                    className={errors.researchInterest ? 'border-red-500' : ''}
+                                    className={errors.research_interest ? 'border-red-500' : ''}
                                 />
-                                {errors.researchInterest && (
-                                    <p className="text-sm text-red-500">{errors.researchInterest}</p>
+                                {errors.research_interest && (
+                                    <p className="text-sm text-red-500">{errors.research_interest}</p>
                                 )}
                             </div>
                         </CardContent>

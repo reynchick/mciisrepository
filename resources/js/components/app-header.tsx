@@ -49,7 +49,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const getInitials = useInitials();
     
     // Use the full name from the new fields
-    const fullName = `${auth.user.firstName} ${auth.user.middleName ? auth.user.middleName + ' ' : ''}${auth.user.lastName}`;
+    const fullName = `${auth.user.first_name} ${auth.user.middle_name ? auth.user.middle_name + ' ' : ''}${auth.user.last_name}`;
     
     return (
         <>
