@@ -34,7 +34,12 @@ return new class extends Migration
             $table->string('research_approval_sheet')->nullable(); // image path
             $table->string('research_manuscript')->nullable();     // pdf path
             $table->timestamp('archived_at')->nullable();
-            $table->string('archived_by')->nullable();
+            $table->foreignId('archived_by')
+                ->nullable()
+                ->constrained('users')
+                ->restrictOnDelete()
+                ->cascadeOnUpdate()
+                ->index();
             $table->text('archive_reason')->nullable();
             $table->timestamps();
         });

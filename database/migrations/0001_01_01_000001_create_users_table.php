@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('last_name');
             $table->string('contact_number')->nullable();
             $table->string('email')->unique()->comment('Must end with @usep.edu.ph');
-            $table->enum('role', ['Administrator', 'MCIIS Staff', 'Faculty', 'Student'])->default('Student')->index();
+            $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete()->index();
             $table->string('password');
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
