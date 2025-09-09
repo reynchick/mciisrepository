@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Builder;
 
 class Research extends Model
 {
@@ -90,7 +91,7 @@ class Research extends Model
     /**
      * Scope a query to only include non-archived research.
      */
-    public function scopeActive($query)
+    public function scopeActive($query): Builder
     {
         return $query->whereNull('archived_at');
     }
@@ -98,7 +99,7 @@ class Research extends Model
     /**
      * Scope a query to only include archived research.
      */
-    public function scopeArchived($query)
+    public function scopeArchived($query): Builder
     {
         return $query->whereNotNull('archived_at');
     }

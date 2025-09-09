@@ -5,15 +5,14 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Faculty;
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class RegisteredUserController extends Controller
@@ -39,7 +38,7 @@ class RegisteredUserController extends Controller
             'last_name' => 'required|string|max:255',
             'student_id' => 'nullable|regex:/^\d{4}-\d{5}$/|unique:users,student_id',
             'contact_number' => ['required', 'regex:/^(09|\+63\s?9)\d{9}$/'],
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class.'|regex:/^[^@]+@usep\.edu\.ph$/',
+            'email' => 'required|string|lowercase|email|max:255|unique:users,email|regex:/^[^@]+@usep\.edu\.ph$/',
             'role' => 'required|in:Faculty,Student',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ], [
@@ -49,22 +48,29 @@ class RegisteredUserController extends Controller
             'role.in' => 'Only Faculty and Student roles are allowed for registration.',
         ]);
 
-        // Make student_id required for Student role
+        // Require student_id if role = Student
         if ($request->role === 'Student' && !$request->student_id) {
             throw ValidationException::withMessages([
                 'student_id' => 'Student ID is required for student accounts.'
             ]);
         }
 
-        // For Faculty role, verify email exists in faculty entity
+        // Validate Faculty role against Faculty table
         if ($request->role === 'Faculty') {
             $faculty = Faculty::where('email', $request->email)->first();
-            
             if (!$faculty) {
                 throw ValidationException::withMessages([
                     'email' => 'This email is not registered in our faculty database. Please contact the administrator.'
                 ]);
             }
+        }
+
+        // Resolve role_id from Role model
+        $role = Role::where('name', $request->role)->first();
+        if (!$role) {
+            throw ValidationException::withMessages([
+                'role' => 'Selected role is invalid.',
+            ]);
         }
 
         $user = User::create([
@@ -74,14 +80,11 @@ class RegisteredUserController extends Controller
             'student_id' => $request->student_id,
             'contact_number' => $request->contact_number,
             'email' => $request->email,
-            'role' => $request->role,
+            'role_id' => $role->id, // ✅ save role_id instead of role
             'password' => Hash::make($request->password),
         ]);
 
         event(new Registered($user));
-
-        // Don't auto-login, require email verification first
-        // Auth::login($user);
 
         return redirect()->route('verification.notice')
             ->with('status', 'Account created successfully! Please check your email to verify your account before logging in.');

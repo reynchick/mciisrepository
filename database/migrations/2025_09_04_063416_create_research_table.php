@@ -19,8 +19,9 @@ return new class extends Migration
                 ->index();
             $table->string('research_title')->unique();
             $table->foreignId('research_adviser')
+                ->nullable()
                 ->constrained('faculties')
-                ->restrictOnDelete()
+                ->nullOnDelete()
                 ->cascadeOnUpdate()
                 ->index();
             $table->foreignId('program_id')
@@ -37,7 +38,7 @@ return new class extends Migration
             $table->foreignId('archived_by')
                 ->nullable()
                 ->constrained('users')
-                ->restrictOnDelete()
+                ->nullOnDelete()
                 ->cascadeOnUpdate()
                 ->index();
             $table->text('archive_reason')->nullable();

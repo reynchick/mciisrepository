@@ -163,6 +163,7 @@ class ResearchPolicy
             return true;
         }
 
+        // Faculty mapping to adviser is not reliable yet → deny
         return false;
     }
 

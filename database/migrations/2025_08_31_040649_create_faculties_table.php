@@ -13,18 +13,18 @@ return new class extends Migration
     {
         Schema::create('faculties', function (Blueprint $table) {
             $table->id();
-            $table->string('facultyID')->unique(); // e.g., 2022-80000
-            $table->string('firstName');
-            $table->string('middleName')->nullable();
-            $table->string('lastName');
+            $table->string('faculty_id')->unique();
+            $table->string('first_name');
+            $table->string('middle_name')->nullable();
+            $table->string('last_name');
             $table->string('position')->nullable();
             $table->string('designation')->nullable();
             $table->string('email')->nullable()->unique();
-            $table->string('ORCID')->nullable();
-            $table->string('contactNumber')->nullable();
-            $table->string('educationalAttainment')->nullable();
-            $table->text('fieldOfSpecialization')->nullable();
-            $table->text('researchInterest')->nullable();
+            $table->string('orcid')->nullable();
+            $table->string('contact_number')->nullable();
+            $table->string('educational_attainment')->nullable();
+            $table->text('field_of_specialization')->nullable();
+            $table->text('research_interest')->nullable();
             $table->timestamps();
         });
     }

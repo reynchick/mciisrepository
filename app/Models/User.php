@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Notifications\CustomVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -68,13 +69,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return $name;
     }
 
-    public function role()
+    public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
     }
 
     /**
-     * Check if the user has a specific role.
+     * Check if user has a specific role
      */
     public function hasRole(string $role): bool
     {
@@ -86,7 +87,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isStudent(): bool
     {
-        return $this->role === 'Student';
+        return $this->hasRole('Student');
     }
 
     /**
@@ -94,7 +95,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isAdministrator(): bool
     {
-        return $this->role === 'Administrator';
+        return $this->hasRole('Administrator');
     }
 
     /**
@@ -102,7 +103,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isFaculty(): bool
     {
-        return $this->role === 'Faculty';
+        return $this->hasRole('Faculty');
     }
 
     /**
@@ -110,7 +111,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isMCIISStaff(): bool
     {
-        return $this->role === 'MCIIS Staff';
+        return $this->hasRole('MCIIS Staff');
     }
 
     /**
