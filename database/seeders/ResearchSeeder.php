@@ -2,65 +2,28 @@
 
 namespace Database\Seeders;
 
+use Illuminate\Database\Seeder;
 use App\Models\Research;
+use App\Models\User;
 use App\Models\Faculty;
 use App\Models\Program;
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 
 class ResearchSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Get the first user as the uploader (assuming user ID 2 exists)
-        $uploader = User::find(2);
-        if (!$uploader) {
-            // If user 2 doesn't exist, create a default user or use the first available user
-            $uploader = User::first();
-            if (!$uploader) {
-                $this->command->error('No users found. Please run UserSeeder first.');
-                return;
-            }
-        }
+        // Get the uploader (replace email with actual uploader email)
+        $uploader = User::where('email', 'gjeroque00800@usep.edu.ph')->firstOrFail();
 
-        // Get the BSIT program
-        $bsitProgram = Program::where('name', 'Bachelor of Science in Information Technology')->first();
-        if (!$bsitProgram) {
-            $this->command->error('BSIT program not found. Please run ProgramSeeder first.');
-            return;
-        }
-
-        // Faculty email to ID mapping
-        $facultyEmails = [
-            'marvin@usep.edu.ph' => 7,
-            'tammy@usep.edu.ph' => 10,
-            'epricablanca@usep.edu.ph' => 26,
-            'nancy.mozo@usep.edu.ph' => 12,
-            'jamalkay.rogers@usep.edu.ph' => 16,
-            'michaelanthony.jandayan@usep.edu.ph' => 27,
-            'franch@usep.edu.ph' => 28,
-            'cramante@usep.edu.ph' => 2,
-            'hermoso.tupas@usep.edu.ph' => 19,
-            'cedumdumaya@usep.edu.ph' => 4,
-            'ariel.reyes@usep.edu.ph' => 15,
-            'ikmachica@usep.edu.ph' => 8,
-            'maui@usep.edu.ph' => 20,
-            'val@usep.edu.ph' => 29,
-        ];
-
-        $researchData = [
-            // 2020 Research
+        // Define all research entries
+        $researchEntries = [
             [
                 'title' => 'COPTURE: AUTOMATION OF TRAFFIC TICKET ISSUANCE USING PDF417 BARCODE SCANNER',
                 'adviser_email' => 'marvin@usep.edu.ph',
                 'program_name' => 'Bachelor of Science in Information Technology',
                 'month' => 5,
                 'year' => 2020,
-                'abstract' => 'Double encoding of traffic citations became a significant problem for the Apprehension Unit in the City Transport and Traffic Management Office. Every day, they have to encode the endorsed traffic tickets into an excel sheet, and they have even experienced a month\'s worth of backlog due to the increase in citation tickets. CopTure was developed to solve the agency\'s problem in double encoding and to enhance the process of issuing a traffic ticket. The researchers designed and developed a mobile application that will automate the issuance of traffic citations by scanning and obtaining data from a driver\'s license. They also developed a web-based record system that will allow authorized employees to monitor traffic citations. To achieve this, the researchers followed the Rapid Application Development method. The researchers conducted an interview at the CTTMO to thoroughly understand the problem and established a set of objectives to solve it. The objectives served as a guide in implementing all the features needed to complete the project. The mobile application and web-based system went through rapid prototyping and iterative delivery until all the objectives were met. A validation test was also conducted to ensure that both the application and the system are fully functioning. Overall, this project paints a picture of the future traffic ticketing system and encourages the acceptance of technology as a new way of implementing traffic management. The project would not be feasible without the unwavering commitment and cooperation that each of the researchers showed to successfully finish the project. The whole project might be finished and thrived, but it is still open for future improvements and additional features based on users\' future needs.',
+                'abstract' => "Double encoding of traffic citations became a significant problem for the Apprehension Unit in the City Transport and Traffic Management Office...",
             ],
             [
                 'title' => 'FINnish Na: AN IOT APPLICATION SYSTEM FOR FISH MORTALITY RATE MONITORING USING ULTRASONIC SENSORS',
@@ -68,7 +31,7 @@ class ResearchSeeder extends Seeder
                 'program_name' => 'Bachelor of Science in Information Technology',
                 'month' => 5,
                 'year' => 2020,
-                'abstract' => 'Fish mortality is a natural occurrence that can happen when cultivating a fish farm. It is undeniable that fish deaths transpire now and then. Problems that contribute to fish mortality include weather that causes oxygen depletion, fish disease, as well as dead fish/es itself, among other things. These dead fishes, if not retrieved and left to rot, pose an even greater threat within a farm, especially when these carcasses sink instead of floating. If cultivators aren\'t careful enough, these rotting fish may release harmful chemicals that can contaminate the fishpond\'s water and compromise other healthy fishes. An interview was conducted among fish farmers in Matina Aplaya to find out how they address such issues. Collectively, they responded by having scheduled underwater checking for dead fish that sank at the bottom of the pond, which is time-consuming and inefficient. Hence, the proponents developed a system, FINnish Na, to reduce and address this specific fish farmer problem. Primarily using an ultrasonic sensor placed at the bottom of a basin, the proponents have simulated a miniature fishpond. When the sensor detects the presence of dead fish in the pond, the system will notify fish farmers through a notification in the app. The app can also provide the mortality rate of the fish and gives a daily and monthly report of the number of dead fish that the fish farm has so far. After testing the system for four (4) days, split between two pond conditions: with live fish and without, the proponents made comparisons of each day\'s result. It was evident that there was variability among the results. Significantly, however, there is a slight inconsistency of sensor readings when live fishes are present and if they are constantly moving. Based on the results of this study, the proponents recommend that an advanced type of ultrasonic sensor is utilized, as well as improve the sensor detection function, where constant interferences such as fish movement are ignored.',
+                'abstract' => "Fish mortality is a natural occurrence that can happen when cultivating a fish farm...",
             ],
             [
                 'title' => 'CODE CAPTURE: MOBILE IDE FOR ENHANCING PROGRAMMING LOGIC BY CAPTURING PSEUDOCODES INTO READILY EXECUTABLE SCRIPTS USING OCR TECHNOLOGY',
@@ -76,7 +39,7 @@ class ResearchSeeder extends Seeder
                 'program_name' => 'Bachelor of Science in Information Technology',
                 'month' => 7,
                 'year' => 2020,
-                'abstract' => 'Laptops and smartphones are used by almost everyone in this current era. These devices are popularly used at home, school, and work environments. Students, in particular, prefer using laptops because they are more efficient to be used for notetaking, writing, editing, and studying. Having said that, several economically marginalized students may not experience the convenience that these devices could offer. This financial instability could be a big issue especially for technology-related students since laptops play a crucial role in learning the basics of computer programming. Therefore, the researchers have conducted this study, "Code Capture: Mobile IDE for Enhancing Programming Logic By Capturing Pseudocodes Into Readily Executable Scripts Using OCR Technology", a solution that could improve the current situation of students with financial difficulties of providing themselves laptops. This study created a dedicated mobile application to be used by students who have computer-related courses. It could serve as a compiler and decoder for computer programs. Following a Rapid Application Development (RAD) model, we used an effective and fair design to cater to the needs of different users.',
+                'abstract' => "Laptops and smartphones are used by almost everyone in this current era...",
             ],
             [
                 'title' => 'HEEDER: A VOIP-BASED HYBRID MOBILE APPLICATION FOR CLASSROOM INSTRUCTION DELIVERY',
@@ -84,7 +47,7 @@ class ResearchSeeder extends Seeder
                 'program_name' => 'Bachelor of Science in Information Technology',
                 'month' => 6,
                 'year' => 2020,
-                'abstract' => 'Two of the most common sources of distractions inside the classroom include noise and uncontrollable use of technology, specifically mobile devices, among students. Studies have shown that noise has a direct negative effect on student learning with language and reading development particularly affected. Moreover, technology is one of the factors which negatively affects the learning process of the students. The usage of mobile phones causes disturbance in the classroom affecting academic performances. However, due to the proliferating use of technology in classrooms, the researchers used this opportunity to utilize rather than restrict the students in using mobile devices as an effective tool for learning. Heeder is a mobile VOIP-enabled and hybrid voice distribution application that aims to provide an alternative tool for classroom instruction delivery. The purpose of this study was to provide convenience to learners who are easily distracted caused by noise and extensive use of mobile devices. Through the said application, teachers and students had the opportunity to better communicate with each other. The application established connections within users through creating channels, broadcasts real-time voice data, and monitors student users on the teachers\' side. Dynamic Systems Development Method was used to allow the researchers to create the application which requires flexible requirements in early phases. Upon fulfillment of this project, the proponents were able to develop a hybrid mobile application using Cordova framework that provides a tool for students in promoting learning through intent listening. For obvious reasons, network speed has an impact on the voice data quality of the application. Thus, the proponents have recommended creating an API that would not require the use of the internet for the reliability of voice data and localize the use of the application inside the campus. However, the application did not guarantee a total noise-free environment rather it enhanced the voice; thus, studies must consider eliminating the unpleasant noise especially in classroom settings.',
+                'abstract' => "Two of the most common sources of distractions inside the classroom include noise and uncontrollable use of technology...",
             ],
             [
                 'title' => 'SMARTASTH: A MOBILE APPLICATION FOR REAL-TIME MONITORING OF ASTHMATIC PATIENTS USING WEARABLE DEVICE FOR HEART RATE AND GEO-TAGGING',
@@ -92,7 +55,7 @@ class ResearchSeeder extends Seeder
                 'program_name' => 'Bachelor of Science in Information Technology',
                 'month' => 6,
                 'year' => 2020,
-                'abstract' => 'Asthma is a lifetime chronic disease taking off to anomalous lung functions and difficulty in breathing. Asthma influences more than 300 million individuals around the world. Asthmatic patients have trouble breathing and airflow obstruction caused by inflammation and constriction of the airways. Home monitoring of lung function is the preferred course of action to give physicians and asthma patients a chance to control the disease jointly. Thus, it is important to develop accurate and efficient asthma monitoring devices that are easy for patients to use. \n\nObserving on our own is the preliminary course of action to monitor, treat, and control chronic disease. Self-checking mutually causes doctors and patients to have authority over ongoing observing and to give on-time treatment. A classical spirometry test is currently the preeminent way to diagnose the severity of lung functions and their response to treatment, but it requires supervision. Currently, portable devices are available to monitor Peak Expiratory Flow, but it is expensive and inconvenient to use. \n\nPrediction of severe exacerbation triggered by uncontrolled asthma is highly important for patients suffering from asthma, as avoiding maleficent symptoms that could need special treatment or even hospitalization, can protect patients from the aftereffects of bronchodilation. As of late, there has been an increased use of wireless sensor networks and embedded systems in the medical sector. Healthcare providers are now attempting to use these devices to monitor patients in a more accurate and automated way. This would permit healthcare providers to have up-to-date patient information without physical interaction, allowing for more accurate diagnoses and better treatment. \n\nIn this study, we present work in progress on an application scenario where a smartphone is used to detect and quantitatively index early signs of asthma attack triggers. Here, the embedded microphone in the smartphone records the user\'s breath sound while motion-sensor-heart rate changes. \n\nThis will overcome the shortcomings of the existing system by home monitoring the lung functions and patient\'s environmental parameters over time without any supervision as in standard spirometry tests. Our design and results show that using only built-in sensors in smartphones, mobile phones can sufficiently and reliably monitor the health status of patients with long-term respiratory conditions such as asthma.',
+                'abstract' => "Asthma is a lifetime chronic disease taking off to anomalous lung functions and difficulty in breathing...",
             ],
             [
                 'title' => 'AEROFREE: AN IOT-ENABLED LPG LEAK DETECTION SYSTEM WITH PROXIMITY MAP',
@@ -100,7 +63,7 @@ class ResearchSeeder extends Seeder
                 'program_name' => 'Bachelor of Science in Information Technology',
                 'month' => 4,
                 'year' => 2020,
-                'abstract' => 'This study was conducted to prevent unnoticed gas leaks that might cause fire, increase awareness to the community, and help quicken the response time of the local fire department. The study drew attention to the fact that many fire incidents involving gas leaks resulted in massive explosions, human injuries, and even death. Furthermore, this research reveals that proper awareness, information, and prompt action are crucial to prevent such incidents. Aerofree app is a mobile application that uses an Arduino-based LPG leak sensor to help users detect dangerous levels of propane and butane gases. It notifies household owners and nearby households of a possible gas leak in the area. The Rapid Application Development (RAD) model was adopted, enabling early system integration and immediate troubleshooting. The application successfully activates actuators when LPG levels are high, sends alerts via SMS and app notifications, and provides a proximity heat map within a 100-meter radius of the device. This contributes to community safety and fire prevention.',
+                'abstract' => "This study was conducted to prevent unnoticed gas leaks that might cause fire, increase awareness to the community, and help quicken the response time of the local fire department. The study drew attention to the fact that many fire incidents involving gas leaks resulted in massive explosions, human injuries, and even death. Furthermore, this research reveals that proper awareness, information, and prompt action are crucial to prevent such incidents. Aerofree app is a mobile application that uses an Arduino-based LPG leak sensor to help users detect dangerous levels of propane and butane gases. It notifies household owners and nearby households of a possible gas leak in the area. The Rapid Application Development (RAD) model was adopted, enabling early system integration and immediate troubleshooting. The application successfully activates actuators when LPG levels are high, sends alerts via SMS and app notifications, and provides a proximity heat map within a 100-meter radius of the device. This contributes to community safety and fire prevention.",
             ],
             [
                 'title' => 'IMONGMOTHER: AN ANDROID-BASED COMMUNITY BREAST MILK SHARING APPLICATION USING GEOTAGGING AND CROWDSOURCING IN DAVAO CITY',
@@ -108,7 +71,7 @@ class ResearchSeeder extends Seeder
                 'program_name' => 'Bachelor of Science in Information Technology',
                 'month' => 5,
                 'year' => 2020,
-                'abstract' => 'In the Philippines, statistics have shown that many women are unable to exclusively breastfeed for six months due to insufficient breastmilk supply, while others produce excess. This study aims to connect these two groups through a mobile application that facilitates breastmilk sharing. The platform enables women with surplus milk to post donations, while those in need can request nearby donors using GPS filtering. The proponents utilized the Rapid Application Development (RAD) model to ensure timely system delivery and integration. The app fosters a breastfeeding culture, promotes maternal support, and helps alleviate postpartum challenges. The system met its objectives and opens opportunities for future improvements.',
+                'abstract' => "In the Philippines, statistics have shown that many women are unable to exclusively breastfeed for six months due to insufficient breastmilk supply, while others produce excess. This study aims to connect these two groups through a mobile application that facilitates breastmilk sharing. The platform enables women with surplus milk to post donations, while those in need can request nearby donors using GPS filtering. The proponents utilized the Rapid Application Development (RAD) model to ensure timely system delivery and integration. The app fosters a breastfeeding culture, promotes maternal support, and helps alleviate postpartum challenges. The system met its objectives and opens opportunities for future improvements.",
             ],
             [
                 'title' => 'CAREFUL: A MOBILE-BASED ROAD ALERT APPLICATION FOR ROAD SAFETY PRECAUTIONS USING GEOFENCING API',
@@ -116,7 +79,7 @@ class ResearchSeeder extends Seeder
                 'program_name' => 'Bachelor of Science in Information Technology',
                 'month' => 6,
                 'year' => 2020,
-                'abstract' => 'Road traffic accidents are rising due to increased vehicle usage and various human errors such as jaywalking, overspeeding, and distracted walking or driving. This project addresses pedestrian and driver safety through a mobile application that utilizes geofencing to send real-time alerts about nearby pedestrian lanes and accident-prone areas. It encourages safer behavior among both pedestrians and drivers. Drivers receive warnings near intersections, blind curves, and crowded zones, promoting speed control and attentiveness. The application contributes to road safety awareness and highlights the potential of mobile technology in minimizing accidents and improving public safety.',
+                'abstract' => "Road traffic accidents are rising due to increased vehicle usage and various human errors such as jaywalking, overspeeding, and distracted walking or driving. This project addresses pedestrian and driver safety through a mobile application that utilizes geofencing to send real-time alerts about nearby pedestrian lanes and accident-prone areas. It encourages safer behavior among both pedestrians and drivers. Drivers receive warnings near intersections, blind curves, and crowded zones, promoting speed control and attentiveness. The application contributes to road safety awareness and highlights the potential of mobile technology in minimizing accidents and improving public safety.",
             ],
             [
                 'title' => 'TRAVIL: A MOBILE APPLICATION COMPLAINT TOOL FOR TRAFFIC VIOLATIONS AND INCIDENTS USING LIVE VIDEO FEED AND REAL-TIME LOCATION TRACKING',
@@ -124,7 +87,7 @@ class ResearchSeeder extends Seeder
                 'program_name' => 'Bachelor of Science in Information Technology',
                 'month' => 6,
                 'year' => 2020,
-                'abstract' => 'The rapidly increasing number of vehicles also raises traffic congestion that impacts the quality of life and productivity in every developing country. Aside from that, it also increases the number of traffic violations and traffic incidents. CCTVs and traffic enforcers are no longer enough to manage this underlying problem because there are too few traffic enforcers for the number of vehicles. The purpose of this study is to create a mobile-based application that will help traffic enforcers in dealing with traffic violations and incidents happening around Davao City. A mobile-based application was made that will serve as a complaint tool for traffic enforcers using live video feed and real-time location tracking. Live video feed was used to help the traffic enforcer to immediately validate the report and real-time location tracking to guide traffic enforcers to reach the location of the violator or the area of the incident. This application, implemented in the android platform using Visual Studio Code, Ionic Framework, and Java, allows the proponents to achieve the goal. Keywords: Traffic congestion, Traffic violations, Mobile-based application, Live video feed, Real-time location tracking, Traffic enforcement technology, Ionic Framework and Java',
+                'abstract' => "The rapidly increasing number of vehicles also raises traffic congestion that impacts the quality of life and productivity in every developing country. Aside from that, it also increases the number of traffic violations and traffic incidents. CCTVs and traffic enforcers are no longer enough to manage this underlying problem because there are too few traffic enforcers for the number of vehicles. The purpose of this study is to create a mobile-based application that will help traffic enforcers in dealing with traffic violations and incidents happening around Davao City. A mobile-based application was made that will serve as a complaint tool for traffic enforcers using live video feed and real-time location tracking. Live video feed was used to help the traffic enforcer to immediately validate the report and real-time location tracking to guide traffic enforcers to reach the location of the violator or the area of the incident. This application, implemented in the android platform using Visual Studio Code, Ionic Framework, and Java, allows the proponents to achieve the goal.",
             ],
             [
                 'title' => 'LEARNDYS: AN EDUCATIONAL LEARNING APPLICATION FOR DYSLEXIC CHILDREN USING R.A.S.E. MODEL',
@@ -132,7 +95,7 @@ class ResearchSeeder extends Seeder
                 'program_name' => 'Bachelor of Science in Information Technology',
                 'month' => 12,
                 'year' => 2020,
-                'abstract' => 'One type of learning disability caused by a neurological disorder is dyslexia and the lack of intervention for dyslexic students is one of the major reasons why learners are frequently neglected and judged in society particularly by their peers. The importance of early intervention is vital. Although kids indeed learn in different ways and at different rates, it seems individuals with dyslexia are pretty much bom with special conditions in their brains. The earlier they receive an intervention, the higher the chance they may become better at learning words and reading. LearnDys was developed to help solve the problem of a lack of early intervention. The researchers designed and developed an educational learning application that provides cognitive and psychomotor activities intended for ages 3 to 6. The specific activities given by the application are only helpful for children with this condition. To achieve this, the researchers used the R.A.S.E. Model based on what is considered essential for ensuring quality in learning by using mobile applications to enhance the learning ability and ensure the entire achievement of the learning outcome. Based on the activities given, cognitive and psychomotor is part of the learning objective. Cognitive as the most common domain in learning that deals with the intellectual side, and psychomotor as a domain that focuses on motor skills and action requires physical coordination. The objective serves to complete and achieve the project and ensure that all the features must be present in the application. The researchers also seek help from the College of Education expert that handles children with this condition. Overall, this project would help the target users and address the problem with the help of technology. The project would not have been attainable without the researchers\' cooperation, hard work, and dedication. We hope that this project will improve more in the future and be able to deploy successfully. Keywords: Dyslexia intervention, Learning disability, Educational learning application, Cognitive and psychomotor activities, Early childhood education, R.A.S.E. Model, Mobile learning technology',
+                'abstract' => "One type of learning disability caused by a neurological disorder is dyslexia and the lack of intervention for dyslexic students is one of the major reasons why learners are frequently neglected and judged in society particularly by their peers. The importance of early intervention is vital. Although kids indeed learn in different ways and at different rates, it seems individuals with dyslexia are pretty much born with special conditions in their brains. The earlier they receive an intervention, the higher the chance they may become better at learning words and reading. LearnDys was developed to help solve the problem of a lack of early intervention. The researchers designed and developed an educational learning application that provides cognitive and psychomotor activities intended for ages 3 to 6. The specific activities given by the application are only helpful for children with this condition. To achieve this, the researchers used the R.A.S.E. Model based on what is considered essential for ensuring quality in learning by using mobile applications to enhance the learning ability and ensure the entire achievement of the learning outcome. Based on the activities given, cognitive and psychomotor is part of the learning objective. Cognitive as the most common domain in learning that deals with the intellectual side, and psychomotor as a domain that focuses on motor skills and action requires physical coordination. The objective serves to complete and achieve the project and ensure that all the features must be present in the application. The researchers also seek help from the College of Education expert that handles children with this condition. Overall, this project would help the target users and address the problem with the help of technology. The project would not have been attainable without the researchers' cooperation, hard work, and dedication. We hope that this project will improve more in the future and be able to deploy successfully.",
             ],
             [
                 'title' => 'PACOOL: A WEARABLE DEVICE PROVIDING COOLING EFFECT TO PREVENT HEAT-RELATED ILLNESSES USING PELTIER MODULE',
@@ -140,7 +103,7 @@ class ResearchSeeder extends Seeder
                 'program_name' => 'Bachelor of Science in Information Technology',
                 'month' => 6,
                 'year' => 2020,
-                'abstract' => 'An extreme heat wave is dangerous to people who are exposed directly to the heat, especially to elderly people who slowly absorb heat in the body that may lead to heatstroke. According to the World Health Organization, 70,000 people died in Europe because of the June-August event in 2003 and in 2010, 56,000 excess deaths occurred during a 44-day heat wave in the Russian Federation. Heat exhaustion may lead to heatstroke. If one has symptoms of heat exhaustion, it is necessary to get inside or find a cool shady place to cool down. Prevention is always better than cure. The fastest and most effective way of alleviating heatstroke or heat exhaustion is cooling the whole body. With the primary solution in preventing heatstroke, PaCool aims to develop a device that provides a cooling effect to help the users cool their bodies whenever their body temperature increases above normal body temperatures caused by the heat waves and a real-time mobile application that lets the user monitor their body temperature from time to time. The device of this project is attached in the wrist and the uppermost of the arm near the armpit where the temperature sensor can detect the body temperature of the user. The device located in the wrist releases a cooling sensation that enables to cool the whole body. The researchers used the Peltier module to produce cooling effects. Keywords: Heatwave prevention, Heatstroke and heat exhaustion, Body temperature monitoring, Wearable cooling device, Real-time mobile application, Peltier module technology, Heat protection',
+                'abstract' => "An extreme heat wave is dangerous to people who are exposed directly to the heat, especially to elderly people who slowly absorb heat in the body that may lead to heatstroke. According to the World Health Organization, 70,000 people died in Europe because of the June-August event in 2003 and in 2010, 56,000 excess deaths occurred during a 44-day heat wave in the Russian Federation. Heat exhaustion may lead to heatstroke. If one has symptoms of heat exhaustion, it is necessary to get inside or find a cool shady place to cool down. Prevention is always better than cure. The fastest and most effective way of alleviating heatstroke or heat exhaustion is cooling the whole body. With the primary solution in preventing heatstroke, PaCool aims to develop a device that provides a cooling effect to help the users cool their bodies whenever their body temperature increases above normal body temperatures caused by the heat waves and a real-time mobile application that lets the user monitor their body temperature from time to time. The device of this project is attached in the wrist and the uppermost of the arm near the armpit where the temperature sensor can detect the body temperature of the user. The device located in the wrist releases a cooling sensation that enables to cool the whole body. The researchers used the Peltier module to produce cooling effects.",
             ],
             [
                 'title' => 'COPIoT: A Web Based Monitoring System for Automated Copra Drying Process',
@@ -148,83 +111,15 @@ class ResearchSeeder extends Seeder
                 'program_name' => 'Bachelor of Science in Information Technology',
                 'month' => 6,
                 'year' => 2020,
-                'abstract' => 'Copra is produced using sun drying or smoke methods traditionally done by small-scale coconut farmers, and both methods of drying have adverse effects on the quality of copra. The study aims to aid the copra industry by producing an artificial drying machine for copra, to automate the drying process and gather real-time data. The web-based monitoring system integrated with the drying machine visualizes the drying process of copra, which guarantees the quality of copra produced by small-scale coconut farmers.',
+                'abstract' => "Copra is produced using sun drying or smoke methods traditionally done by small-scale coconut farmers, and both methods of drying have adverse effects on the quality of copra. The study aims to aid the copra industry by producing an artificial drying machine for copra, to automate the drying process and gather real-time data. The web-based monitoring system integrated with the drying machine visualizes the drying process of copra, which guarantees the quality of copra produced by small-scale coconut farmers.",
             ],
-
-            // 2021 Research
-            [
-                'title' => 'lsdaCulture An IoT - Based Water Temperature and Dissolved Oxygen Level Monitoring System for Milkfish Farming',
-                'adviser_email' => 'ikmachica@usep.edu.ph',
-                'program_name' => 'Bachelor of Science in Information Technology',
-                'month' => 8,
-                'year' => 2021,
-                'abstract' => 'In aquaculture, the main cause of fish mortality is an increase in water temperature that causes oxygen loss. The amount of dissolved oxygen in the water reduces as the temperature rises. The research aimed to design and develop an improved smart fish pond monitoring system for milkfish farming. It will notify the farmers whenever the water temperature or dissolved oxygen levels change. The system was designed to monitor pond water using temperature and dissolved oxygen level sensors. Sensors send pre-processed data to a server through the built-in WIFI module of the microcontroller. The mobile application generates significant pond parameters to generate significant parameters and activates actuators to maintain water temperature. The researchers used the Rapid Application Development (RAD) methodology as the development model to keep track of progress and give real-time updates on any problems or modifications that emerge. The devices used in this research were two sensors, three actuators, a mobile application, and a server. The testing process includes using pre-processed data that was sent to a local server. The server analyzes water temperature and dissolved oxygen levels. The app then displays the data in various places of the app once it has been processed. It also includes a series of conditional statements to identify the pond\'s state. The sensors detect changes in water temperature and alert the owner or caretaker by sending push notifications about temperature fluctuations after gathering and processing the data. It uses a microcontroller to analyze a sequence of conditional statements before activating the specific actuators. The study concluded that the microcontroller generated important parameters and data logs that indicated the pond and fish condition. A push notification was sent to the smartphone, informing it of the current state of the pond in real-time. The actuators will automatically turn on and off after regulating the water temperatures and dissolved oxygen levels.',
-            ],
-            [
-                'title' => 'UVwearloT: AN IoT BASED WEARABLE DEVICE COMPOSE OF TWO SMART SENSORS TO MONITOR ULTRAVIOLET INDEX (UVI) LEVEL (UV SENSOR) AND PULSE RATE MONITORING (PULSE SENSOR) TO TRACKDOWN ACTIVITIES',
-                'adviser_email' => 'hermoso.tupas@usep.edu.ph',
-                'program_name' => 'Bachelor of Science in Information Technology',
-                'month' => 6,
-                'year' => 2021,
-                'abstract' => 'There are two types of UV light that are proven to contribute to the risk for skin cancer: Ultraviolet A (UVA) and Ultraviolet B (UVB). This study developed a wearable device with UV and pulse rate sensors connected to a mobile app to notify the user about UV radiation risks and abnormal pulse rate. The system was developed using Android Studio and Arduino IDE for real-time monitoring and notifications for user safety.',
-            ],
-            [
-                'title' => 'EMPATHYVR: A LEARNING COMMUNICATION PLATFORM FOR CHILDREN WITH AUTISM',
-                'adviser_email' => 'hermoso.tupas@usep.edu.ph',
-                'program_name' => 'Bachelor of Science in Information Technology',
-                'month' => 1,
-                'year' => 2021,
-                'abstract' => 'This research aimed to develop an assistive technology using virtual reality to improve the communication skills of children with autism. The system is designed as a game-based learning platform that helps users progress through levels to enhance communication abilities, with data monitored to track their development. Despite the challenges posed by the COVID-19 pandemic, the study showed that virtual reality can be an effective method for autistic children.',
-            ],
-            [
-                'title' => 'SOS\'IoT: A Noise Monitoring and Warning Tool for Barangay',
-                'adviser_email' => 'maui@usep.edu.ph',
-                'program_name' => 'Bachelor of Science in Information Technology',
-                'month' => 6,
-                'year' => 2021,
-                'abstract' => 'This study developed a noise monitoring system to help barangay officials promote peace and order by monitoring noise levels in their area. The system utilized the Rapid Application Development (RAD) methodology, and despite challenges due to the COVID-19 pandemic, the researchers developed a noise detection simulator using an ESP8266 and KY-038 microphone. The mobile app developed showed the retrieved data for analysis.',
-            ],
-            [
-                'title' => 'RedPing: An IoT-Based Flood Detection System for Urban Areas',
-                'adviser_email' => 'hermoso.tupas@usep.edu.ph',
-                'program_name' => 'Bachelor of Science in Information Technology',
-                'month' => 10,
-                'year' => 2021,
-                'abstract' => 'Flooding is an imminent phenomenon mostly in equatorial regions. Risk and challenges occur from flooding when it involves endangering lives and damage to properties. Traditional studies and solutions to flooding often involve monitoring inland bodies of water such as rivers, dams, and lowly elevated areas. However, there is little attention given to street flooding, its effects on transportation, and its solutions. The paper investigated the effects of street flooding in transportation and the current solutions available. RedPing is an IoT-based solution to monitor street floods using sonar technology housed in a pole structure to measure flood levels. Data is sent to a server that serves as the database for the application.',
-            ],
-            [
-                'title' => 'IoTae: A Web Based Monitoring System for Harmful Algal Bloom Growth in Ponds Using Water Temperature, Ph and Dissolved Oxygen Sensors',
-                'adviser_email' => 'ariel.reyes@usep.edu.ph',
-                'program_name' => 'Bachelor of Science in Information Technology',
-                'month' => 12,
-                'year' => 2021,
-                'abstract' => 'The proposed project IoTae is a web-based system that monitors the presence of harmful algal bloom growth in ponds using temperature, pH and dissolved oxygen (DO) sensors. The project aims to raise awareness and provide early warnings to pond owners, government organizations, and LGUs to take actions before it becomes critical. The system provides notifications when the indicators reach or exceed the optimum level, triggering the aeration process.',
-            ],
-            [
-                'title' => 'Project T-RAT: An IoT Based Smart-Trapper for Rats',
-                'adviser_email' => 'ariel.reyes@usep.edu.ph',
-                'program_name' => 'Bachelor of Science in Information Technology',
-                'month' => 12,
-                'year' => 2021,
-                'abstract' => 'The project T-RAT was developed to help household and business owners capture rats in their establishments. The device uses sensors (weight sensor, infrared sensor, and camera) to ensure accurate rat capture. The system notifies users through a mobile application when a rat is captured. The system underwent several phases of development, including testing the accuracy of the device, notification speed, and safety features for handling the trap.',
-            ],
-            [
-                'title' => 'HAPPAG: A MOBILE APPLICATION CONNECTING FOOD DONORS AND DONEES TO PREVENT FOOD WASTES',
-                'adviser_email' => 'val@usep.edu.ph',
-                'program_name' => 'Bachelor of Science in Information Technology',
-                'month' => 6,
-                'year' => 2021,
-                'abstract' => 'The following was a proposal for a mobile application that helps prevent food wastage. The goal was to help reduce food wastes being thrown into landfills that would cause serious issues to the environment such as climate change. Generally, this application helps connect food-related establishments, charitable organizations, and food composting facilities by allowing food-related establishments such as restaurants, supermarkets, cafeterias, and fast-food chains to donate their food waste and encourage them not to throw away food. Additionally, to make use of inedible food waste that can be used for composting. The application had undergone four phases of development using an agile software development methodology due to the amount of time given for the completion of this project. The proponents focused on prototype iterations with less planning time and measured progress and communicated real-time on evolving issues. The application displays a geographical representation of nearby donors and recipients that matches their needs using Google Map API. Furthermore, the proponents used a library called Socket.IO that was used for in-app messaging, allowing both users to interact or communicate real-time through the mobile application and react native chart kits plugin to display through visualization the donated food wastes to provide donors a decision support by analyzing the data to help them assess the reduction or increase of their food wastes. The project aimed to raise awareness of the impacts of food wastes and encouraged food-related establishments, including households to avoid throwing edible foods considering that there are some people who don\'t have enough food on their table. After thorough research and development, the objectives of the project were met, and results showed that the application developed was able to help donors donate their food wastes to recipients easily and conveniently, leading towards food waste prevention.',
-            ],
-
-            // 2022 Research
             [
                 'title' => 'E-MONGANI: A Mobile Application for Marketing Rice Through a Bidding System',
                 'adviser_email' => 'marvin@usep.edu.ph',
                 'program_name' => 'Bachelor of Science in Information Technology',
                 'month' => 6,
                 'year' => 2022,
-                'abstract' => 'This research presents an e-commerce mobile application for palay marketing that bridges the gap between local farmers and buyers. It includes a bidding feature that allows farmers to set a minimum price for their palay, helping them to accumulate fair value for their product. The system provides a strategy for rice farmers to sell their product directly to buyers, circumventing middlemen, and ensuring higher profit margins.',
+                'abstract' => "This research presents an e-commerce mobile application for palay marketing that bridges the gap between local farmers and buyers. It includes a bidding feature that allows farmers to set a minimum price for their palay, helping them to accumulate fair value for their product. The system provides a strategy for rice farmers to sell their product directly to buyers, circumventing middlemen, and ensuring higher profit margins.",
             ],
             [
                 'title' => 'DamageXpert: A Mobile-Based Application for the Identification of Damages Caused by Rice Leaf Blast and Rice Stem Borer with Control Measures',
@@ -232,7 +127,7 @@ class ResearchSeeder extends Seeder
                 'program_name' => 'Bachelor of Science in Information Technology',
                 'month' => 7,
                 'year' => 2022,
-                'abstract' => 'The DamageXpert mobile application helps farmers detect and identify damages caused by rice leaf blast and rice stem borer. It aids farmers in differentiating the symptoms and managing these infestations through Integrated Pest Management (IPM). This tool provides a practical and efficient solution to minimize crop damage and improve rice yield by offering accurate pest control measures.',
+                'abstract' => "The DamageXpert mobile application helps farmers detect and identify damages caused by rice leaf blast and rice stem borer. It aids farmers in differentiating the symptoms and managing these infestations through Integrated Pest Management (IPM). This tool provides a practical and efficient solution to minimize crop damage and improve rice yield by offering accurate pest control measures.",
             ],
             [
                 'title' => 'QualitAire: An IoT-Based Air Quality Monitoring System with Forecasting Capability Through Time Series Model Analysis',
@@ -240,7 +135,7 @@ class ResearchSeeder extends Seeder
                 'program_name' => 'Bachelor of Science in Information Technology',
                 'month' => 6,
                 'year' => 2022,
-                'abstract' => 'Air pollution is defined as contamination of the indoor or outdoor environment by any chemical, physical, or biological agent that alters the inherent properties of the atmosphere. Particulate matter, carbon monoxide, ozone, nitrogen dioxide, and sulfur dioxide are all serious public health concerns. Air pollution, both indoor and outdoor, causes respiratory and other illnesses and is a major cause of morbidity and mortality. This study aims to create a system with forecasting capability by constantly updating the current air concentrations and predicting the next numbers of the Air Quality Index or AQI. This study intends to make practical and effective use of the Internet of Things (IoT) concept. This study consists of a device with sensors, namely, DSM501A PM Sensor, MQ7 CO Sensor, and MQ131 03 Sensor. A mobile-responsive web application and a cloud database. These sensors will be connected to the Arduino UNO microcontroller and then to the NODEMCU WiFi module. The microcontroller will send the data from the sensors to the cloud database. The data stored on the cloud database can be viewed on the mobile-responsive web application. This provides accurate time information on the actual air concentrations and their AQI, along with a table of the latest data of its previous readings. As shown in the line graph, the prediction feature can be observed at every 30-minute interval. Using the Time Series Model, particularly the ARIMA model of getting prediction. Lastly, the system has an archive feature so that all the data sent by the device can be seen for future reference.',
+                'abstract' => "Air pollution is defined as contamination of the indoor or outdoor environment by any chemical, physical, or biological agent that alters the inherent properties of the atmosphere. Particulate matter, carbon monoxide, ozone, nitrogen dioxide, and sulfur dioxide are all serious public health concerns. Air pollution, both indoor and outdoor, causes respiratory and other illnesses and is a major cause of morbidity and mortality. This study aims to create a system with forecasting capability by constantly updating the current air concentrations and predicting the next numbers of the Air Quality Index or AQI. This study intends to make practical and effective use of the Internet of Things (IoT) concept. This study consists of a device with sensors, namely, DSM501A PM Sensor, MQ7 CO Sensor, and MQ131 03 Sensor. A mobile-responsive web application and a cloud database. These sensors will be connected to the Arduino UNO microcontroller and then to the NODEMCU WiFi module. The microcontroller will send the data from the sensors to the cloud database. The data stored on the cloud database can be viewed on the mobile-responsive web application. This provides accurate time information on the actual air concentrations and their AQI, along with a table of the latest data of its previous readings. As shown in the line graph, the prediction feature can be observed at every 30-minute interval. Using the Time Series Model, particularly the ARIMA model of getting prediction. Lastly, the system has an archive feature so that all the data sent by the device can be seen for future reference.",
             ],
             [
                 'title' => 'DESIGN AND DEVELOPMENT OF A MOBILE-BASED MALICIOUS URL DETECTION APPLICATION',
@@ -248,7 +143,7 @@ class ResearchSeeder extends Seeder
                 'program_name' => 'Bachelor of Science in Information Technology',
                 'month' => 6,
                 'year' => 2022,
-                'abstract' => 'Year over year, communication tools such as social media are highly targeted by cybercriminals. Their schemes include the distribution of malicious URLs. A malicious URL is a URL that facilitates scams, frauds, and a cyberattack. By clicking on a malicious URL, a person can automatically download a malware program or a virus that can take over their devices or trick them into disclosing sensitive information on a fake website. End users who lack a fundamental understanding of information security are easier to be exploited by cybercriminals. One of the solutions for this kind of problem is using blocklist lookup; though effective, blocklists have a significant false-negative rate and lack the ability to detect newly generated malicious URLs. To address this problem, the researchers developed a mobile application called Mal Where, which can detect website links from image data. MalWhere also utilizes and combines the two known URL classification approaches: blocklisting and machine learning. With the blocklist service, MalWhere has access to a large number of Malicious URLs around the world. With machine learning, MalWhere can predict the classification of a URL, whether it is benign or malicious. The classification model was trained using 39 features and a supervised machine learning classifier called XGBoost. The classification ability of the model is mainly used to classify unknown and benign URLs to the blocklist service. Based on the conducted testing, MalWhere has an 88% accuracy rate in predicting the classification of a URL-whether it is benign or malicious.',
+                'abstract' => 'Year over year, communication tools such as social media are highly targeted by cybercriminals. Their schemes include the distribution of malicious URLs...'
             ],
             [
                 'title' => 'STUDYMATE: A STUDY PEER RECOMMENDER APP USING RECIPROCAL RECOMMENDATION ALGORITHM',
@@ -256,7 +151,7 @@ class ResearchSeeder extends Seeder
                 'program_name' => 'Bachelor of Science in Information Technology',
                 'month' => 6,
                 'year' => 2022,
-                'abstract' => 'When organizing a study group, finding and selecting a good study partner is essential because it increases the relevance and productivity of group discussions. Most of the time, students form study groups with peers with similar characteristics and interests. However, finding a suitable study mate takes time and effort. This work focused on creating a study peer recommender system that uses a reciprocal recommendation algorithm to help students find like-minded study partners and foster informal learning communities among students. The peer recommendation approach uses student traits, communicative openness, and Personality as matching factors. The modified waterfall model was utilized as the core methodology to implement the system for its flexibility in requirement evolution and iteration, which helped the proponents deliver the project on schedule.',
+                'abstract' => 'When organizing a study group, finding and selecting a good study partner is essential because it increases the relevance and productivity of group discussions...'
             ],
             [
                 'title' => 'STRESSSENSE: A STRESS LEVEL DETECTOR FOR DETERMINATION OF STRESS LEVEL THROUGH THE COMBINATION OF PHYSIOLOGICAL DATA OF GALVANIC SKIN RESPONSE AND PULSE RATE',
@@ -264,50 +159,628 @@ class ResearchSeeder extends Seeder
                 'program_name' => 'Bachelor of Science in Information Technology',
                 'month' => 2,
                 'year' => 2022,
-                'abstract' => 'Stress is generally experienced in our daily lives. It is also inescapable. Stress is a response to a particular event or situation. It is the way that our body prepares to face difficult situations which require focus, strength, and heightened alertness. If an individual experiences stress, the body will react to respond to the causes or factors of stress. The body responds through sweat glands which produce electrical flow (conductance) and pulse rate as well. In this paper, a device was developed to be able to determine the stress level of an individual, particularly for the tertiary students at the University of Southeastern Philippines. Galvanic Skin Response (GSR) detects strong emotions and electrical flow through the skin and the pulse sensor detects the fluctuation of the blood pumped by the human heart (beats-per-minute/BMP). The gathered data will be interpreted to its corresponding level based on the stress parameters and will provide the final stress level output based on the table formulated from the fuzzy logic method. The testing was conducted alongside the ten (10) respondents; five (5) male and five (5) female students at the said university and their final stress level was displayed through the serial monitor of Arduino.',
+                'abstract' => 'Stress is generally experienced in our daily lives. It is also inescapable. Stress is a response to a particular event or situation...'
             ],
             [
                 'title' => 'ATONGSECRET: A WEB-BASED FILE SHARING AND MESSAGING APPLICATION USING IMAGE STEGANOGRAPHY',
-                'adviser_email' => null, // This one has NULL adviser
+                'adviser_email' => null,
                 'program_name' => 'Bachelor of Science in Information Technology',
                 'month' => 6,
                 'year' => 2022,
-                'abstract' => 'Steganography is concealing user data in various file types, such as photographs. The primary goal of steganography is to conceal private data; therefore, it should be treated with care. The security of Steganography is based on the invisibility of secret information in the stego picture, allowing the information to remain undetectable. The researchers developed a web application using Least Significant Bit Steganography in this capstone project. The project results showed that the web app successfully sent messages, concealed files in images, verified the receiver with a stego key, and displayed push notifications for received messages and files. The researchers used PHP, CSS, HTML, MYSQL, AJAX, JQUERY, and Hostinger web hosting to test and develop the web application. The application developed in this project became a medium where users safely send messages, was able to conceal files, deliver the stego key to the intended receiver and showed push notifications to its users.',
+                'abstract' => 'Steganography is concealing user data in various file types, such as photographs. The primary goal of steganography is to conceal private data...'
+            ],
+            [
+                'title' => 'lsdaCulture An IoT - Based Water Temperature and Dissolved Oxygen Level Monitoring System for Milkfish Farming',
+                'adviser_email' => 'ikmachica@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 8,
+                'year' => 2021,
+                'abstract' => 'In aquaculture, the main cause of fish mortality is an increase in water temperature that causes oxygen loss...'
+            ],
+            [
+                'title' => 'UVwearloT: AN IoT BASED WEARABLE DEVICE COMPOSE OF TWO SMART SENSORS TO MONITOR ULTRAVIOLET INDEX (UVI) LEVEL (UV SENSOR) AND PULSE RATE MONITORING (PULSE SENSOR) TO TRACKDOWN ACTIVITIES',
+                'adviser_email' => 'hermoso.tupas@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 6,
+                'year' => 2021,
+                'abstract' => 'There are two types of UV light that are proven to contribute to the risk for skin cancer: Ultraviolet A (UVA) and Ultraviolet B (UVB)...'
+            ],
+            [
+                'title' => 'EMPATHYVR: A LEARNING COMMUNICATION PLATFORM FOR CHILDREN WITH AUTISM',
+                'adviser_email' => 'hermoso.tupas@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 1,
+                'year' => 2021,
+                'abstract' => 'This research aimed to develop an assistive technology using virtual reality to improve the communication skills of children with autism...'
+            ],
+            [
+                'title' => 'SOS\'IoT: A Noise Monitoring and Warning Tool for Barangay',
+                'adviser_email' => 'maui@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 6,
+                'year' => 2021,
+                'abstract' => 'This study developed a noise monitoring system to help barangay officials promote peace and order by monitoring noise levels in their area...'
+            ],
+            [
+                'title' => 'RedPing: An IoT-Based Flood Detection System for Urban Areas',
+                'adviser_email' => 'hermoso.tupas@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 10,
+                'year' => 2021,
+                'abstract' => 'Flooding is an imminent phenomenon mostly in equatorial regions. Risk and challenges occur from flooding when it involves endangering lives and damage to properties...'
+            ],
+            [
+                'title' => 'IoTae: A Web Based Monitoring System for Harmful Algal Bloom Growth in Ponds Using Water Temperature, Ph and Dissolved Oxygen Sensors',
+                'adviser_email' => 'ariel.reyes@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 12,
+                'year' => 2021,
+                'abstract' => 'The proposed project IoTae is a web-based system that monitors the presence of harmful algal bloom growth in ponds using temperature, pH and dissolved oxygen (DO) sensors...'
+            ],
+            [
+                'title' => 'Project T-RAT: An IoT Based Smart-Trapper for Rats',
+                'adviser_email' => 'ariel.reyes@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 12,
+                'year' => 2021,
+                'abstract' => 'The project T-RAT was developed to help household and business owners capture rats in their establishments. The device uses sensors (weight sensor, infrared sensor, and camera) to ensure accurate rat capture...'
+            ],
+            [
+                'title' => 'HAPPAG: A MOBILE APPLICATION CONNECTING FOOD DONORS AND DONEES TO PREVENT FOOD WASTES',
+                'adviser_email' => 'val@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 6,
+                'year' => 2021,
+                'abstract' => 'The following was a proposal for a mobile application that helps prevent food wastage. The goal was to help reduce food wastes being thrown into landfills...'
+            ],
+            [
+                'title' => 'DIPRICE: A RICE QUALITY IDENTIFIER USING DIGITAL IMAGE PROCESSING',
+                'adviser_email' => 'rsgamboa@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 5,
+                'year' => 2021,
+                'abstract' => 'Rice the staple food in the country and determining the current quality state of it is hard for many consumers...'
+            ],
+            [
+                'title' => 'HeHaSpot: A Human Health Hazard Web and a Mobile Surveillance Application',
+                'adviser_email' => 'leah.pelias@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 12,
+                'year' => 2021,
+                'abstract' => 'Awareness of health issues is important for visibility and community. One of the basic health awareness is to maintain your surroundings clean and green...'
+            ],
+            [
+                'title' => 'SPEEDISOR: A WEB AND MOBILE-BASED APPLICATION TO MONITOR TAXI DRIVER SPEED LIMIT VIOLATION USING A REAL-TIME LOCATOR',
+                'adviser_email' => 'epricablanca@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 7,
+                'year' => 2021,
+                'abstract' => 'A traffic violation is one of the causes of road accidents. The number of speed- related crashes has shown an upward trend in recent years...'
+            ],
+            [
+                'title' => 'HALINON: A CROWDSOURCED PRODUCT TRENDS AND COMPETITION INFORMATION WEBSITE',
+                'adviser_email' => 'maui@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 8,
+                'year' => 2021,
+                'abstract' => 'Micro, Small, and Medium Enterprises (MSMEs) are an essential part of the Philippine economy. However, even with government programs and existing solutions, these businesses still lack market knowledge...'
+            ],
+            [
+                'title' => 'BreakApp: A WEB AND MOBILE BASED APPLICATION FOR CIRCUIT BREAKER MONITORING AND TRACKING USING ARDUINO CURRENT SENSOR FOR UNIVERSITY OF SOUTHEASTERN PHILPIINES - COLLEGE OF ENGINEERING',
+                'adviser_email' => 'rsgamboa@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 6,
+                'year' => 2021,
+                'abstract' => 'Circuit overloading is the most common problem experienced by circuit breakers...'
+            ],
+            [
+                'title' => 'DRIVECARE: A WEARABLE DEVICE TO DETECT DRIVER DROWSINESS BASED ON EYEBLINK ANALYSIS',
+                'adviser_email' => 'ikmachica@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 6,
+                'year' => 2021,
+                'abstract' => 'In recent years, the casualties of traffic accidents caused by driving cars have gradually increased. According to various research, drowsy drivers are responsible for roughly 20% of traffic accidents...'
+            ],
+            [
+                'title' => 'TransBraille: A MOBILE-BASED APPLICATION FOR BRAILLE TRANSLATION USING DIGITAL IMAGE PROCESSING',
+                'adviser_email' => 'tammy@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 6,
+                'year' => 2021,
+                'abstract' => 'Reading braille symbols has been an enormous problem of teachers who has blind students. Braille has two levels which are Uncontracted Braille (Grade 1) and Contracted Braille (Grade 2)...'
+            ],
+            [
+                'title' => 'FINDING SAFETY IN TECHNOLOGY: A SYSTEM FOR CRIME INCIDENT REPORTING VIA LIVE VIDEO FEED AND LOCATION PINNING',
+                'adviser_email' => 'jamalkay.rogers@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 7,
+                'year' => 2021,
+                'abstract' => 'With the ongoing rise of criminal activity, help from the police must be just one call away...'
+            ],
+            [
+                'title' => 'SAFE210T: AN AUTOMATED WATER QUALITY FILTRATION SYSTEM USING IOT',
+                'adviser_email' => 'nancy.mozo@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 6,
+                'year' => 2021,
+                'abstract' => 'Freshwater is considered to be a renewable resource. However, the world\'s supply of groundwater is observed to be constantly decreasing...'
+            ],
+            [
+                'title' => 'NailScanner: A Non-invasive Fingernail Disease Classifier Mobile Application',
+                'adviser_email' => 'hermoso.tupas@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 1,
+                'year' => 2021,
+                'abstract' => 'Health awareness failed short for much of the world\'s populace; health is said to be the biggest wealth...'
+            ],
+            [
+                'title' => 'AgrE: A SECURED E-COMMERCE PLATFORM FOR TRADING AGRICULTURAL COMMODITIES IN THE DFTC',
+                'adviser_email' => 'vkstequin@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 8,
+                'year' => 2023,
+                'abstract' => 'The Davao Food Terminal Complex is a project initiated by the City Agriculture\'s Office. This facility serves as a "Bagsakan" for the farmers\' commodities...'
+            ],
+            [
+                'title' => 'PaReserve: A COSTUMIZABLE RESERVATION PLATFORM FOR MEDIUM-SIZE HOTEL OWNERS AND CUSTOMERS WITH FRAUD AND THEFT PREVENTION',
+                'adviser_email' => 'leah.pelias@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 8,
+                'year' => 2023,
+                'abstract' => 'One of the major consumer groups nowadays is made up of internet users. As a direct result of the widespread usage of online apps...'
+            ],
+            [
+                'title' => 'PIGGYWEARIOT: A PIG COUGH SURVEILLANCE SYSTEM USING: AN IOT-ENABLED WEARABLE DEVICE',
+                'adviser_email' => 'jamalkay.rogers@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 8,
+                'year' => 2023,
+                'abstract' => 'The project aimed to design an IoT-based pig cough surveillance system to address the significant threats posed by respiratory diseases and African Swine Fever...'
+            ],
+            [
+                'title' => 'ANALINK: A MOBILE-BASED APPLICATION FOR DETECTING MALICIOUS URL BY CHECKING SMS CONTENT',
+                'adviser_email' => 'ariel.reyes@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 6,
+                'year' => 2023,
+                'abstract' => 'The rapid advancements in information technology have led to a significant rise in smartphone usage...'
+            ],
+            [
+                'title' => 'KAPETa: DESIGN AND DEVELOPMENT OF WEB-BASED E-COMMERCE APPLICATION FOR COFFEE STARTUPS IN DAVAO CITY',
+                'adviser_email' => 'hermoso.tupas@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 8,
+                'year' => 2023,
+                'abstract' => 'Coffee, a beloved beverage, stands as one of the world\'s most popular and profitable commodities...'
+            ],
+            [
+                'title' => 'STOCKWISE: An Inventory Management and Demand Forecasting System for Food Retailers',
+                'adviser_email' => 'nancy.mozo@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => 'Food retailers face significant challenges in managing their inventory effectively. Inaccurate demand forecasting often leads to overstocking or stockouts...'
+            ],
+            [
+                'title' => 'PRIVACY QUEST: A Data Privacy Awareness Game for Teenagers',
+                'adviser_email' => 'rsgamboa@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => 'The public\'s understanding of personal data privacy is poor, despite numerous efforts by the government and media to educate people on protecting their data online...'
+            ],
+            [
+                'title' => 'Design and Development of Web-Based Data Privacy Assessment Tool for the University of Southeastern Philippines',
+                'adviser_email' => 'hermoso.tupas@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 6,
+                'year' => 2023,
+                'abstract' => 'In the era of rapid technological advancement, safeguarding data privacy has become a vital concern for global organizations, including educational institutions...'
+            ],
+            [
+                'title' => 'BOXDOTS++: QUICK RESPONSE CODE SCANNER WITH MALICIOUS, SAFE, AND DEAD URL DETECTION',
+                'adviser_email' => 'nancy.mozo@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 12,
+                'year' => 2023,
+                'abstract' => "QR code refers to Quick Response Code, which has revolutionized information accessibility, creating an immediate and seamless data exchange paradigm. The increasing prevalence of smartphones and online transactions has fueled a significant surge in QR code usage. Recently, users have increasingly relied on QR codes for various online transactions and payments. This popularity, however, has attracted cybercriminals who exploit them for cyberattacks and the spread of malicious content. QR code phishing attacks are on the rise, with attackers targeting unsuspecting individuals through malicious content embedded in QR codes. By synthesizing related literature, the proponents observed that there is a lack of reliable tools for detecting malicious URLs in QR codes, generally in the evaluation of the security of QR codes, leaving users vulnerable. To address this growing threat and the lack of tools, BoxDots, a mobile application designed to detect potentially malicious URLs embedded within QR codes in real time, has been developed. BoxDots integrates the APIs VirusTotal and Google Safe Browsing to cover a diverse range of malicious URLS, which allows for effective scanning and analysis of URLS. The study specifically aims to integrate the Quick Response code scanning library to detect URLS from QR codes, integrate the Google Safe Browsing API and the VirusTotal API into the application to validate extracted URLs in QR codes, and develop a secondary repository or database to store a new list of malicious URLs. Once a QR code is scanned, the application instantly displays the result, allowing users to make informed decisions about clicking on the embedded link. What sets BoxDots apart from existing solutions is that it doesn''t only identify malicious links but also safe and dead links. Following successful verification of its functionalities, BoxDots secures users from potentially harmful links in QR codes. BoxDots was designed as a simple and intuitive interface for a seamless user experience. The developers developed the application using the Rapid Application Development methodology, building it iteratively and incorporating valuable user feedback. To guarantee its functionality, the proponents performed rigorous system testing, ensuring each component and data flow worked flawlessly. Benchmarking against similar applications and using industry-standard techniques to assess its performance. To compare the two applications, the proponents tested both applications using a list of similar links and compared their results. Finally, the System Usability Scale measured the application''s ease of use and user satisfaction, ensuring an intuitive and user-friendly application. Through this comprehensive evaluation, the developers delivered an application that was not only functional but also user-friendly. The result of the system''s testing presented exceptional performance, demonstrating its capacity to scan and evaluate URLS with consistent reliability and correctness. The benchmarking test showed a slightly higher overall accuracy in detecting expected links across all categories, particularly dead links, compared to an existing scanner application. The results of the System Usability Scale (76.71), which surpassed 68, which is the average SUS score, only indicate that the application design and functionality have successfully met or exceeded user expectations. The findings of the study emphasize the performance, reliability, usability, and user-friendly design of BoxDots, which meet the ever-evolving needs of users. BoxDots offers a reliable and secure solution to mitigate QR code phishing risks, empower users, and advance safer digital interactions. However, to maximize its efficacy and overall user experience, additional research involving diverse datasets and optimization of scanning speed are essential. Researchers may explore the incorporation of a wider range of malicious QR codes to diversify datasets, ultimately boosting the application''s performance. Aside from that, they might also consider optimizing scanning speed as crucial, as observed by findings indicating limitations in certain APIs'' ability to analyze URLs. Improvements in this aspect can significantly enhance the efficiency and user experience of the application. In summary, BoxDots emerges as a reliable and secure tool for URL detector applications, mitigating the risks associated with phishing attacks by scanning the links embedded in QR codes for potentially malicious URLs. It empowers users to embrace the convenience and efficiency of QR codes while safeguarding themselves from malicious content. As QR code technology continues to evolve, BoxDots stands as a testament to the importance of prioritizing security and fostering a safer digital future.",
+            ],
+            [
+                'title' => 'PREDICTALYST: A HUMAN RESOURCE MANAGEMENT SYSTEM FOR PREDICTING EMPLOYEE ATTRITION USING PREDICTIVE ANALYTICS',
+                'adviser_email' => 'jamalkay.rogers@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => "This capstone study is about developing a system that can predict employee attrition through developing a predictive analytics model and gathered datasets to train machine learning to predict employee attrition by utilizing Random Forest Algorithm via Application Programming Interfaces (API). This study also provides real-time updates using visualization to have an accessible way to see and understand the data and patterns and to help the human resource management system to enhance and improve their decision-making process and large, complex dataset. The proponents utilized the rapid Application Development (RAD) approach to develop the project. This methodology was employed primarily due to its adaptability and focus on ongoing designs and modifications, which helped integrate updates that improved the application''s performance. The result was that the developers could provide quick revisions that improved the system''s quality while decreasing development timelines simultaneously, making the Predictalyst development method more effective. At the end of the study, the proponents successfully created a web application for the system to predict employee attrition that used Predictive Analytics Model, Random Forest Algorithm via Application Programming Interfaces (API) and to provide a real- time update using visualization. The development outcome led to the accomplishment of the study''s implied aims. Succeeding research should improve the effectiveness and efficiency of the Employee Attrition application to enhance the creation of an accessible system prediction. Additionally, the proponents recommend integrating a geological map to get a more accurate distance from home, utilizing questionnaires to evaluate employees to get the average performance rating, developing individual real-time visualizations, and trying to find more datasets based in the Philippines.",
+                'month' => 5,
+                'year' => 2023,
+            ],
+            [
+                'title' => 'PARAQUEUE: A REAL-TIME PUBLIC UTILITY VEHICLE INFORMATION TRACKING SYSTEM',
+                'adviser_email' => 'jamalkay.rogers@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => "This capstone study is about a developed system that can track the real-time information of PUVs to assist drivers in managing their trips and alleviate the commuting difficulties of commuters. The focus of the study was on PUVs that have routes within Davao City, wherein the testing was limited to 5 routes only. The researchers aimed to address traditional jeepneys specifically as the type of PUVS to be monitored. The development objective was to distinguish between the different routes of PUVs, hence the scope of the project. The researchers opted to utilize the Rapid Application Development (RAD) approach in developing the project. This methodology was chosen for its agility and focus on iterative development and prototyping. By adopting RAD, the researchers were able to incorporate updates that improved the application''s performance throughout the development process. This approach enabled swift iterations that enhanced the system''s quality while simultaneously reducing development timelines, resulting in a more efficient ParaQueue development process. At the end of the study, the proponents were able to have successfully developed a web application for the registration of the drivers and vehicles into the system, a mobile application for the real-time monitoring of the commuters, a classification feature to differentiate the routes, a real-time location detector using mobile phone tracking technology, and a seat vacancy provider feature. The output of the development resulted to achieve the objectives indicated for the study. Subsequent research should prioritize improving the effectiveness and efficiency of the PUV tracking application to enhance the creation of a convenient transportation queueing system. Additionally, the researchers recommend expanding the scope of the study to encompass a wider range of routes and include all PUVS operating within Davao City. This expansion would contribute to a more comprehensive and comprehensive understanding of the application''s capabilities.",
+            ],
+            [
+                'title' => 'LAON: LEAF COLOR CHART (LCC) APPLICATION FOR N FERTILIZATION N MANAGEMENT IN RICE',
+                'adviser_email' => 'jamalkay.rogers@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 7,
+                'year' => 2023,
+                'abstract' => "In rice farming, the reason why farmers apply much fertilizer to their yields is to further grow and develop their plants, swiftly. Thus, nitrogen fertilizer is considered to be the primary source of yield-limiting nutrients in rice production. As this limits the production of rice whenever farmers input a lot of N release in the field. Farmers employed the use of LCC and its instructions to ease the use of nitrogen in the field, without even sacrificing their yield in order to know nitrogen requirement in real-time management. Despite its widespread use in agricultural research institutes, farmers were still unfamiliar with this tool. Technology researchers stressed the need for more significant research on the Leaf Color Chart, which enables the need for more computer science and technology research and the digitization of agricultural science. Farmers could still make mistakes when comparing the plant's leaf color with the LCC; but, errors are still possible. Therefore, various farmers claimed that they are more likely to adopt the technology. If technology is presented to them, there is a need to further explain on how they will be able to utilize it. The LAON application was designed to automate the IRRI and PhilRice's Leaf Color Chart. Farmers typically gather ten photos of uniform rice leaf sizes from the chosen field. The nitrogen content of the rice plant will be determined by assessing and comparing the sample images of rice leaves. Furthermore, weather forecasting is launching in response to the application. The researchers used Modified Waterfall Model as part of the methodology, and the development model retracts progress and problems or modifications that emerge in the process. This study has conducted for the application to extract RGB colors from the uploaded rice leaf image, and then internally transform it into HEX code. In which, the KNN Algorithm is used to identify the color that is closest to the LCC colors. Therefore, a user can 'enable' a push notification button for its 'initial rice leaf reading', and for its 'next reading', as a notification. Then, able to create a task via N management result within seven days, as well as notification for DSR and DAT.",
+            ],
+            [
+                'title' => 'ELIAS: A PERSONAL ALIASING MANAGEMENT SYSTEM',
+                'adviser_email' => 'marvin@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => "The annual occurrence of personal data breaches has shown a minimal decline over time. In recent years, personal data breaches have increased by 70% globally. In 2021, the number of reported cases of personal data intrusions in the Philippines increased significantly, reaching 4.59 million instances. Among these occurrences, there were instances of personal information leaking. By using exact names, fraudulent messages masquerading as legitimate business communications were able to acquire the trust of unwary victims. The National Privacy Commission states that fraudsters obtain sensitive information via popular payment, mobile wallets, and messaging applications. Websites on a global scale have also been compromised by unauthorized data intrusions, with hackers frequently targeting sites that store accurate personal data. The proponents developed a personal aliasing management system responding to the growing demand for online security and convenience. The system uses aliasing techniques to generate unique aliases to protect personal information. The system includes creating a secure sign-up and sign-in system, a web-based aliasing system, a user-friendly alias administration system, and a browser extension for automated auto-filling and login activity recording. The significance of the study rests in its potential to address the difficulties of managing login credentials, improve online security, and offer an efficient solution to users. Rapid Application Development (RAD) is the methodology for the project's development due to its emphasis on user-centricity throughout the process. The developers have effectively created a personal aliasing management system that generates aliased user credentials during account creation on online platforms that do not require truthful information. This system provides an additional security layer, alleviating worries about data intrusions and identity theft.",
+            ],
+            [
+                'title' => 'E-PAGDIWANG A CUSTOMIZABLE WEB-BASED REFERRAL PLATFORM FOR EVENT ORGANIZERS OF MICRO, SMALL, AND MEDIUM-SIZED ENTERPRISES (SMEs)',
+                'adviser_email' => 'ikmachica@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 6,
+                'year' => 2023,
+                'abstract' => "Business owners and marketers are relying more and more on their capacity to capitalize on customer-to-customer interactions as the business environment becomes progressively more competitive and the entire world is now transformed into a possible market for enterprises. The event-organizing industry in Davao City has grown significantly for four years ago. This is most likely due to the city receiving national attention. Because of social media, people have grown more interested in and receptive to new products and experiences. As a result, the researchers established the creation of a platform named E-Pagdiwang, which helps people have or plan successful events or celebrations through the promotion and deployment of various event organizers and planners in Davao City. E-Pagdiwang is tackled to easily find an event organizer, help communicate with the client almost instantaneously, and help promote the services of the event organizer, wherein the study would benefit both the client and the event organizer. The project is unified with its methodology during its development process, which the researchers used to implement the SCRUM method for software development. SCRUM methodology is a flexible framework that follows the principles of agile methodology for software projects during their software development stage. After thorough research and development, the proponents were able to meet the objectives of the system. Extensive research allowed them to gain in-depth knowledge of the problem domain and user requirements, enabling them to make informed decisions during the development process. The researchers meticulously designed and implemented the system, ensuring that each objective was addressed and integrated into the final product. Rigorous testing and iterative refinement further validated the system's performance and functionality. The proponents' commitment to thorough research and development has culminated in the realization of a solution that aligns with the intended objectives, providing a robust and effective system that meets the needs of its users.",
+            ],
+            [
+                'title' => 'RECONSTRUCT: A WEB-BASED MARKETPLACE AND GEO-FINDER OF CONSTRUCTION AND DEMOLITION RECYCLABLE MATERIALS',
+                'adviser_email' => 'nancy.mozo@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => "In construction or demolition activities, such as road building, bridge construction, renovations, and similar projects, waste is inevitably generated. This waste comprises mainly non-biodegradable and inert materials like concrete, plaster, metal, wood, and polymers. Around 30% of the solid waste generated by the construction industry ends up in landfills. To address this issue, the researchers aim to develop reConstruct, a web-based marketplace for recycled construction and demolition (CCD) waste. Most of the CCD waste is recyclable. reConstruct can help encourage recycling and, at the same time, make this waste profitable. reConstruct is a user-friendly marketplace for budget-conscious buyers, sellers of recycled CCD materials, and local architectural antique dealers. In the development of this study, the researchers employed RAD (Rapid Application Development), a methodology that emphasizes rapid prototyping and the integration of user feedback to meet user expectations. The study yielded various components, such as a management dashboard for administrators, buyers, and sellers, a platform for buying and selling of recycled CCD waste, a subscription-based business model, an inter-messaging feature, a Geotagging method for pinpointing locations on the map, visualization of saved CCD waste, and the display of data reports. During the user acceptance test, it demonstrated high satisfaction and usability, confirming the successful implementation of the platform features. The integration of a marketplace for buying and selling recycled construction and demolition (CCD) waste offers substantial benefits to both the construction sector and the environment. By providing a centralized platform, it facilitates connections between buyers and sellers, thereby increasing the demand for recycled materials and establishing an efficient and cost-effective supply chain. Additionally, the platform serves as an alternative solution for the disposal of CCD waste, preventing it from ending up in landfills and providing environmental benefit.",
+            ],
+            [
+                'title' => 'AEGUIDE: AN AUGMENTED REALITY AND SIMULATION BASED WAYFINDING FOR MILD INTELLECTUAL INDIVIDUALS',
+                'adviser_email' => 'hermoso.tupas@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 6,
+                'year' => 2023,
+                'abstract' => "This capstone project helped people with mild intellectual disability who are specifically struggling with their navigational skills and taught them how to master wayfinding in public spaces. The researchers have found that it is vital that they are taught basic navigation so that over time they can become completely independent in public and confident with their wayfinding skills. The researchers have developed a mobile application that served as a navigation tool that assisted users with mild intellectual disability on how to navigate in public areas. Navigation is taught to them through the augmented reality and simulation features that are available in the app. The person with mild intellectual disability only has to choose whether they would like to use the augmented reality arrow or the street simulation to aid them with their planned trip. The augmented reality arrow directs the user where to turn until they get to their destination. The street simulation showed the street names and buildings that the user will encounter in their journey. All of these features are possible with the use of Google API services. The parents, legal guardians or primary caregivers are also users of the app. They are able to monitor in real-time the location of the child with mild intellectual disability under their care, and the app also has a push notification feature that notifies the parent once their child has arrived at their destination. With the shared efforts and patience, the researchers were able to develop the proposed mobile application. The mobile application can be developed further or updated to improve and provide more assistance towards people with mild intellectual disability here in the Philippines.",
+            ],
+            [
+                'title' => 'BAGSAKAN: AN ANTI-E-COMMERCE FRAUD PLATFORM FOR CROP BIDDING TRANSACTIONS OF SMALL-SCALE FARMER AND VENDOR',
+                'adviser_email' => 'leah.pelias@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 6,
+                'year' => 2023,
+                'abstract' => "Farmers play a vital role in our economy, but many small-scale farmers struggle to generate sufficient income to cover their capital expenses. Additionally, they often face challenges such as crop spoilage and wastage. To address these issues, the proponents have developed a secure e-commerce application based on a bidding process. This platform allows end-users to post and bid on wholesale products, providing them with higher profit opportunities. To ensure the integrity of the developed bidding application, the proponents have identified and addressed key e-commerce frauds that have the potential to disrupt the process. Specifically, the application focuses on countering pagejacking, supplier identity fraud, and bait and switch fraud. By recognizing the critical components where fraud is likely to occur, the proponents have implemented security measures and functionalities to mitigate these risks. In summary, the proponents have developed a secure e-commerce application that aims to support small-scale farmers by offering a bidding platform for wholesale products. Through the process of gathering data and pilot testing of common e-commerce frauds such as pagejacking, supplier identity fraud, and bait and switch fraud, the application incorporates security measures and countermeasures such as authentication using an SMS OTP through an API call, report method, and name duplication detection in registration and profile info editing to ensure an efficient environment for users.",
+            ],
+            [
+                'title' => 'DAYR: A MENTAL HEALTH SELF-MONITORING APPLICATION',
+                'adviser_email' => 'haabrigana@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 8,
+                'year' => 2023,
+                'abstract' => "Mental health affects 13% of the world's population. Mental health disorders or illnesses are complicated and can manifest themselves in various ways. Including depression, anxiety, eating disorders, bipolar disorder, and schizophrenia. Mental Health plays a crucial role in achieving global development goals, as indicated by the inclusion of mental health in recent years. Despite improvements in some nations, people with mental illnesses are frequently subjected to severe human rights breaches, discrimination, and stigma. Mental health issues can be adequately treated at a low cost. A technique to release any tension that keeps a person from feeling happy is to write in a diary or journal. The researchers aim to develop a mobile application that will act as a trusted friend or companion for people suffering from mental health illnesses. Individuals can use the application to write about their anxieties, burdens, and feelings like traditional journals do. It has also been thoroughly explored how writing can be therapeutic, both for evoking personal reflection and for self-help knowledge.",
+            ],
+            [
+                'title' => 'PROJECT TAPPERWARE: A SYSTEM FOR DETECTION OF UNAUTHORIZED ELECTRICITY CONNECTION BASED ON IOT-ENABLED ELECTRICITY METER',
+                'adviser_email' => 'haabrigana@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Information Technology',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => "Illegal electrical tapping refers to stealing electrical consumption not to have to pay the bills for electrical utilization. It does not just impose a risk of physical consequences but also violates the security of the data involved in the electricity metering process. These illegal electrical connections are not detected immediately; hence, risks are not mitigated as soon as possible. This project is concerned with developing a faster illegal electrical connection detection technology to strengthen information security in the subject matter and prevent its physical consequences. With the Internet-of-Things, this project involves the development of an IoT-enabled electricity meter with an illegal electrical connection detection feature that allows a user to monitor consumption remotely. A residential miniature with simulated theft initiation was developed to test the project's effectiveness in reaching the goal. Comparative current data method was utilized to identify theft, and fundamentals of electricity consumption computing were utilized to monitor usage. System outputs were shown on the mobile application, including a theft detection report and real-time graphical representations of electrical consumption.",
+            ],
+            [
+                'title' => "E-CRUNCH: A MOBILE APPLICATION OF BASKETBALL COACH'S ASSISTANT DECISION SUPPORT SYSTEM",
+                'adviser_email' => 'val@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Computer Science',
+                'month' => 6,
+                'year' => 2020,
+                'abstract' => "Basketball is a standout amongst the most prominent games on the planet, which conveys a ton of satisfaction to individuals in their day-to-day life. It's a sport where the coach's decisions play a fundamental role in the game and which in turn creates pressure on the coach's decision-making capability. Since data is available almost everywhere, utilizing available data can be a gateway to new solutions and opportunities. Our dissertation addresses the question of how utilizing data can help the coach in the court where a lot of potential helpful data is available, data driven coaching is a solution that can significantly help the coach on his/her decisions especially at crunch time where the pressure might affect a coach's mentality and decisions. The mobile application, E-Crunch, suggests basketball plays and displays the probability of success of the said play, which helps the coach in creating a data backed decision.",
+            ],
+            [
+                'title' => 'KeyMouTion: A WINDOWS-BASED PROGRAMMING TOOL FOR DETECTING BOREDOM AND FRUSTRATION WHILE PROGRAMMING IN ASSESSING TEACHER-STUDENT RELATIONSHIP',
+                'adviser_email' => 'maui@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Computer Science',
+                'month' => 5,
+                'year' => 2020,
+                'abstract' => "Programming is challenging for novices. Hence, it is important that help must be provided once the students get discouraged. The lack of intervention from the teacher is one of the reasons why students choose to disengage from their programming task and eventually drop out from the course. It is for this reason that the proponents aimed to develop a programming tool that collects data every 10 minutes and after an hour detects student frustration and boredom in real-time, where teachers can be given a cue when to provide immediate feedback to the students. Keystrokes and mouse movements are collected and analyzed as studies have shown that student affect can be reflected from them. The Circumplex model was used as the framework to determine which quadrant of arousal and valence does boredom and frustration belong to. Due to the COVID-19 pandemic, no actual student testers were gathered so the proponents were left with no actual data to run the model. Instead, a proposed framework was used to determine whether the keystroke combinations, mouse behaviors, and other activities tantamount to boredom or frustration. A user interface was designed for teachers where they can monitor the student keyboard and mouse activities. The interface includes a display that indicates if the student needs to be monitored or if the student needs help already as indicated by his/her boredom and frustration levels. To acquire valid results, it is recommended that the experiment is conducted in actual programming laboratory settings. The system can be installed on the students' computers and be run in the background as they work on their programming tasks. The teacher's module can be installed in the teacher's computer so that they can completely monitor their student activities. It is also recommended that camera devices be installed as well as correctly validating the effect experienced by the students.",
+            ],
+            [
+                'title' => 'ON THE SUITABILITY OF CACAO UNDER FUTURE CLIMATIC CONDITION IN THE PHILIPPINES: A NEURAL NETWORK MODELLING',
+                'adviser_email' => 'hermoso.tupas@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Computer Science',
+                'month' => 7,
+                'year' => 2020,
+                'abstract' => "This study was conducted to investigate the effect of climate change in relation with the cacao suitability in the Philippines. Climatic data are extracted under near-current periods (1970-2000), 2030s (2020-2049), and 2050s (2040-2069), and changes in cacao suitability were assessed using Artificial Neural Network (ANN) modelling approach. The best model indicated that the land index for cacao suitability is between 49.51 to 79.31 for near-current; 48.36 to 75.86 for 2030s and 48.00 to 74.34 for 2050s. This categorizes the suitability class of cacao into marginally suitable (S3) to highly suitable (S1) for the near-current and 2030s periods while dropping to only marginally suitable (S3) to moderately suitable (S2) by 2050s. Specifically, across the high suitability (S1) areas in the Philippines, there is a projected decrease from 65,853 km2 (near-current) to 31,357 km2 by 2030s and 23,458 km2 by 2050s; a change by -9.84% and -12.1% for the future periods, respectively. Regions of Luzon (excluding Palawan), Palawan, Visayas, Western Mindanao, and Southern Mindanao will experience a decrease in its S1 areas which is primarily attributed to the projected increase in mean and max temperature and rainfall variability in the future. The most pronounced change is measured in Western Mindanao with -84.26% followed by Luzon with -80.18% by 2050s. Moreover, the results indicated that ANN approach was able to perform cacao suitability prediction with satisfactory results of a Mean Square Error (MSE) of 3.74e-6 and correlation of determination of 0.99981414.",
+            ],
+            [
+                'title' => 'SNAPDRIVE: AN ALTERNATIVE SECURITY SYSTEM FOR MOTORCYCLE THEFT PREVENTION VIA FACE RECOGNITION USING A MODIFIED LOCAL BINARY PATTERN HISTOGRAM ALGORITHM WITH BLINK DETECTION ON RASPBERRY PI',
+                'adviser_email' => 'michaelanthony.jandayan@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Computer Science',
+                'month' => 3,
+                'year' => 2021,
+                'abstract' => "The problem of motorcycle theft has been never-ending and is regarded as a property crime with one of the highest occurrences...",
+            ],
+            [
+                'title' => 'SEMANTIC SEARCH ENGINE OF E-COMMERCE USING NATURAL LANGUAGE PROCESSING',
+                'adviser_email' => 'maui@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Computer Science',
+                'month' => 6,
+                'year' => 2022,
+                'abstract' => "Most e-commerce platforms today still use traditional keyword-based search engines on their websites...",
+            ],
+            [
+                'title' => 'DETECTING COVID-19 FAKE NEWS INFODEMIC USING HYBRID ALGORITHM',
+                'adviser_email' => 'cramante@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Computer Science',
+                'month' => 6,
+                'year' => 2022,
+                'abstract' => "Fake news on social media and other forms of media is widespread and remains a primary concern due to its potential to cause significant social and national harm...",
+            ],
+            [
+                'title' => 'A HYBRID MACHINE LEARNING MODEL USING COMPUBOX DATA FOR PREDICTING BOXING FIGHT OUTCOME AND WINNING CONDITION WITH BOXER STYLE CLUSTERING',
+                'adviser_email' => 'jamalkay.rogers@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Computer Science',
+                'month' => 6,
+                'year' => 2022,
+                'abstract' => "The Philippines has excellent potential in boxing, but in recent years, it has faced more disappointments than victories...",
+            ],
+            [
+                'title' => 'A PREDICTIVE MODEL FOR SEA LEVEL RISE IN PHILIPPINE URBAN AREAS WITH AN INTERACTIVE MAP VISUALIZATION',
+                'adviser_email' => 'maui@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Computer Science',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => "Sea levels in the Philippines are rising three times faster than the global average, posing a significant threat to coastal communities...",
+            ],
+            [
+                'title' => 'DETECTING POTENTIAL FISHING ZONES WITH PROBABLE TOTAL CATCH USING FEATURE EXPLORATION AND MACHINE LEARNING',
+                'adviser_email' => 'maui@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Computer Science',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => "Fisheries are exposed to anthropogenic risks, oceanic destruction, and various weather changes, making the process of locating fish shoals time-consuming and resource-intensive...",
+            ],
+            [
+                'title' => 'PREDICTING WATER QUALITY USING MACHINE LEARNING IN AN AQUACULTURED ENVIRONMENT',
+                'adviser_email' => 'vkstequin@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Computer Science',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => "Over the course of recent decades, the aquaculture industry has been growing...",
+            ],
+            [
+                'title' => 'AUTOMATED SEMANTIC SEGMENTATION OF CANCEROUS CELLS IN MAMMOGRAM IMAGE USING NOVEL HYBRID CONVOLUTIONAL NEUTRAL NETWORK TECHNIQUES',
+                'adviser_email' => 'vkstequin@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Computer Science',
+                'month' => 6,
+                'year' => 2023,
+                'abstract' => "In the Philippines, breast cancer holds the distinction of being the most prevalent cancer among women...",
+            ],
+            [
+                'title' => 'CLASSIFYING CAVENDISH BANANA MATURITY STAGE USING RESNET-18 ARCHITECTURE AND TRANSFER LEARNING',
+                'adviser_email' => 'cedumdumaya@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Computer Science',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => "Banana maturity is vital in determining the fruit's marketability...",
+            ],
+            [
+                'title' => 'DeVICE: PREDICTION AND ANALYSIS ON THE SUBSTANCE ABUSE OF ADOLESCENTS IN POBLACION DISTRICT, DAVAO CITY',
+                'adviser_email' => 'hermoso.tupas@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Computer Science',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => "The study focuses on providing predictions and analysis for the local government in the Poblacion District barangays...",
+            ],
+            [
+                'title' => 'DURIO: AN API-BASED ANDROID MOBILE APPLICATION FOR DETECTING INFECTED AREAS IN DURIO ZIBETHINUS PODS',
+                'adviser_email' => 'maui@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Computer Science',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => "Durio: An API-based Android mobile application for detecting infected areas in Durio Zibethinus pods...",
+            ],
+            [
+                'title' => 'AUTOMATED CRYPTOCURRENCY TRADING BOT USING MACHINE LEARNING MODEL ENSEMBLE',
+                'adviser_email' => 'cramante@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Computer Science',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => "Cryptocurrency has emerged as an influential force in the global financial system...",
+            ],
+            [
+                'title' => 'DETECTION POTENTIAL FISHING ZONES IN DAVAO GULF: AN APPLICATION OF GEOSPATIAL MODELING ON REMOTELY SENSED DATA',
+                'adviser_email' => 'tammy@usep.edu.ph',
+                'program_name' => 'Bachelor of Science in Computer Science',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => "The Philippines contributes significantly to global fish production...",
+            ],
+            [
+                'title' => 'IDENTIFYING LIBRARY SERVICE DESIGN MODELS OF PUBLIC LIBRARY FOR YOUTH DEVELOPMENT',
+                'adviser_email' => 'gresielferrando@usep.edu.ph',
+                'program_name' => 'Bachelor of Library and Information Science',
+                'month' => 5,
+                'year' => 2020,
+                'abstract' => "This study deducted different public library resources, services, and programs...",
+            ],
+            [
+                'title' => 'THE CHANGING ROLES OF LIBRARIANS TOWARDS PATRONS WITH SPECIAL NEEDS: THE CASE OF SELECTED LIBRARIES IN DAVAO REGION',
+                'adviser_email' => 'francis.sanico@usep.edu.ph',
+                'program_name' => 'Bachelor of Library and Information Science',
+                'month' => 6,
+                'year' => 2022,
+                'abstract' => "As the purpose of libraries changed over the years due to tremendous changes in the field, the capabilities of librarians have compounded to serve all patrons, including those with special needs...",
+            ],
+            [
+                'title' => 'DIGITAL RIGHTS MANAGEMENT ON THE ONLINE DATABASE OF THE USEP LIBRARY: A CHALLENGE FOR LIBRARIANS',
+                'adviser_email' => 'eula.nabong@usep.edu.ph',
+                'program_name' => 'Bachelor of Library and Information Science',
+                'month' => 6,
+                'year' => 2022,
+                'abstract' => "Library online database is one of the essential tools for online library support for patrons' educational and research needs...",
+            ],
+            [
+                'title' => 'InProperR: INTELLECTUAL PROPERTY RIGHTS OF UNPUBLISHED MATERIALS',
+                'adviser_email' => 'annacel.delima@usep.edu.ph',
+                'program_name' => 'Bachelor of Library and Information Science',
+                'month' => 6,
+                'year' => 2022,
+                'abstract' => "This qualitative study explores the factors that contributed to the Intellectual Property rights on copyright and fair use practices...",
+            ],
+            [
+                'title' => 'ACCEPTABILITY LEVEL OF COLLEGE OF INFORMATION AND COMPUTING STUDENTS ON ONLINE LIBRARY SERVICES AT UNIVERSITY OF SOUTHESTERN PHILIPPINES IN TIMES OF COVID 19 PANDEMIC',
+                'adviser_email' => 'cindy.moldes@usep.edu.ph',
+                'program_name' => 'Bachelor of Library and Information Science',
+                'month' => 6,
+                'year' => 2022,
+                'abstract' => "COVID-19 forced almost all colleges and universities in the Philippines to go online in the spring of 2020...",
+            ],
+            [
+                'title' => 'AN EXPLORATORY STUDY INVESTIGATING STUDENTS OUTLOOK IN PURSUING LIBRARY AND INFORMATION SCIENCE',
+                'adviser_email' => 'eula.nabong@usep.edu.ph',
+                'program_name' => 'Bachelor of Library and Information Science',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => "This abstract presents the findings of an exploratory study conducted at the University of Southeastern Philippines...",
+            ],
+            [
+                'title' => 'USeP DIGITAL LIBRARY: AN ANALYSIS OF USER ACCEPTANCE AND COMPETENCY LEVEL',
+                'adviser_email' => 'francis.sanico@usep.edu.ph',
+                'program_name' => 'Bachelor of Library and Information Science',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => "This study is conducted to assess the user acceptance and competency level of the USEP Digital Library System by utilizing the Technology Acceptance Model (TAM)...",
+            ],
+            [
+                'title' => 'INDEXINATOR: DESIGNING A PROTOTYPE WEB-BASED INDEXING TOOL FOR THE UNIVERSITY LEARNING RESOURCE CENTER',
+                'adviser_email' => 'gresielferrando@usep.edu.ph',
+                'program_name' => 'Bachelor of Library and Information Science',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => "This study aims to design a prototype web-based indexing tool for the ULRC's journal and periodical collection...",
+            ],
+            [
+                'title' => 'MANAGING THE USEP MUSEUM: A SKILL ASSESSMENT FOR ULRC PERSONNEL',
+                'adviser_email' => 'cindy.moldes@usep.edu.ph',
+                'program_name' => 'Bachelor of Library and Information Science',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => "The study focuses on the capability of the University of Southeastern Philippines Learning Resource Center (USeP-LRC) in managing a university museum...",
+            ],
+            [
+                'title' => 'EFFECTIVENESS OF MARKETING STRATEGIES IN PROMOTING PUBLIC SCHOOL LIBRARY SERVICES IN DAVAO CITY',
+                'adviser_email' => 'annacel.delima@usep.edu.ph',
+                'program_name' => 'Bachelor of Library and Information Science',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => "This study focuses on the effectiveness of marketing strategies used by Davao City's public-school libraries in promoting their services...",
+            ],
+            [
+                'title' => 'THE LIVED EXPERIENCES OF HEALTH SCIENCES LIBRARIANS IN EVIDENCE-BASED MEDICINE',
+                'adviser_email' => 'gresielferrando@usep.edu.ph',
+                'program_name' => 'Bachelor of Library and Information Science',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => "This study aimed to know and describe the lived experiences of health sciences librarians in evidence-based medicine...",
+            ],
+            [
+                'title' => 'THE LEVEL OF UTILIZATION AND ACCESS OF SCHOOL LIBRARY: BASIS FOR AN ENHANCED READING PROGRAM',
+                'adviser_email' => 'gresielferrando@usep.edu.ph',
+                'program_name' => 'Bachelor of Library and Information Science',
+                'month' => 5,
+                'year' => 2023,
+                'abstract' => "The library's role inside the basic education premises is to provide library resources and assistance to the pupils and teachers...",
+            ],
+            [
+                'title' => 'DATA VISUALIZATION OF BOOK COLLECTION FOR THE UNIVERSITY OF SOUTHEASTERN PHILIPPINES',
+                'adviser_email' => 'maychellenugas@usep.edu.ph',
+                'program_name' => 'Master of Library and Information Science',
+                'month' => 6,
+                'year' => 2020,
+                'abstract' => "The Data Visualization of Book Collection is a web-based system intended for the University of Southeastern Philippines Librarian and Library Staff...",
+            ],
+            [
+                'title' => 'DESIGNING COLINET WEB PORTAL: AN ONLINE SURVEY',
+                'adviser_email' => 'maui@usep.edu.ph',
+                'program_name' => 'Master of Library and Information Science',
+                'month' => 12,
+                'year' => 2020,
+                'abstract' => "The study on 'Designing COLINet Web Portal: An Online Survey' primarily aimed to propose design features of a Web portal for COLINet...",
+            ],
+            [
+                'title' => 'MANDIA APP: AN ASSISTIVE TOOL FOR MANDAYA TO ENGLISH TRANSLATION',
+                'adviser_email' => 'gresielferrando@usep.edu.ph',
+                'program_name' => 'Master of Library and Information Science',
+                'month' => 12,
+                'year' => 2020,
+                'abstract' => "ManDia App: An Assistive Tool for Mandaya-English Translation is a prototype system that serves as an assistive tool...",
+            ],
+            [
+                'title' => 'PLAIBRARY: AN ONLINE RESOURCE SHARING OF PLAI-DRLC LIBRARY CONSORTIUM',
+                'adviser_email' => 'val@usep.edu.ph',
+                'program_name' => 'Master of Library and Information Science',
+                'month' => 6,
+                'year' => 2021,
+                'abstract' => "Over the years, resource sharing has already existed and yet it has been underutilized because of issues related to supervision...",
+            ],
+            [
+                'title' => 'FROM MEMORY TO WEB: AN INSTITUTIONAL DIGITAL REPOSITORY FOR THE PRESERVATION OF HISTORICAL AND CULTURAL ARTIFACTS OF THE UNIVERSITY OF THE IMMACULATE CONCEPTION',
+                'adviser_email' => 'val@usep.edu.ph',
+                'program_name' => 'Master of Library and Information Science',
+                'month' => 6,
+                'year' => 2021,
+                'abstract' => "Applications to preserve resources on cultural heritage have gained new momentum these days...",
+            ],
+            [
+                'title' => 'DEVELOPMENT OF AN ALTERNATIVE AND INTERACTIVE LEARNING SYSTEM IN TEACHING FILIPINO LANGUAGE TO FOREIGN STUDENTS',
+                'adviser_email' => 'cedumdumaya@usep.edu.ph',
+                'program_name' => 'Master of Library and Information Science',
+                'month' => 6,
+                'year' => 2022,
+                'abstract' => "The study aims to develop an alternative and interactive learning system for teaching the Filipino language to foreign students...",
+            ],
+            [
+                'title' => 'DEVELOPMENT OF ONLINE LIBRARY BOOK FAIR SYSTEM',
+                'adviser_email' => 'rsgamboa@usep.edu.ph',
+                'program_name' => 'Master of Library and Information Science',
+                'month' => 6,
+                'year' => 2022,
+                'abstract' => "The development of the online library book fair is a system intended for users and exhibitors that will hasten the process of ordering and exhibiting books...",
+            ],
+            [
+                'title' => 'DEVELOPMENT OF WEB-BASED SUPPORT SERVICE TICKETING SYSTEM OF ATENEO DE DAVAO UNIVERSITY LIBRARY JACINTO CAMPUS',
+                'adviser_email' => 'rsgamboa@usep.edu.ph',
+                'program_name' => 'Master of Library and Information Science',
+                'month' => 8,
+                'year' => 2023,
+                'abstract' => "This study was intended to develop a web-based support service ticketing system of Ateneo de Davao University Library Jacinto Campus as a virtual help desk, enabling students, faculty, and staff of the university to submit requests and inquiries regarding library services. The objectives of the study were as follows: implement a web-based support service ticketing system that has multi-channel support capability (Online Chat, Email, Web Form); generate automatic notifications that will give updates on every action of the clients, support staff, and ticket updates; design and develop a reporting module that will generate comprehensive reports that will aid individual evaluations and effort reporting, and provide a knowledge base module including FAQ that will help clients find the answers they need. The strategy used for this study was the modified System Development Life Cycle (SDLC) - Waterfall Model which consists of the following elements: project initiation, ticketing system analysis and design, and testing and deployment. The ADDU web-based support service ticketing system was thoughtfully designed using UVDesk as the underlying database, offering a comprehensive set of features and functionalities...",
+            ],
+            [
+                'title' => 'C-MAP ANALYTICS: A WEB-BASED APPLICATION OF COLLECTION MAPPING FOR UNIVERSITY OF IMMACULATE CONCEPTION - LEARNING RESOURCE CENTER GRADUATE SCHOOL LIBRARY',
+                'adviser_email' => 'rsgamboa@usep.edu.ph',
+                'program_name' => 'Master of Library and Information Science',
+                'month' => 1,
+                'year' => 2024,
+                'abstract' => "Nowadays, libraries are part of the growing technological advance wherein online resources can be found and easily accessed by the users. Enhanced services using different kinds of monitoring and online user surveys can quickly gather data. Collection mapping tools are one of the assessment tools that can be evaluated. The collection provides reports that could help the librarian's decision-making regarding acquisition of books, curriculum book re-alignment, and collection balance. The general purpose of this study is to develop C-MAP Analytics: a web-based application of collection mapping for the University of Immaculate Conception Learning Resource Center Graduate School Library. The graduate school library is struggling in terms of conducting collection mapping, encountering problems with lack of human resources, time consumption, and the pressure of PAASCU accreditation. Through the C-MAP Analytics system, the processes are automated, integrating data from the existing library management system and providing seamless report visualization...",
             ],
         ];
 
-        foreach ($researchData as $data) {
-            // Find the faculty adviser by email (skip if adviser is null)
-            $adviser = null;
-            if ($data['adviser_email']) {
-                $adviser = Faculty::where('email', $data['adviser_email'])->first();
-                if (!$adviser) {
-                    $this->command->warn("Faculty with email {$data['adviser_email']} not found. Skipping research: {$data['title']}");
-                    continue;
-                }
-            }
+        foreach ($researchEntries as $entry) {
+            // Get adviser and program dynamically
+            $adviser = Faculty::where('email', $entry['adviser_email'])->first();
+            $program = Program::where('name', $entry['program_name'])->first();
 
-            // Find the program by name
-            $program = Program::where('name', $data['program_name'])->first();
-            if (!$program) {
-                $this->command->warn("Program {$data['program_name']} not found. Skipping research: {$data['title']}");
-                continue;
-            }
-
-            // Create the research entry
             Research::create([
                 'uploaded_by' => $uploader->id,
-                'research_title' => $data['title'],
+                'research_title' => $entry['title'],
                 'research_adviser' => $adviser ? $adviser->id : null,
-                'program_id' => $program->id,
-                'published_month' => $data['month'],
-                'published_year' => $data['year'],
-                'research_abstract' => $data['abstract'],
-                'research_approval_sheet' => null,
-                'research_manuscript' => null,
+                'program_id' => $program ? $program->id : null,
+                'published_month' => $entry['month'],
+                'published_year' => $entry['year'],
+                'research_abstract' => $entry['abstract'],
+                'research_approval_sheet' => null, // file path if available
+                'research_manuscript' => null,     // file path if available
             ]);
         }
-
-        $this->command->info('Research data seeded successfully!');
     }
 }

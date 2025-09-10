@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             ResearchSeeder::class,
             ResearcherSeeder::class,
             KeywordSeeder::class,
+            ResearchKeywordSeeder::class,
         ]);
     }
 }

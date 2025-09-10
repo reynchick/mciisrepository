@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Role;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -23,17 +24,26 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $role = Role::query()->inRandomOrder()->firstOrFail();
+
+        $localPart = Str::lower(Str::slug(fake()->unique()->userName()));
+        $email     = $localPart . '@usep.edu.ph';
+
+        $studentId = $role->name === 'Student'
+            ? fake()->numberBetween(2015, (int) now()->year) . '-' . str_pad((string) fake()->numberBetween(0, 99999), 5, '0', STR_PAD_LEFT)
+            : null;
+
         return [
-            'first_name'       => fake()->firstName(),
-            'middle_name'      => fake()->optional()->lastName(),
-            'last_name'        => fake()->lastName(),
-            'student_id'       => fake()->optional()->regexify('\d{4}-\d{5}'),
-            'contact_number'   => fake()->optional()->regexify('09\d{9}'),
-            'email'            => fake()->unique()->safeEmail(),
-            'role'             => fake()->randomElement(['Administrator', 'MCIIS Staff', 'Faculty', 'Student']),
-            'email_verified_at'=> now(),
-            'password'         => static::$password ??= Hash::make('password'),
-            'remember_token'   => Str::random(10),
+            'student_id'        => $studentId,
+            'first_name'        => fake()->firstName(),
+            'middle_name'       => fake()->optional()->randomLetter() . '.',
+            'last_name'         => fake()->lastName(),
+            'contact_number'    => fake()->optional()->regexify('09\d{9}'),
+            'email'             => $email,
+            'role_id'           => $role->id,
+            'email_verified_at' => now(),
+            'password'          => static::$password ??= Hash::make('password'),
+            'remember_token'    => Str::random(10),
         ];
     }
 

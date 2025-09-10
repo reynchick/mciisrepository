@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Keyword>
@@ -17,7 +18,8 @@ class KeywordFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'keyword_id'   => 'KW-' . strtoupper(fake()->unique()->bothify('#####')),
+            'keyword_name' => ucfirst(fake()->unique()->words(asText: true)),
         ];
     }
 }

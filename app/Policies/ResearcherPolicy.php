@@ -13,7 +13,7 @@ class ResearcherPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,7 +21,7 @@ class ResearcherPolicy
      */
     public function view(User $user, Researcher $researcher): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -29,7 +29,7 @@ class ResearcherPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->isFaculty() || $user->isMCIISStaff();
     }
 
     /**
@@ -37,7 +37,7 @@ class ResearcherPolicy
      */
     public function update(User $user, Researcher $researcher): bool
     {
-        return false;
+        return $user->isMCIISStaff();
     }
 
     /**
@@ -45,7 +45,7 @@ class ResearcherPolicy
      */
     public function delete(User $user, Researcher $researcher): bool
     {
-        return false;
+        return $user->isMCIISStaff();
     }
 
     /**
@@ -53,7 +53,7 @@ class ResearcherPolicy
      */
     public function restore(User $user, Researcher $researcher): bool
     {
-        return false;
+        return $user->isMCIISStaff();
     }
 
     /**
@@ -61,6 +61,6 @@ class ResearcherPolicy
      */
     public function forceDelete(User $user, Researcher $researcher): bool
     {
-        return false;
+        return $user->isMCIISStaff();
     }
 }
