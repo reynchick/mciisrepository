@@ -16,23 +16,22 @@ class FacultyController extends Controller
      */
     public function index(Request $request): Response
     {
-        $query = Faculty::query();
-        
-        // Search functionality
-        if ($request->filled('search')) {
-            $query->search($request->search);
-        }
-        
-        // Sorting
-        $sortBy = $request->get('sort_by', 'last_name');
-        $sortOrder = $request->get('sort_order', 'asc');
-        $query->orderBy($sortBy, $sortOrder);
-        
+        $query = Faculty::query()
+            ->withCount(['advisedResearches' => function ($query) {
+                $query->whereNull('archived_at');
+            }])
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $query->search($request->search);
+            })
+            ->when($request->filled('designation'), function ($query) use ($request) {
+                $query->where('designation', $request->designation);
+            });
+            
         $faculties = $query->paginate(15);
-        
+
         return Inertia::render('Faculty/Index', [
             'faculties' => $faculties,
-            'filters' => $request->only(['search', 'sort_by', 'sort_order']),
+            'filters' => $request->only(['search', 'designation'])
         ]);
     }
 
@@ -51,7 +50,7 @@ class FacultyController extends Controller
     {
         $faculty = Faculty::create($request->validated());
         
-        return redirect()->route('faculties.index')
+        return redirect()->route('faculty.show', $faculty)
             ->with('success', 'Faculty member created successfully.');
     }
 
@@ -60,8 +59,13 @@ class FacultyController extends Controller
      */
     public function show(Faculty $faculty): Response
     {
+        $faculty->load(['advisedResearches' => function ($query) {
+            $query->with(['program', 'researchers', 'keywords'])
+                  ->latest();
+        }]);
+
         return Inertia::render('Faculty/Show', [
-            'faculty' => $faculty,
+            'faculty' => $faculty
         ]);
     }
 
@@ -71,7 +75,7 @@ class FacultyController extends Controller
     public function edit(Faculty $faculty): Response
     {
         return Inertia::render('Faculty/Edit', [
-            'faculty' => $faculty,
+            'faculty' => $faculty
         ]);
     }
 
@@ -81,8 +85,8 @@ class FacultyController extends Controller
     public function update(UpdateFacultyRequest $request, Faculty $faculty)
     {
         $faculty->update($request->validated());
-        
-        return redirect()->route('faculties.show', $faculty)
+
+        return redirect()->route('faculty.show', $faculty)
             ->with('success', 'Faculty member updated successfully.');
     }
 
@@ -91,55 +95,75 @@ class FacultyController extends Controller
      */
     public function destroy(Faculty $faculty)
     {
+        if ($faculty->advisedResearches()->count() > 0) {
+            return $this->error('Cannot delete faculty member with existing research advising.');
+        }
+
         $faculty->delete();
         
-        return redirect()->route('faculties.index')
+        return redirect()->route('faculty.index')
             ->with('success', 'Faculty member deleted successfully.');
     }
 
     /**
-     * Bulk operations
+     * Get research statistics for faculty member
      */
-    public function bulkDestroy(Request $request)
-    {
-        $request->validate([
-            'faculty_ids' => 'required|array',
-            'faculty_ids.*' => 'exists:faculties,id'
-        ]);
-        
-        Faculty::whereIn('id', $request->faculty_ids)->delete();
-        
-        return redirect()->route('faculties.index')
-            ->with('success', 'Selected faculty members deleted successfully.');
-    }
-
-    /**
-     * Export faculty data
-     */
-    public function export(Request $request)
-    {
-        $faculties = Faculty::all();
-        
-        // You can implement CSV/Excel export here
-        // For now, returning JSON response
-        return response()->json($faculties);
-    }
-
-    /**
-     * Get faculty statistics
-     */
-    public function statistics()
+    public function statistics(Faculty $faculty)
     {
         $stats = [
-            'total' => Faculty::count(),
-            'with_email' => Faculty::whereNotNull('email')->count(),
-            'with_orcid' => Faculty::whereNotNull('orcid')->count(),
-            'by_position' => Faculty::selectRaw('position, COUNT(*) as count')
-                ->whereNotNull('position')
-                ->groupBy('position')
-                ->get(),
+            'total_researches' => $faculty->advisedResearches()->count(),
+            'active_researches' => $faculty->advisedResearches()->whereNull('archived_at')->count(),
+            'by_program' => $faculty->advisedResearches()
+                ->select('program_id')
+                ->with('program')
+                ->get()
+                ->groupBy('program.name')
+                ->map->count(),
+            'by_year' => $faculty->advisedResearches()
+                ->select('published_year')
+                ->get()
+                ->groupBy('published_year')
+                ->map->count()
         ];
         
-        return response()->json($stats);
+        return $this->success('Statistics retrieved successfully', $stats);
+    }
+
+    /**
+     * Export faculty data to CSV
+     */
+    public function export()
+    {
+        $faculties = Faculty::with(['advisedResearches' => function ($query) {
+            $query->with('program');
+        }])->get();
+
+        return response()->streamDownload(function () use ($faculties) {
+            $csv = fopen('php://output', 'w');
+            
+            // Headers
+            fputcsv($csv, [
+                'Faculty ID',
+                'Name',
+                'Designation',
+                'Email',
+                'Research Count',
+                'Active Research Count'
+            ]);
+
+            // Data
+            foreach ($faculties as $faculty) {
+                fputcsv($csv, [
+                    $faculty->faculty_id,
+                    $faculty->full_name,
+                    $faculty->designation,
+                    $faculty->email,
+                    $faculty->advised_researches_count,
+                    $faculty->advised_researches->whereNull('archived_at')->count()
+                ]);
+            }
+
+            fclose($csv);
+        }, 'faculty-data.csv');
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateKeywordRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class UpdateKeywordRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,8 +22,10 @@ class UpdateKeywordRequest extends FormRequest
      */
     public function rules(): array
     {
+        $keywordId = $this->route('keyword');
+        
         return [
-            //
+            'keyword_name' => ['required', 'string', 'max:255', Rule::unique('keywords', 'keyword_name')->ignore($keywordId)],
         ];
     }
 }

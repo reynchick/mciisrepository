@@ -29,6 +29,7 @@ class KeywordPolicy
      */
     public function create(User $user): bool
     {
+        // Both Faculty and MCIIS Staff can create keywords
         return $user->isMCIISStaff() || $user->isFaculty();
     }
 
@@ -37,6 +38,7 @@ class KeywordPolicy
      */
     public function update(User $user, Keyword $keyword): bool
     {
+        // Only MCIIS Staff can modify keywords
         return $user->isMCIISStaff();
     }
 
@@ -45,6 +47,7 @@ class KeywordPolicy
      */
     public function delete(User $user, Keyword $keyword): bool
     {
+        // Only MCIIS Staff can delete keywords
         return $user->isMCIISStaff();
     }
 

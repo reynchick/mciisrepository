@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('last_name');
             $table->string('position')->nullable();
             $table->string('designation')->nullable();
-            $table->string('email')->nullable()->unique();
+            $table->string('email')->nullable()->unique()->where('email', 'LIKE', '%@usep.edu.ph');
             $table->string('orcid')->nullable();
             $table->string('contact_number')->nullable();
             $table->string('educational_attainment')->nullable();

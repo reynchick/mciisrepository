@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
 
 class Research extends Model
 {
@@ -86,6 +87,33 @@ class Research extends Model
     public function keywords(): BelongsToMany
     {
         return $this->belongsToMany(Keyword::class, 'research_keywords', 'research_id', 'keyword_id');
+    }
+
+    /**
+     * Get the panelists for this research.
+     */
+    public function panelists(): BelongsToMany
+    {
+        return $this->belongsToMany(Faculty::class, 'panels')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Scope a query to filter research by panelist.
+     */
+    public function scopeByPanelist($query, $facultyId)
+    {
+        return $query->whereHas('panelists', function ($q) use ($facultyId) {
+            $q->where('faculty_id', $facultyId);
+        });
+    }
+
+    /**
+     * Check if a faculty member is a panelist of this research.
+     */
+    public function hasPanelist(Faculty $faculty): bool
+    {
+        return $this->panelists()->where('faculty_id', $faculty->id)->exists();
     }
 
     /**
@@ -190,5 +218,89 @@ class Research extends Model
         }
         
         return (string) $this->published_year;
+    }
+
+    // Add unique rule for research_title
+    public static function rules($research = null)
+    {
+        $rules = [
+            'research_title' => ['required', 'string', 'max:255', $research ? "unique:research,research_title,{$research->id}" : 'unique:research,research_title'],
+            'research_adviser' => 'required|exists:faculties,id',
+            'program_id' => 'required|exists:programs,id',
+            'published_month' => 'nullable|integer|between:1,12',
+            'published_year' => 'required|integer|between:1900,' . date('Y'),
+            'research_abstract' => 'required|string',
+        ];
+
+        // Files are always optional but must meet requirements when provided
+        $rules['approval_sheet'] = [
+            'nullable',
+            'file',
+            'mimes:jpg,jpeg,png',
+            'max:2048', // 2MB max
+        ];
+        
+        $rules['manuscript'] = [
+            'nullable',
+            'file',
+            'mimes:pdf',
+            'max:10240', // 10MB max
+        ];
+
+        return $rules;
+    }
+
+    // Handle file uploads
+    public function uploadFiles($approvalSheet, $manuscript)
+    {
+        if ($approvalSheet) {
+            // Delete old file if exists
+            if ($this->research_approval_sheet) {
+                Storage::disk('public')->delete($this->research_approval_sheet);
+            }
+            
+            // Store new approval sheet
+            $approvalSheetPath = $approvalSheet->store('research/approval_sheets', 'public');
+            $this->research_approval_sheet = $approvalSheetPath;
+        }
+
+        if ($manuscript) {
+            // Delete old file if exists
+            if ($this->research_manuscript) {
+                Storage::disk('public')->delete($this->research_manuscript);
+            }
+            
+            // Store new manuscript
+            $manuscriptPath = $manuscript->store('research/manuscripts', 'public');
+            $this->research_manuscript = $manuscriptPath;
+        }
+
+        $this->save();
+    }
+
+    // Get file URLs
+    public function getApprovalSheetUrl()
+    {
+        return $this->research_approval_sheet ? Storage::url($this->research_approval_sheet) : null;
+    }
+
+    public function getManuscriptUrl()
+    {
+        return $this->research_manuscript ? Storage::url($this->research_manuscript) : null;
+    }
+
+    // Clean up files when research is deleted
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function($research) {
+            if ($research->research_approval_sheet) {
+                Storage::disk('public')->delete($research->research_approval_sheet);
+            }
+            if ($research->research_manuscript) {
+                Storage::disk('public')->delete($research->research_manuscript);
+            }
+        });
     }
 }

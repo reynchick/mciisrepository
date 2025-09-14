@@ -3,64 +3,48 @@
 namespace App\Http\Controllers;
 
 use App\Models\Program;
-use App\Http\Requests\StoreProgramRequest;
-use App\Http\Requests\UpdateProgramRequest;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class ProgramController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request): Response
     {
-        //
-    }
+        $query = Program::query()
+            ->withCount(['researches', 'researches as active_research_count' => function ($query) {
+                $query->whereNull('archived_at');
+            }])
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $query->search($request->search);
+            });
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+        $programs = $query->paginate(10);
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreProgramRequest $request)
-    {
-        //
+        return Inertia::render('Program/Index', [
+            'programs' => $programs,
+            'filters' => $request->only(['search'])
+        ]);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Program $program)
+    public function show(Program $program): Response
     {
-        //
-    }
+        $program->load(['researches' => function ($query) {
+            $query->with(['researchers', 'keywords'])
+                  ->whereNull('archived_at')
+                  ->latest();
+        }]);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Program $program)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateProgramRequest $request, Program $program)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Program $program)
-    {
-        //
+        return Inertia::render('Program/Show', [
+            'program' => $program,
+            'researchCount' => $program->researches_count,
+            'activeResearchCount' => $program->active_research_count
+        ]);
     }
 }

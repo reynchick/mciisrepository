@@ -30,7 +30,6 @@ class Role extends Model
     {
         return $query->where('name', 'like', "%{$search}%");
     }
-    
 
     /**
      * Check if this role is for administrators.

@@ -40,8 +40,17 @@ class ResearchPolicy
      */
     public function update(User $user, Research $research): bool
     {
-        // Only MCIIS Staff can update research
-        return $user->isMCIISStaff();
+        // MCIIS Staff can update any research
+        if ($user->isMCIISStaff()) {
+            return true;
+        }
+        
+        // Faculty can only update research they advise
+        if ($user->isFaculty()) {
+            return $research->research_adviser === $user->id;
+        }
+        
+        return false;
     }
 
     /**
@@ -49,8 +58,8 @@ class ResearchPolicy
      */
     public function delete(User $user, Research $research): bool
     {
-        // No one can delete research
-        return false;
+        // Only MCIIS Staff can delete research
+        return $user->isMCIISStaff();
     }
 
     /**
@@ -112,8 +121,17 @@ class ResearchPolicy
      */
     public function assignPanelist(User $user, Research $research): bool
     {
-        // Only MCIIS Staff can assign panelists
-        return $user->isMCIISStaff();
+        // MCIIS Staff can assign panelists to any research
+        if ($user->isMCIISStaff()) {
+            return true;
+        }
+
+        // Faculty can assign panelists to research they advise
+        if ($user->isFaculty()) {
+            return $research->research_adviser === $user->id;
+        }
+
+        return false;
     }
 
     /**
@@ -148,22 +166,16 @@ class ResearchPolicy
      */
     public function manageFiles(User $user, Research $research): bool
     {
-        // MCIIS Staff can manage files for any research
+        // MCIIS Staff can manage any research files
         if ($user->isMCIISStaff()) {
             return true;
         }
-
-        // Faculty can manage files for their own research
+        
+        // Faculty can manage files of research they advise
         if ($user->isFaculty()) {
             return $research->research_adviser === $user->id;
         }
-
-        // Students can only download files (read-only)
-        if ($user->isStudent()) {
-            return true;
-        }
-
-        // Faculty mapping to adviser is not reliable yet → deny
+        
         return false;
     }
 

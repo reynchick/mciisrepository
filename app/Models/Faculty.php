@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Faculty extends Model
 {
@@ -42,5 +43,44 @@ class Faculty extends Model
               ->orWhere('faculty_id', 'like', "%{$search}%")
               ->orWhere('email', 'like', "%{$search}%");
         });
+    }
+
+     /**
+     * The research panels that the faculty member belongs to.
+     */
+    public function panelResearch(): BelongsToMany
+    {
+        return $this->belongsToMany(Research::class, 'panels')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Scope a query to find faculty members who are panelists for a specific research.
+     */
+    public function scopePanelistsFor($query, $researchId)
+    {
+        return $query->whereHas('panelResearch', function ($q) use ($researchId) {
+            $q->where('research.id', $researchId);
+        });
+    }
+
+    /**
+     * Check if the faculty member is a panelist for a specific research.
+     */
+    public function isPanelistFor(Research $research): bool
+    {
+        return $this->panelResearch()->where('research.id', $research->id)->exists();
+    }
+
+    /**
+     * Get the full name of the faculty member.
+     */
+    public function getFullNameAttribute(): string
+    {
+        if ($this->middle_name) {
+            return "{$this->first_name} {$this->middle_name} {$this->last_name}";
+        }
+        
+        return "{$this->first_name} {$this->last_name}";
     }
 }
