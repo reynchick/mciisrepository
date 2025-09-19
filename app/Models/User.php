@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Notifications\CustomVerifyEmail;
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, Auditable;
 
     /**
      * The attributes that are mass assignable.
@@ -28,6 +29,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'role_id',
         'password',
+        'must_change_password',
+        'password_changed_at',
+        'is_temporary_password',
     ];
 
     /**
@@ -50,6 +54,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'password_changed_at' => 'datetime',
+            'must_change_password' => 'boolean',
+            'is_temporary_password' => 'boolean',
         ];
     }
 
@@ -112,6 +119,47 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isMCIISStaff(): bool
     {
         return $this->hasRole('MCIIS Staff');
+    }
+
+    /**
+     * Check if user is admin or staff
+     */
+    public function isAdminOrStaff(): bool
+    {
+        return $this->isAdministrator() || $this->isMCIISStaff();
+    }
+    
+    /**
+     * Check if user needs to change password
+     */
+    public function needsPasswordChange(): bool
+    {
+        return $this->must_change_password && $this->isAdminOrStaff();
+    }
+
+    /**
+     * Mark that user has changed their password
+     */
+    public function markPasswordChanged(): void
+    {
+        $this->update([
+            'must_change_password' => false,
+            'is_temporary_password' => false,
+            'password_changed_at' => now(),
+        ]);
+    }
+
+    /**
+     * Set temporary password for admin/staff users
+     */
+    public function setTemporaryPassword(string $password): void
+    {
+        $this->update([
+            'password' => bcrypt($password),
+            'must_change_password' => true,
+            'is_temporary_password' => true,
+            'password_changed_at' => null,
+        ]);
     }
 
     /**

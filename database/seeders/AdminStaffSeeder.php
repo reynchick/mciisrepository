@@ -6,8 +6,6 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
 
 class AdminStaffSeeder extends Seeder
 {
@@ -41,17 +39,13 @@ class AdminStaffSeeder extends Seeder
                 [
                     ...$data,
                     'student_id' => null,
-                    // Strong random placeholder (never shared)
-                    'password' => Hash::make(Str::random(40)),
-                    // If IT has already verified identity, set verified now:
-                    // 'email_verified_at' => now(),
-                    // Otherwise, keep null so they must verify via email:
-                    'email_verified_at' => null,
+                    'password' => Hash::make('TempPassword123!'),
+                    'email_verified_at' => now(), // Pre-verified for admin/staff
+                    'must_change_password' => true,
+                    'is_temporary_password' => true,
+                    'password_changed_at' => null,
                 ],
             );
-
-            // Send a password reset link so they set their password securely
-            Password::sendResetLink(['email' => $user->email]);
         }
     }
 }

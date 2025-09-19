@@ -9,11 +9,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
+use App\Traits\Auditable;
 
 class Research extends Model
 {
     /** @use HasFactory<\Database\Factories\ResearchFactory> */
-    use HasFactory;
+    use HasFactory, Auditable;
 
     protected $table = 'research';
 
@@ -99,6 +100,31 @@ class Research extends Model
     }
 
     /**
+     * Agendas associated with this research.
+     */
+    public function agendas(): BelongsToMany
+    {
+        return $this->belongsToMany(Agenda::class, 'research_agenda', 'research_id', 'agenda_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the SDGs associated with this research.
+     */
+    public function sdgs(): BelongsToMany
+    {
+        return $this->belongsToMany(SDG::class, 'research_sdg')->withTimestamps();
+    }
+
+    /**
+     * Get the SRIGs associated with this research.
+     */
+    public function srigs(): BelongsToMany
+    {
+        return $this->belongsToMany(SRIG::class, 'research_srig');
+    }
+
+    /**
      * Scope a query to filter research by panelist.
      */
     public function scopeByPanelist($query, $facultyId)
@@ -115,6 +141,7 @@ class Research extends Model
     {
         return $this->panelists()->where('faculty_id', $faculty->id)->exists();
     }
+    
 
     /**
      * Scope a query to only include non-archived research.
@@ -302,5 +329,47 @@ class Research extends Model
                 Storage::disk('public')->delete($research->research_manuscript);
             }
         });
+    }
+
+    /**
+     * Attach keywords to research with audit logging
+     */
+    public function attachKeywords(array $keywordIds): void
+    {
+        $oldKeywords = $this->keywords()->pluck('keywords.id')->toArray();
+        $this->keywords()->sync($keywordIds);
+        
+        $newKeywords = $this->keywords()->pluck('keywords.id')->toArray();
+        $added = array_diff($newKeywords, $oldKeywords);
+        $removed = array_diff($oldKeywords, $newKeywords);
+
+        if (!empty($added) || !empty($removed)) {
+            $this->logAudit('synced', null, [
+                'relation' => 'keywords',
+                'added' => $added,
+                'removed' => $removed
+            ]);
+        }
+    }
+
+    /**
+     * Attach panelists to research with audit logging
+     */
+    public function attachPanelists(array $facultyIds): void
+    {
+        $oldPanelists = $this->panelists()->pluck('faculty.id')->toArray();
+        $this->panelists()->sync($facultyIds);
+        
+        $newPanelists = $this->panelists()->pluck('faculty.id')->toArray();
+        $added = array_diff($newPanelists, $oldPanelists);
+        $removed = array_diff($oldPanelists, $newPanelists);
+
+        if (!empty($added) || !empty($removed)) {
+            $this->logAudit('synced', null, [
+                'relation' => 'panelists',
+                'added' => $added,
+                'removed' => $removed
+            ]);
+        }
     }
 }

@@ -6,11 +6,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\Auditable;
 
 class Faculty extends Model
 {
     /** @use HasFactory<\Database\Factories\FacultyFactory> */
-    use HasFactory;
+    use HasFactory, Auditable;
 
     /**
      * The attributes that are mass assignable.
@@ -43,6 +45,14 @@ class Faculty extends Model
               ->orWhere('faculty_id', 'like', "%{$search}%")
               ->orWhere('email', 'like', "%{$search}%");
         });
+    }
+
+    /**
+     * Get the researches that this faculty has advised.
+     */
+    public function advisedResearches(): HasMany
+    {
+        return $this->hasMany(Research::class, 'research_adviser');
     }
 
      /**

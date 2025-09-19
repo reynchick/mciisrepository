@@ -43,6 +43,12 @@ class AuthenticatedSessionController extends Controller
                 ->with('status', 'Please verify your email address before logging in.');
         }
 
+        // Check if admin/staff user needs to change password
+        if ($request->user()->needsPasswordChange()) {
+            return redirect()->route('auth.change-password.show')
+                ->with('status', 'Please change your temporary password to something more secure.');
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Response;
 use Inertia\Inertia;
 
@@ -36,7 +37,25 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request): RedirectResponse
     {
-        User::create($request->validated());
+        $userData = $request->validated();
+        
+        // Create user with admin-provided password
+        $user = User::create([
+            ...$userData,
+            'password' => Hash::make($userData['password']),
+        ]);
+
+        // If creating admin or staff user, mark as needing password change
+        if ($user->isAdminOrStaff()) {
+            $user->update([
+                'must_change_password' => true,
+                'is_temporary_password' => true,
+                'password_changed_at' => null,
+            ]);
+            
+            return redirect()->route('users.index')
+                ->with('success', 'User created successfully. They will be prompted to change their password on first login.');
+        }
         
         return redirect()->route('users.index')
             ->with('success', 'User created successfully');
