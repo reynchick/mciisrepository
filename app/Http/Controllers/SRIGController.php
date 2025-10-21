@@ -8,10 +8,6 @@ use App\Http\Requests\UpdateSRIGRequest;
 
 class SRIGController extends Controller
 {
-    public function __construct()
-    {
-        $this->authorizeResource(SRIG::class);
-    }
 
     /**
      * Display a listing of the resource.

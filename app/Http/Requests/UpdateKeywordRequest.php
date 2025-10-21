@@ -25,7 +25,21 @@ class UpdateKeywordRequest extends FormRequest
         $keywordId = $this->route('keyword');
         
         return [
-            'keyword_name' => ['required', 'string', 'max:255', Rule::unique('keywords', 'keyword_name')->ignore($keywordId)],
+            'keyword_name' => ['bail', 'required', 'string', 'max:255', Rule::unique('keywords', 'keyword_name')->ignore($keywordId)],
         ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'keyword_name.unique' => 'This keyword already exists.',
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('keyword_name')) {
+            $this->merge(['keyword_name' => trim((string) $this->input('keyword_name'))]);
+        }
     }
 }

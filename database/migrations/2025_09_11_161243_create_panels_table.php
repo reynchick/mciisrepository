@@ -25,7 +25,6 @@ return new class extends Migration
                 ->index();
             $table->timestamps();
 
-            // Prevent duplicate panel assignments
             $table->unique(['research_id', 'faculty_id']);
         });
     }

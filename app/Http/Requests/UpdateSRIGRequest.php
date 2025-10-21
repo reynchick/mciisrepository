@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateSRIGRequest extends FormRequest
 {
@@ -21,9 +22,28 @@ class UpdateSRIGRequest extends FormRequest
      */
     public function rules(): array
     {
+        $srigId = $this->route('srig');
+
         return [
-            'name' => ['required', 'string', 'max:255', 'unique:srigs,name,' . $this->srig->id],
+            'name' => ['bail', 'required', 'string', 'max:255', Rule::unique('srigs', 'name')->ignore($srigId),],
             'description' => ['nullable', 'string']
         ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'SRIG name is required.',
+            'name.unique' => 'SRIG name already exists.',
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        foreach (['name', 'description'] as $field) {
+            if ($this->has($field)) {
+                $this->merge([$field => trim((string) $this->input($field))]);
+            }
+        }
     }
 }

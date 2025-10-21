@@ -12,7 +12,7 @@ class RolePolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->role->isAdministrator();
+        return $user->isAdministrator();
     }
 
     /**
@@ -20,7 +20,7 @@ class RolePolicy
      */
     public function view(User $user, Role $role): bool
     {
-        return $user->role->isAdministrator();
+        return $user->isAdministrator();
     }
 
     /**
@@ -28,7 +28,7 @@ class RolePolicy
      */
     public function create(User $user): bool
     {
-        return $user->role->isAdministrator();
+        return $user->isAdministrator();
     }
 
     /**
@@ -36,7 +36,7 @@ class RolePolicy
      */
     public function update(User $user, Role $role): bool
     {
-        return $user->role->isAdministrator();
+        return $user->isAdministrator();
     }
 
     /**
@@ -44,6 +44,6 @@ class RolePolicy
      */
     public function delete(User $user, Role $role): bool
     {
-        return $user->role->isAdministrator() && $role->users()->count() === 0;
+        return $user->isAdministrator() && $role->users()->count() === 0;
     }
 }

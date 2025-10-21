@@ -2,14 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Keyword extends Model
 {
-    /** @use HasFactory<\Database\Factories\KeywordFactory> */
-    use HasFactory;
 
     protected $fillable = [
         'keyword_id',
@@ -25,6 +22,14 @@ class Keyword extends Model
     }
 
     /**
+     * Get the search logs associated with this keyword.
+     */
+    public function searchLogs()
+    {
+        return $this->hasMany(KeywordSearchLog::class, 'keyword_id');
+    }
+
+    /**
      * Scope a query to search keywords by name.
      */
     public function scopeSearch($query, $search)
@@ -33,18 +38,10 @@ class Keyword extends Model
     }
 
     /**
-     * Get the count of researches using this keyword.
+     * Get the number of times this keyword has been searched.
      */
-    public function getResearchCountAttribute(): int
+    public function getSearchCountAttribute(): int
     {
-        return $this->researches()->count();
-    }
-
-    /**
-     * Get the count of active researches using this keyword.
-     */
-    public function getActiveResearchCountAttribute(): int
-    {
-        return $this->researches()->active()->count();
+        return $this->searchLogs()->count();
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateAgendaRequest extends FormRequest
 {
@@ -21,9 +22,28 @@ class UpdateAgendaRequest extends FormRequest
      */
     public function rules(): array
     {
+        $agendaId = $this->route('agenda'); // or ->id if using model binding
+
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['bail', 'required', 'string', 'max:255', Rule::unique('agendas', 'name')->ignore($agendaId),],
             'description' => ['nullable', 'string'],
         ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'Agenda name is required.',
+            'name.unique' => 'Agenda name already exists.',
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        foreach (['name', 'description'] as $field) {
+            if ($this->has($field)) {
+                $this->merge([$field => trim((string) $this->input($field))]);
+            }
+        }
     }
 }

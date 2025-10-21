@@ -22,8 +22,26 @@ class StoreAgendaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['bail', 'required', 'string', 'unique:agendas,name'],
             'description' => ['nullable', 'string'],
         ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'Agenda name is required.',
+            'name.unique' => 'This agenda already exists.',
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('name')) {
+            $this->merge(['name' => trim($this->input('name'))]);
+        }
+        if ($this->has('description')) {
+            $this->merge(['description' => trim($this->input('description'))]);
+        }
     }
 }

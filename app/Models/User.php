@@ -22,16 +22,13 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $fillable = [
         'student_id',
+        'faculty_id',
         'first_name',
         'middle_name',
         'last_name',
         'contact_number',
         'email',
         'role_id',
-        'password',
-        'must_change_password',
-        'password_changed_at',
-        'is_temporary_password',
     ];
 
     /**
@@ -76,9 +73,20 @@ class User extends Authenticatable implements MustVerifyEmail
         return $name;
     }
 
+    /**
+     * Get the role associated with this user.
+     */
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
+    }
+
+    /**
+     * Get the faculty profile linked to this user (if any).
+     */
+    public function faculty(): BelongsTo
+    {
+        return $this->belongsTo(Faculty::class, 'faculty_id', 'faculty_id');
     }
 
     /**
@@ -142,11 +150,11 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function markPasswordChanged(): void
     {
-        $this->update([
+        $this->forceFill([
             'must_change_password' => false,
             'is_temporary_password' => false,
             'password_changed_at' => now(),
-        ]);
+        ])->save();
     }
 
     /**
@@ -154,12 +162,13 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function setTemporaryPassword(string $password): void
     {
-        $this->update([
-            'password' => bcrypt($password),
+        // Let the 'hashed' cast hash the raw password
+        $this->forceFill([
+            'password' => $password,
             'must_change_password' => true,
             'is_temporary_password' => true,
             'password_changed_at' => null,
-        ]);
+        ])->save();
     }
 
     /**
@@ -202,13 +211,5 @@ class User extends Authenticatable implements MustVerifyEmail
         }
         
         return $this->student_id;
-    }
-
-    /**
-     * Send the email verification notification.
-     */
-    public function sendEmailVerificationNotification()
-    {
-        $this->notify(new CustomVerifyEmail);
     }
 }

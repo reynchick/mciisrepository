@@ -17,6 +17,13 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->timestamps();
         });
+        
+        Schema::create('research_srig', function (Blueprint $table) {
+            $table->foreignId('research_id')->constrained()->onDelete('cascade');
+            $table->foreignId('srig_id')->constrained('srigs')->onDelete('cascade');
+            $table->primary(['research_id', 'srig_id']);
+            $table->timestamps();
+        });
     }
 
     /**
@@ -24,6 +31,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('research_srig');
         Schema::dropIfExists('srigs');
     }
 };

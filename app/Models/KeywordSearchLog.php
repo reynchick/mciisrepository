@@ -2,14 +2,27 @@
 
 namespace App\Models;
 
-class KeywordSearchLog extends Model {
-    protected $fillable = ['keyword_id', 'user_id'];
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class KeywordSearchLog extends Model
+{
+
+    protected $fillable = ['keyword_id', 'user_id', 'ip_address', 'user_agent'];
     
-    public function keyword() {
+    /**
+     * Get the keyword that was searched.
+     */
+    public function keyword(): BelongsTo
+    {
         return $this->belongsTo(Keyword::class);
     }
     
-    public function user() {
+    /**
+     * Get the user who performed the search.
+     */
+    public function user(): BelongsTo
+    {
         return $this->belongsTo(User::class);
     }
 }

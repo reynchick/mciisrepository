@@ -28,6 +28,7 @@ class StoreResearcherRequest extends FormRequest
             'last_name' => ['required', 'string', 'max:255'],
             'email' => [
                 'nullable', 
+                'bail',
                 'email',
                 'unique:researchers,email',
                 'regex:/^[^@]+@usep\.edu\.ph$/'
@@ -38,7 +39,20 @@ class StoreResearcherRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.regex' => 'Email must be a valid USeP email address ending with @usep.edu.ph'
+            'research_id.exists' => 'Selected research does not exist.',
+            'email.regex' => 'Email must be a USeP email ending with @usep.edu.ph'
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        foreach (['first_name', 'middle_name', 'last_name'] as $field) {
+            if ($this->has($field)) {
+                $this->merge([$field => trim((string) $this->input($field))]);
+            }
+        }
+        if ($this->has('email')) {
+            $this->merge(['email' => strtolower(trim((string) $this->input('email')))]);
+        }
     }
 }

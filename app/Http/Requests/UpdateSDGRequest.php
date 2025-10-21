@@ -22,11 +22,28 @@ class UpdateSDGRequest extends FormRequest
      */
     public function rules(): array
     {
-        $sdgId = $this->route('s_d_g') ?? $this->route('sdg');
+        $sdgId = $this->route('sdg');
 
         return [
-            'name' => ['required', 'string', 'max:255', Rule::unique('sdgs', 'name')->ignore($sdgId)],
+            'name' => ['bail', 'required', 'string', 'max:255', Rule::unique('sdgs', 'name')->ignore($sdgId)],
             'description' => ['nullable', 'string'],
         ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'SDG name is required.',
+            'name.unique' => 'This SDG already exists.',
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        foreach (['name', 'description'] as $field) {
+            if ($this->has($field)) {
+                $this->merge([$field => trim((string) $this->input($field))]);
+            }
+        }
     }
 }

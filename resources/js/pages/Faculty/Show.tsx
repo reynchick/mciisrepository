@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Edit, Mail, Phone, Globe, User, GraduationCap, BookOpen, Trash2 } from 'lucide-react';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { SharedData } from '@/types';
 
 interface Faculty {
     id: number;
@@ -30,6 +31,10 @@ interface Props {
 }
 
 export default function FacultyShow({ faculty }: Props) {
+    const { auth } = usePage<SharedData>().props;
+    const isOwnRecord = auth.user.faculty_id === faculty.faculty_id;
+    const canEdit = auth.user.role === 'Administrator' || isOwnRecord;
+    
     const handleDelete = () => {
         if (confirm('Are you sure you want to delete this faculty member? This action cannot be undone.')) {
             router.delete(`/faculties/${faculty.id}`);
@@ -75,16 +80,20 @@ export default function FacultyShow({ faculty }: Props) {
                         </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <Button variant="outline" asChild>
-                            <Link href={`/faculties/${faculty.id}/edit`}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                            </Link>
-                        </Button>
-                        <Button variant="destructive" onClick={handleDelete}>
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                        </Button>
+                        {canEdit && (
+                            <Button variant="outline" asChild>
+                                <Link href={`/faculties/${faculty.id}/edit`}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Edit
+                                </Link>
+                            </Button>
+                        )}
+                        {(auth.user.role === 'Administrator') && (
+                            <Button variant="destructive" onClick={handleDelete}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                            </Button>
+                        )}
                     </div>
                 </div>
 

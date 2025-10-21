@@ -22,8 +22,25 @@ class StoreSDGRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', 'unique:sdgs,name'],
+            'name' => ['bail', 'required', 'string', 'unique:sdgs,name'],
             'description' => ['nullable', 'string'],
         ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'SDG name is required.',
+            'name.unique' => 'This SDG already exists.',
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        foreach (['name', 'description'] as $field) {
+            if ($this->has($field)) {
+                $this->merge([$field => trim((string) $this->input($field))]);
+            }
+        }
     }
 }

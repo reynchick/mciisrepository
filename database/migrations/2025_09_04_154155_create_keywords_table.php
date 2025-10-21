@@ -13,10 +13,18 @@ return new class extends Migration
             $table->string('keyword_name')->unique();
             $table->timestamps();
         });
+
+        Schema::create('research_keywords', function (Blueprint $table) {
+            $table->foreignId('research_id')->constrained('research')->cascadeOnDelete();
+            $table->foreignId('keyword_id')->constrained('keywords')->cascadeOnDelete();
+            $table->primary(['research_id', 'keyword_id']); 
+            $table->timestamps();
+        });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('research_keywords');
         Schema::dropIfExists('keywords');
     }
 };

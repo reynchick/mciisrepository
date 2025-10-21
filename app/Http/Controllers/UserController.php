@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Faculty;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Http\RedirectResponse;
@@ -12,6 +13,9 @@ use Inertia\Inertia;
 
 class UserController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
     public function index(): Response
     {
         $users = User::with('role')
@@ -30,14 +34,33 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+     * Show the form for creating a new resource.
+     */
     public function create(): Response
     {
         return Inertia::render('Users/Create');
     }
 
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(StoreUserRequest $request): RedirectResponse
     {
         $userData = $request->validated();
+        
+        // Validate that faculty_id and email exists in faculty table if faculty_id is provided
+        if (!empty($userData['faculty_id'])) {
+            $faculty = Faculty::where('faculty_id', $userData['faculty_id'])
+                ->where('email', $userData['email'])
+                ->first();
+            if (!$faculty) {
+                return back()->withErrors([
+                    'faculty_id' => 'This Faculty ID and email combination is not registered in our faculty database.',
+                    'email' => 'This Faculty ID and email combination is not registered in our faculty database.'
+                ]);
+            }
+        }
         
         // Create user with admin-provided password
         $user = User::create([
@@ -61,6 +84,9 @@ class UserController extends Controller
             ->with('success', 'User created successfully');
     }
 
+    /**
+     * Show the form for editing the specified resource.
+     */
     public function edit(User $user): Response
     {
         return Inertia::render('Users/Edit', [
@@ -68,6 +94,9 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+     * Update the specified resource in storage.
+     */
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
         $user->update($request->validated());
@@ -76,6 +105,9 @@ class UserController extends Controller
             ->with('success', 'User updated successfully');
     }
 
+    /**
+     * Remove the specified resource from storage.
+     */
     public function destroy(User $user): RedirectResponse
     {
         $user->delete();

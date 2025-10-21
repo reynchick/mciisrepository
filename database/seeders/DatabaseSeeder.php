@@ -18,14 +18,19 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         $this->call([
-            RoleSeeder::class,
             AdminStaffSeeder::class,
+            AgendaSeeder::class,
             FacultySeeder::class,
-            ProgramSeeder::class,
-            ResearchSeeder::class,
-            ResearcherSeeder::class,
             KeywordSeeder::class,
+            ProgramSeeder::class,
+            ReportFormatSeeder::class,
+            ReportTypeSeeder::class,
+            ResearcherSeeder::class,
             ResearchKeywordSeeder::class,
+            ResearchSeeder::class,
+            RoleSeeder::class,
+            SdgSeeder::class,
+            SrigSeeder::class,
         ]);
     }
 }

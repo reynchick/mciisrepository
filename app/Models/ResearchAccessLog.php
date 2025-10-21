@@ -2,14 +2,27 @@
 
 namespace App\Models;
 
-class ResearchAccessLog extends Model {
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class ResearchAccessLog extends Model
+{
+
     protected $fillable = ['research_id', 'user_id', 'ip_address', 'user_agent'];
     
-    public function research() {
+    /**
+     * Get the research associated with this access log entry.
+     */
+    public function research(): BelongsTo
+    {
         return $this->belongsTo(Research::class);
     }
     
-    public function user() {
+    /**
+     * Get the user who accessed the research (if authenticated).
+     */
+    public function user(): BelongsTo
+    {
         return $this->belongsTo(User::class);
     }
 }

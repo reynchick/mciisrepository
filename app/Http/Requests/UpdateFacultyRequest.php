@@ -22,10 +22,10 @@ class UpdateFacultyRequest extends FormRequest
      */
     public function rules(): array
     {
-        $facultyId = $this->route('faculty'); // Assuming your route parameter is 'faculty'
+        $facultyId = $this->route('faculty');
         
         return [
-            'faculty_id' => ['required', 'string', 'max:255', Rule::unique('faculties', 'faculty_id')->ignore($facultyId)],
+            'faculty_id' => ['bail', 'required', 'string', 'max:255', Rule::unique('faculties', 'faculty_id')->ignore($facultyId)],
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
@@ -33,6 +33,7 @@ class UpdateFacultyRequest extends FormRequest
             'designation' => ['nullable', 'string', 'max:255'],
             'email' => [
                 'nullable',
+                'bail',
                 'email',
                 Rule::unique('faculties', 'email')->ignore($facultyId),
                 'regex:/^[^@]+@usep\.edu\.ph$/'
@@ -45,15 +46,26 @@ class UpdateFacultyRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get custom error messages for validation rules.
-     */
     public function messages(): array
     {
         return [
+            'faculty_id.required' => 'Faculty ID is required.',
             'faculty_id.unique' => 'This Faculty ID is already taken.',
-            'email.regex' => 'Email must be a valid USeP email address ending with @usep.edu.ph',
+            'email.email' => 'Email must be a valid email address.',
             'email.unique' => 'This email is already registered.',
+            'email.regex' => 'Email must be a USeP email ending with @usep.edu.ph',
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        foreach (['first_name', 'middle_name', 'last_name', 'position', 'designation', 'educational_attainment'] as $field) {
+            if ($this->has($field)) {
+                $this->merge([$field => trim((string) $this->input($field))]);
+            }
+        }
+        if ($this->has('email')) {
+            $this->merge(['email' => strtolower(trim((string) $this->input('email')))]);
+        }
     }
 }

@@ -17,6 +17,13 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->timestamps();
         });
+
+        Schema::create('research_agenda', function (Blueprint $table) {
+            $table->foreignId('research_id')->constrained('research')->cascadeOnDelete();
+            $table->foreignId('agenda_id')->constrained('agendas')->cascadeOnDelete();
+            $table->primary(['research_id', 'agenda_id']); 
+            $table->timestamps();
+        });
     }
 
     /**
@@ -24,6 +31,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('research_agenda');
         Schema::dropIfExists('agendas');
     }
 };

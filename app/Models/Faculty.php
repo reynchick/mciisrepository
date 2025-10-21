@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -11,14 +10,7 @@ use App\Traits\Auditable;
 
 class Faculty extends Model
 {
-    /** @use HasFactory<\Database\Factories\FacultyFactory> */
-    use HasFactory, Auditable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'faculty_id',
         'first_name',
@@ -92,5 +84,29 @@ class Faculty extends Model
         }
         
         return "{$this->first_name} {$this->last_name}";
+    }
+
+    /**
+     * Get the user account associated with this faculty record.
+     */
+    public function user(): HasOne
+    {
+        return $this->hasOne(User::class, 'faculty_id', 'faculty_id');
+    }
+
+    /**
+     * Get the number of researches this faculty has advised.
+     */
+    public function getAdvisedResearchCountAttribute(): int
+    {
+        return $this->advisedResearches()->count();
+    }
+
+    /**
+     * Get the number of researches this faculty has paneled.
+     */
+    public function getPaneledResearchCountAttribute(): int
+    {
+        return $this->panelResearch()->count();
     }
 }

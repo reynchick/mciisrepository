@@ -22,7 +22,22 @@ class StoreKeywordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'keyword_name' => ['required', 'string', 'max:255', 'unique:keywords,keyword_name'],
+            'keyword_name' => ['bail', 'required', 'string', 'max:255', 'unique:keywords,keyword_name'],
         ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'keyword_name.required' => 'Keyword name is required.',
+            'keyword_name.unique' => 'This keyword already exists.',
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('keyword_name')) {
+            $this->merge(['keyword_name' => trim((string) $this->input('keyword_name'))]);
+        }
     }
 }

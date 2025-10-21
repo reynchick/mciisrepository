@@ -11,15 +11,11 @@ class ReportTypeSeeder extends Seeder
     {
         $types = [
             [
-                'name' => 'Abstract Compilation',
-                'description' => 'Compilation of research abstracts'
+                'name' => 'Abstract/Executive Summary Compilation',
+                'description' => 'Compilation of research abstracts and executive summaries'
             ],
             [
-                'name' => 'Executive Summary Compilation',
-                'description' => 'Compilation of executive summaries'
-            ],
-            [
-                'name' => 'Matrix/Tabular Report',
+                'name' => 'Tabular Report',
                 'description' => 'Tabular representation of research data'
             ],
         ];

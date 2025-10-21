@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Models\Srig;
 
 class StoreSRIGRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class StoreSRIGRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('create', SRIG::class);
+        return $this->user()->can('create', Srig::class);
     }
 
     /**
@@ -22,8 +23,25 @@ class StoreSRIGRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', 'unique:srigs'],
+            'name' => ['bail', 'required', 'string', 'unique:srigs,name'],
             'description' => ['nullable', 'string']
         ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'SRIG name is required.',
+            'name.unique' => 'This SRIG already exists.',
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        foreach (['name', 'description'] as $field) {
+            if ($this->has($field)) {
+                $this->merge([$field => trim((string) $this->input($field))]);
+            }
+        }
     }
 }

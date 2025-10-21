@@ -16,7 +16,7 @@ class Research extends Model
     /** @use HasFactory<\Database\Factories\ResearchFactory> */
     use HasFactory, Auditable;
 
-    protected $table = 'research';
+    protected $table = 'researches';
 
     protected $fillable = [
         'uploaded_by',
@@ -45,7 +45,7 @@ class Research extends Model
     /**
      * Get the user who uploaded this research.
      */
-    public function uploader(): BelongsTo
+    public function uploadedBy(): BelongsTo 
     {
         return $this->belongsTo(User::class, 'uploaded_by');
     }
@@ -63,7 +63,31 @@ class Research extends Model
      */
     public function program(): BelongsTo
     {
-        return $this->belongsTo(Program::class, 'program_id');
+        return $this->belongsTo(Program::class);
+    }
+
+    /**
+     * Get the researchers for this research.
+     */
+    public function researchers(): HasMany
+    {
+        return $this->hasMany(Researcher::class);
+    }
+
+    /**
+     * Get the keywords associated with this research.
+     */
+    public function keywords(): BelongsToMany
+    {
+        return $this->belongsToMany(Keyword::class, 'research_keywords')->withTimestamps();
+    }
+
+    /**
+     * Get the panelists for this research.
+     */
+    public function panelists(): BelongsToMany
+    {
+        return $this->belongsToMany(Faculty::class, 'panels')->withTimestamps();
     }
 
     /**
@@ -75,37 +99,11 @@ class Research extends Model
     }
 
     /**
-     * Get the researchers for this research.
-     */
-    public function researchers(): HasMany
-    {
-        return $this->hasMany(Researcher::class, 'research_id');
-    }
-
-    /**
-     * Get the keywords associated with this research.
-     */
-    public function keywords(): BelongsToMany
-    {
-        return $this->belongsToMany(Keyword::class, 'research_keywords', 'research_id', 'keyword_id');
-    }
-
-    /**
-     * Get the panelists for this research.
-     */
-    public function panelists(): BelongsToMany
-    {
-        return $this->belongsToMany(Faculty::class, 'panels')
-                    ->withTimestamps();
-    }
-
-    /**
      * Agendas associated with this research.
      */
     public function agendas(): BelongsToMany
     {
-        return $this->belongsToMany(Agenda::class, 'research_agenda', 'research_id', 'agenda_id')
-            ->withTimestamps();
+        return $this->belongsToMany(Agenda::class, 'research_agenda')->withTimestamps();
     }
 
     /**
@@ -121,53 +119,21 @@ class Research extends Model
      */
     public function srigs(): BelongsToMany
     {
-        return $this->belongsToMany(SRIG::class, 'research_srig');
+        return $this->belongsToMany(SRIG::class, 'research_srig')->withTimestamps();
     }
 
     /**
-     * Scope a query to filter research by panelist.
+     * Get the access logs associated with this research.
      */
-    public function scopeByPanelist($query, $facultyId)
-    {
-        return $query->whereHas('panelists', function ($q) use ($facultyId) {
-            $q->where('faculty_id', $facultyId);
-        });
+    public function accessLogs(): HasMany {
+        return $this->hasMany(ResearchAccessLog::class);
     }
 
     /**
-     * Check if a faculty member is a panelist of this research.
+     * Get the entry logs associated with this research.
      */
-    public function hasPanelist(Faculty $faculty): bool
-    {
-        return $this->panelists()->where('faculty_id', $faculty->id)->exists();
-    }
-    
-
-    /**
-     * Scope a query to only include non-archived research.
-     */
-    public function scopeActive($query): Builder
-    {
-        return $query->whereNull('archived_at');
-    }
-
-    /**
-     * Scope a query to only include archived research.
-     */
-    public function scopeArchived($query): Builder
-    {
-        return $query->whereNotNull('archived_at');
-    }
-
-    /**
-     * Scope a query to search research by title or abstract.
-     */
-    public function scopeSearch($query, $search)
-    {
-        return $query->where(function ($q) use ($search) {
-            $q->where('research_title', 'like', "%{$search}%")
-              ->orWhere('research_abstract', 'like', "%{$search}%");
-        });
+    public function entryLogs(): HasMany {
+        return $this->hasMany(ResearchEntryLog::class, 'target_research_id');
     }
 
     /**
@@ -192,6 +158,50 @@ class Research extends Model
     public function scopeByYear($query, $year)
     {
         return $query->where('published_year', $year);
+    }
+
+    /**
+     * Scope a query to filter by panelist.
+     */
+    public function scopeByPanelist($query, $facultyId)
+    {
+        return $query->whereHas('panelists', function ($q) use ($facultyId) {
+            $q->where('faculty_id', $facultyId);
+        });
+    }
+
+    /**
+     * Scope a query to only include non-archived research.
+     */
+    public function scopeActive($query): Builder
+    {
+        return $query->whereNull('archived_at');
+    }
+
+    /**
+     * Scope a query to only include archived research.
+     */
+    public function scopeArchived($query): Builder
+    {
+        return $query->whereNotNull('archived_at');
+    }
+
+    /**
+     * Scope a query to search research by title, abstract or keywords.
+     */
+    public function scopeSearch($query, $search)
+    {
+        if (is_null($search) || trim($search) === '') {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($search) {
+            $q->where('research_title', 'like', "%{$search}%")
+              ->orWhere('research_abstract', 'like', "%{$search}%")
+              ->orWhereHas('keywords', function ($k) use ($search) {
+                  $k->where('keyword_name', 'like', "%{$search}%");
+              });
+        });
     }
 
     /**
@@ -227,11 +237,11 @@ class Research extends Model
     }
 
     /**
-     * Get the full name of the research with year.
+     * Get the number of times this research was accessed.
      */
-    public function getFullTitleAttribute(): string
+    public function getAccessCountAttribute(): int
     {
-        return "{$this->research_title} ({$this->published_year})";
+        return $this->accessLogs()->count();
     }
 
     /**
@@ -247,37 +257,9 @@ class Research extends Model
         return (string) $this->published_year;
     }
 
-    // Add unique rule for research_title
-    public static function rules($research = null)
-    {
-        $rules = [
-            'research_title' => ['required', 'string', 'max:255', $research ? "unique:research,research_title,{$research->id}" : 'unique:research,research_title'],
-            'research_adviser' => 'required|exists:faculties,id',
-            'program_id' => 'required|exists:programs,id',
-            'published_month' => 'nullable|integer|between:1,12',
-            'published_year' => 'required|integer|between:1900,' . date('Y'),
-            'research_abstract' => 'required|string',
-        ];
-
-        // Files are always optional but must meet requirements when provided
-        $rules['approval_sheet'] = [
-            'nullable',
-            'file',
-            'mimes:jpg,jpeg,png',
-            'max:2048', // 2MB max
-        ];
-        
-        $rules['manuscript'] = [
-            'nullable',
-            'file',
-            'mimes:pdf',
-            'max:10240', // 10MB max
-        ];
-
-        return $rules;
-    }
-
-    // Handle file uploads
+    /**
+     * Handle file uploads.
+     */
     public function uploadFiles($approvalSheet, $manuscript)
     {
         if ($approvalSheet) {
@@ -305,30 +287,20 @@ class Research extends Model
         $this->save();
     }
 
-    // Get file URLs
+    /**
+     * Get the public URL for the approval sheet file if present.
+     */
     public function getApprovalSheetUrl()
     {
         return $this->research_approval_sheet ? Storage::url($this->research_approval_sheet) : null;
     }
 
+    /**
+     * Get the public URL for the manuscript file if present.
+     */
     public function getManuscriptUrl()
     {
         return $this->research_manuscript ? Storage::url($this->research_manuscript) : null;
-    }
-
-    // Clean up files when research is deleted
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::deleting(function($research) {
-            if ($research->research_approval_sheet) {
-                Storage::disk('public')->delete($research->research_approval_sheet);
-            }
-            if ($research->research_manuscript) {
-                Storage::disk('public')->delete($research->research_manuscript);
-            }
-        });
     }
 
     /**
@@ -371,5 +343,23 @@ class Research extends Model
                 'removed' => $removed
             ]);
         }
+    }
+
+    /**
+     * Clean up files when research is deleted.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Delete stored files when a research record is being removed.
+        static::deleting(function($research) {
+            if ($research->research_approval_sheet) {
+                Storage::disk('public')->delete($research->research_approval_sheet);
+            }
+            if ($research->research_manuscript) {
+                Storage::disk('public')->delete($research->research_manuscript);
+            }
+        });
     }
 }

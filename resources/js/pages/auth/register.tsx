@@ -2,6 +2,7 @@ import RegisteredUserController from '@/actions/App/Http/Controllers/Auth/Regist
 import { login } from '@/routes';
 import { Form, Head } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
+import { useState } from 'react';
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -12,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import AuthLayout from '@/layouts/auth-layout';
 
 export default function Register() {
+    const [selectedRole, setSelectedRole] = useState('Student');
+
     return (
         <AuthLayout title="Create an account" description="Enter your details below to create your account">
             <Head title="Register" />
@@ -69,18 +72,36 @@ export default function Register() {
                                 </div>
                             </div>
 
-                            {/* Student ID Field */}
-                            <div className="grid gap-2">
-                                <Label htmlFor="studentID">Student ID</Label>
-                                <Input
-                                    id="studentID"
-                                    type="text"
-                                    tabIndex={4}
-                                    name="studentID"
-                                    placeholder="2023-xxxxx"
-                                />
-                                <InputError message={errors.studentID} className="mt-2" />
-                            </div>
+                            {/* Student ID Field - Only show for Student role */}
+                            {selectedRole === 'Student' && (
+                                <div className="grid gap-2">
+                                    <Label htmlFor="studentID">Student ID</Label>
+                                    <Input
+                                        id="studentID"
+                                        type="text"
+                                        tabIndex={4}
+                                        name="studentID"
+                                        placeholder="2023-xxxxx"
+                                    />
+                                    <InputError message={errors.studentID} className="mt-2" />
+                                </div>
+                            )}
+
+                            {/* Faculty ID Field - Only show for Faculty role */}
+                            {selectedRole === 'Faculty' && (
+                                <div className="grid gap-2">
+                                    <Label htmlFor="facultyID">Faculty ID *</Label>
+                                    <Input
+                                        id="facultyID"
+                                        type="text"
+                                        required
+                                        tabIndex={4}
+                                        name="faculty_id"
+                                        placeholder="Faculty ID"
+                                    />
+                                    <InputError message={errors.faculty_id} className="mt-2" />
+                                </div>
+                            )}
 
                             {/* Contact Number */}
                             <div className="grid gap-2">
@@ -115,7 +136,11 @@ export default function Register() {
                             {/* Role Selection */}
                             <div className="grid gap-2">
                                 <Label htmlFor="role">Role *</Label>
-                                <Select name="role" defaultValue="Student">
+                                <Select 
+                                    name="role" 
+                                    defaultValue="Student"
+                                    onValueChange={(value) => setSelectedRole(value)}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select your role" />
                                     </SelectTrigger>

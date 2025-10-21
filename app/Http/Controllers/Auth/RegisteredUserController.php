@@ -37,6 +37,7 @@ class RegisteredUserController extends Controller
             'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
             'student_id' => 'nullable|regex:/^\d{4}-\d{5}$/|unique:users,student_id',
+            'faculty_id' => 'nullable|string|unique:users,faculty_id',
             'contact_number' => ['required', 'regex:/^(09|\+63\s?9)\d{9}$/'],
             'email' => 'required|string|lowercase|email|max:255|unique:users,email|regex:/^[^@]+@usep\.edu\.ph$/',
             'role' => 'required|in:Faculty,Student',
@@ -55,12 +56,22 @@ class RegisteredUserController extends Controller
             ]);
         }
 
+        // Require faculty_id if role = Faculty
+        if ($request->role === 'Faculty' && !$request->faculty_id) {
+            throw ValidationException::withMessages([
+                'faculty_id' => 'Faculty ID is required for faculty accounts.'
+            ]);
+        }
+
         // Validate Faculty role against Faculty table
         if ($request->role === 'Faculty') {
-            $faculty = Faculty::where('email', $request->email)->first();
+            $faculty = Faculty::where('faculty_id', $request->faculty_id)
+                ->where('email', $request->email)
+                ->first();
             if (!$faculty) {
                 throw ValidationException::withMessages([
-                    'email' => 'This email is not registered in our faculty database. Please contact the administrator.'
+                    'faculty_id' => 'This Faculty ID and email combination is not registered in our faculty database. Please contact the administrator.',
+                    'email' => 'This Faculty ID and email combination is not registered in our faculty database. Please contact the administrator.'
                 ]);
             }
         }
@@ -78,9 +89,10 @@ class RegisteredUserController extends Controller
             'middle_name' => $request->middle_name,
             'last_name' => $request->last_name,
             'student_id' => $request->student_id,
+            'faculty_id' => $request->faculty_id,
             'contact_number' => $request->contact_number,
             'email' => $request->email,
-            'role_id' => $role->id, // ✅ save role_id instead of role
+            'role_id' => $role->id,
             'password' => Hash::make($request->password),
         ]);
 
