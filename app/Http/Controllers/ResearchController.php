@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class ResearchController extends Controller
 {
@@ -139,7 +140,7 @@ class ResearchController extends Controller
             'reason' => 'required|string|max:500'
         ]);
 
-        $research->archive(auth()->user(), $request->reason);
+        $research->archive(Auth::user(), $request->reason);
 
         return redirect()->route('research.index')
             ->with('success', 'Research archived successfully.');

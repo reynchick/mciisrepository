@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ResearchEntryLog extends Model
 {
+    public const ACTION_CREATE = 'create_research_entry';
+    public const ACTION_UPDATE = 'update_research_entry';
+    public const ACTION_ARCHIVE = 'archive_research_entry';
 
     protected $fillable = [
         'modified_by',
@@ -42,5 +45,14 @@ class ResearchEntryLog extends Model
     public function targetResearch(): BelongsTo
     {
         return $this->belongsTo(Research::class, 'target_research_id');
+    }
+
+    public static function getActionTypes(): array
+    {
+        return [
+            self::ACTION_CREATE => 'Create Research Entry',
+            self::ACTION_UPDATE => 'Update Research Entry',
+            self::ACTION_ARCHIVE => 'Archive Research Entry',
+        ];
     }
 }

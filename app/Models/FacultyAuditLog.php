@@ -7,7 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FacultyAuditLog extends Model
 {
-
+    public const ACTION_CREATE = 'create_faculty';
+    public const ACTION_UPDATE = 'update_faculty';
+    public const ACTION_DELETE = 'delete_faculty';
+    
     protected $fillable = [
         'modified_by',
         'target_faculty_id',
@@ -42,5 +45,14 @@ class FacultyAuditLog extends Model
     public function targetFaculty(): BelongsTo
     {
         return $this->belongsTo(Faculty::class, 'target_faculty_id');
+    }
+
+    public static function getActionTypes(): array
+    {
+        return [
+            self::ACTION_CREATE => 'Create Faculty',
+            self::ACTION_UPDATE => 'Update Faculty',
+            self::ACTION_DELETE => 'Delete Faculty',
+        ];
     }
 }

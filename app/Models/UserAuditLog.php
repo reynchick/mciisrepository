@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserAuditLog extends Model
 {
+    public const ACTION_CREATE = 'create_user';
+    public const ACTION_UPDATE = 'update_user';
+    public const ACTION_DEACTIVATE = 'deactivate_user';
 
     protected $fillable = [
         'modified_by',
@@ -42,5 +45,14 @@ class UserAuditLog extends Model
     public function targetUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'target_user_id');
+    }
+
+    public static function getActionTypes(): array
+    {
+        return [
+           self::ACTION_CREATE => 'Create User', 
+           self::ACTION_UPDATE => 'Update User', 
+           self::ACTION_DEACTIVATE => 'Deactivate User',
+        ];
     }
 }

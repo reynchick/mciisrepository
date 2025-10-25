@@ -3,10 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Traits\Auditable;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Faculty extends Model
 {
@@ -27,16 +26,11 @@ class Faculty extends Model
     ];
 
     /**
-     * Scope a query to search faculty by name or ID.
+     * Get the user account associated with this faculty record.
      */
-    public function scopeSearch($query, $search)
+    public function user(): HasOne
     {
-        return $query->where(function ($q) use ($search) {
-            $q->where('first_name', 'like', "%{$search}%")
-              ->orWhere('last_name', 'like', "%{$search}%")
-              ->orWhere('faculty_id', 'like', "%{$search}%")
-              ->orWhere('email', 'like', "%{$search}%");
-        });
+        return $this->hasOne(User::class, 'faculty_id', 'faculty_id');
     }
 
     /**
@@ -50,19 +44,29 @@ class Faculty extends Model
      /**
      * The research panels that the faculty member belongs to.
      */
-    public function panelResearch(): BelongsToMany
+    public function paneledResearch(): BelongsToMany
     {
-        return $this->belongsToMany(Research::class, 'panels')
-                    ->withTimestamps();
+        return $this->belongsToMany(Research::class, 'panels')->withTimestamps();
     }
 
     /**
-     * Scope a query to find faculty members who are panelists for a specific research.
+     * Get the audit logs targeting this faculty account.
      */
-    public function scopePanelistsFor($query, $researchId)
+    public function facultyAuditLogsTargeting(): HasMany
     {
-        return $query->whereHas('panelResearch', function ($q) use ($researchId) {
-            $q->where('research.id', $researchId);
+        return $this->hasMany(FacultyAuditLog::class, 'target_faculty_id');
+    }
+
+    /**
+     * Scope a query to search faculty by name or ID.
+     */
+    public function scopeSearch($query, $search)
+    {
+        return $query->where(function ($q) use ($search) {
+            $q->where('first_name', 'like', "%{$search}%")
+              ->orWhere('last_name', 'like', "%{$search}%")
+              ->orWhere('faculty_id', 'like', "%{$search}%")
+              ->orWhere('email', 'like', "%{$search}%");
         });
     }
 
@@ -79,34 +83,19 @@ class Faculty extends Model
      */
     public function getFullNameAttribute(): string
     {
-        if ($this->middle_name) {
-            return "{$this->first_name} {$this->middle_name} {$this->last_name}";
-        }
-        
-        return "{$this->first_name} {$this->last_name}";
+        return collect([$this->first_name, $this->middle_name, $this->last_name])
+            ->filter()
+            ->join(' ');
     }
 
-    /**
-     * Get the user account associated with this faculty record.
-     */
-    public function user(): HasOne
-    {
-        return $this->hasOne(User::class, 'faculty_id', 'faculty_id');
-    }
 
     /**
-     * Get the number of researches this faculty has advised.
+     * Get the number of researches this faculty has advised and paneled.
      */
-    public function getAdvisedResearchCountAttribute(): int
-    {
-        return $this->advisedResearches()->count();
-    }
-
-    /**
-     * Get the number of researches this faculty has paneled.
-     */
-    public function getPaneledResearchCountAttribute(): int
-    {
-        return $this->panelResearch()->count();
+    public function getResearchCounts() {
+        return [
+            'advised' => $this->advisedResearch()->count(),
+            'paneled' => $this->paneledResearch()->count()
+        ];
     }
 }

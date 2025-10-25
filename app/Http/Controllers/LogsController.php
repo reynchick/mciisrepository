@@ -8,20 +8,78 @@ use App\Models\UserAuditLog;
 use App\Models\FacultyAuditLog;
 use App\Models\ResearchEntryLog;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreUserAuditLogRequest;
+use App\Http\Requests\StoreFacultyAuditLogRequest;
+use App\Http\Requests\StoreResearchEntryLogRequest;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 
 class LogsController extends Controller
 {
+    public function createUserLog()
+    {
+        return Inertia::render('Logs/CreateUserLog', [
+            'options' => array_keys(UserAuditLog::getActionTypes()),
+            'labels' => UserAuditLog::getActionTypes(),
+        ]);
+    }
+
+    public function storeUserLog(StoreUserAuditLogRequest $request)
+    {
+        UserAuditLog::create($request->validated());
+        return redirect()->back()->with('success', 'User log recorded.');
+    }
+    
+    /**
+     * Create faculty audit log form
+     */
+    public function createFacultyLog()
+    {
+        return Inertia::render('Logs/CreateFacultyLog', [
+            'options' => array_keys(FacultyAuditLog::getActionTypes()),
+            'labels' => FacultyAuditLog::getActionTypes(),
+        ]);
+    }
+
+    /**
+     * Store a new faculty audit log
+     */
+    public function storeFacultyLog(StoreFacultyAuditLogRequest $request)
+    {
+        FacultyAuditLog::create($request->validated());
+        return redirect()->back()->with('success', 'Faculty log recorded.');
+    }
+
+    /**
+     * Create research entry log form
+     */
+    public function createResearchEntryLog()
+    {
+        return Inertia::render('Logs/CreateResearchEntryLog', [
+        'options' => array_keys(ResearchEntryLog::getActionTypes()),
+        'labels' => ResearchEntryLog::getActionTypes(),
+        ]);
+    }
+
+    /**
+     * Store a new research entry log
+     */
+    public function storeResearchEntryLog(StoreResearchEntryLogRequest $request)
+    {
+        ResearchEntryLog::create($request->validated());
+        return redirect()->back()->with('success', 'Research entry log recorded.');
+    }
+    
     /**
      * Authorize access to logs for admin or staff users.
      */
     protected function authorizeLogs(): void
     {
-        $user = auth()->user->id();
+        $user = Auth::user();
 
-        if (!$user || !$user->isAdminOrStaff()) {
+        if (!($user instanceof \App\Models\User) || !$user->isAdminOrStaff()) {
             abort(403);
         }
     }
@@ -87,9 +145,9 @@ class LogsController extends Controller
                 'modifiedBy:id,first_name,last_name,email',
                 'targetUser:id,first_name,last_name,email',
             ])
-            ->when($request->filled('modifiedBy'), fn ($q) => $q->where('modifiedBy', $request->modifiedBy))
-            ->when($request->filled('targetUserID'), fn ($q) => $q->where('targetUserID', $request->targetUserID))
-            ->when($request->filled('actionType'), fn ($q) => $q->where('actionType', $request->actionType))
+            ->when($request->filled('modified_by'), fn ($q) => $q->where('modified_by', $request->modified_by))
+            ->when($request->filled('target_user_id'), fn ($q) => $q->where('target_user_id', $request->target_user_id))
+            ->when($request->filled('action_type'), fn ($q) => $q->where('action_type', $request->action_type))
             ->when($request->filled('from'), fn ($q) => $q->whereDate('created_at', '>=', $request->from))
             ->when($request->filled('to'), fn ($q) => $q->whereDate('created_at', '<=', $request->to))
             ->latest()
@@ -98,7 +156,8 @@ class LogsController extends Controller
 
         return Inertia::render('Logs/UserAudits', [
             'logs' => $logs,
-            'filters' => $request->only(['modifiedBy', 'targetUserID', 'actionType', 'from', 'to']),
+            'filters' => $request->only(['modified_by', 'target_user_id', 'action_type', 'from', 'to']),
+            'actionTypes' => UserAuditLog::allowedActions(),
         ]);
     }
 
@@ -113,9 +172,9 @@ class LogsController extends Controller
                 'modifiedBy:id,first_name,last_name,email',
                 'targetFaculty:id,faculty_id,first_name,last_name,email',
             ])
-            ->when($request->filled('modifiedBy'), fn ($q) => $q->where('modifiedBy', $request->modifiedBy))
-            ->when($request->filled('targetFacultyID'), fn ($q) => $q->where('targetFacultyID', $request->targetFacultyID))
-            ->when($request->filled('actionType'), fn ($q) => $q->where('actionType', $request->actionType))
+            ->when($request->filled('modified_by'), fn ($q) => $q->where('modified_by', $request->modified_by))
+            ->when($request->filled('target_faculty_id'), fn ($q) => $q->where('target_faculty_id', $request->target_faculty_id))
+            ->when($request->filled('action_type'), fn ($q) => $q->where('action_type', $request->action_type))
             ->when($request->filled('from'), fn ($q) => $q->whereDate('created_at', '>=', $request->from))
             ->when($request->filled('to'), fn ($q) => $q->whereDate('created_at', '<=', $request->to))
             ->latest()
@@ -124,7 +183,8 @@ class LogsController extends Controller
 
         return Inertia::render('Logs/FacultyAudits', [
             'logs' => $logs,
-            'filters' => $request->only(['modifiedBy', 'targetFacultyID', 'actionType', 'from', 'to']),
+            'filters' => $request->only(['modified_by', 'target_faculty_id', 'action_type', 'from', 'to']),
+            'actionTypes' => FacultyAuditLog::getActionTypes(),
         ]);
     }
 
@@ -139,9 +199,9 @@ class LogsController extends Controller
                 'modifiedBy:id,first_name,last_name,email',
                 'targetResearch:id,research_title',
             ])
-            ->when($request->filled('modifiedBy'), fn ($q) => $q->where('modifiedBy', $request->modifiedBy))
-            ->when($request->filled('targetResearchID'), fn ($q) => $q->where('targetResearchID', $request->targetResearchID))
-            ->when($request->filled('actionType'), fn ($q) => $q->where('actionType', $request->actionType))
+            ->when($request->filled('modified_by'), fn ($q) => $q->where('modified_by', $request->modified_by))
+            ->when($request->filled('target_research_id'), fn ($q) => $q->where('target_research_id', $request->target_research_id))
+            ->when($request->filled('action_type'), fn ($q) => $q->where('action_type', $request->action_type))
             ->when($request->filled('from'), fn ($q) => $q->whereDate('created_at', '>=', $request->from))
             ->when($request->filled('to'), fn ($q) => $q->whereDate('created_at', '<=', $request->to))
             ->latest()
@@ -150,7 +210,8 @@ class LogsController extends Controller
 
         return Inertia::render('Logs/ResearchEntries', [
             'logs' => $logs,
-            'filters' => $request->only(['modifiedBy', 'targetResearchID', 'actionType', 'from', 'to']),
+            'filters' => $request->only(['modified_by', 'target_research_id', 'action_type', 'from', 'to']),
+            'actionTypes' => ResearchEntryLog::getActionTypes(),
         ]);
     }
 

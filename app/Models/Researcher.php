@@ -37,15 +37,9 @@ class Researcher extends Model
      */
     public function getFullNameAttribute(): string
     {
-        $name = $this->first_name;
-        
-        if ($this->middle_name) {
-            $name .= ' ' . $this->middle_name;
-        }
-        
-        $name .= ' ' . $this->last_name;
-        
-        return $name;
+        return collect([$this->first_name, $this->middle_name, $this->last_name])
+            ->filter()
+            ->join(' ');
     }
 
     /**
@@ -58,13 +52,5 @@ class Researcher extends Model
               ->orWhere('last_name', 'like', "%{$search}%")
               ->orWhere('email', 'like', "%{$search}%");
         });
-    }
-
-    /**
-     * Scope a query to filter by research.
-     */
-    public function scopeByResearch($query, $researchId)
-    {
-        return $query->where('research_id', $researchId);
     }
 }

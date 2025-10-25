@@ -9,12 +9,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
-use App\Traits\Auditable;
+use App\Models\Sdg;
+use App\Models\Srig;
 
 class Research extends Model
 {
     /** @use HasFactory<\Database\Factories\ResearchFactory> */
-    use HasFactory, Auditable;
+    use HasFactory;
 
     protected $table = 'researches';
 
@@ -111,7 +112,7 @@ class Research extends Model
      */
     public function sdgs(): BelongsToMany
     {
-        return $this->belongsToMany(SDG::class, 'research_sdg')->withTimestamps();
+        return $this->belongsToMany(Sdg::class, 'research_sdg')->withTimestamps();
     }
 
     /**
@@ -119,7 +120,7 @@ class Research extends Model
      */
     public function srigs(): BelongsToMany
     {
-        return $this->belongsToMany(SRIG::class, 'research_srig')->withTimestamps();
+        return $this->belongsToMany(Srig::class, 'research_srig')->withTimestamps();
     }
 
     /**
@@ -132,7 +133,7 @@ class Research extends Model
     /**
      * Get the entry logs associated with this research.
      */
-    public function entryLogs(): HasMany {
+    public function researchEntryLogsTargeting(): HasMany {
         return $this->hasMany(ResearchEntryLog::class, 'target_research_id');
     }
 
@@ -256,95 +257,7 @@ class Research extends Model
         
         return (string) $this->published_year;
     }
-
-    /**
-     * Handle file uploads.
-     */
-    public function uploadFiles($approvalSheet, $manuscript)
-    {
-        if ($approvalSheet) {
-            // Delete old file if exists
-            if ($this->research_approval_sheet) {
-                Storage::disk('public')->delete($this->research_approval_sheet);
-            }
-            
-            // Store new approval sheet
-            $approvalSheetPath = $approvalSheet->store('research/approval_sheets', 'public');
-            $this->research_approval_sheet = $approvalSheetPath;
-        }
-
-        if ($manuscript) {
-            // Delete old file if exists
-            if ($this->research_manuscript) {
-                Storage::disk('public')->delete($this->research_manuscript);
-            }
-            
-            // Store new manuscript
-            $manuscriptPath = $manuscript->store('research/manuscripts', 'public');
-            $this->research_manuscript = $manuscriptPath;
-        }
-
-        $this->save();
-    }
-
-    /**
-     * Get the public URL for the approval sheet file if present.
-     */
-    public function getApprovalSheetUrl()
-    {
-        return $this->research_approval_sheet ? Storage::url($this->research_approval_sheet) : null;
-    }
-
-    /**
-     * Get the public URL for the manuscript file if present.
-     */
-    public function getManuscriptUrl()
-    {
-        return $this->research_manuscript ? Storage::url($this->research_manuscript) : null;
-    }
-
-    /**
-     * Attach keywords to research with audit logging
-     */
-    public function attachKeywords(array $keywordIds): void
-    {
-        $oldKeywords = $this->keywords()->pluck('keywords.id')->toArray();
-        $this->keywords()->sync($keywordIds);
-        
-        $newKeywords = $this->keywords()->pluck('keywords.id')->toArray();
-        $added = array_diff($newKeywords, $oldKeywords);
-        $removed = array_diff($oldKeywords, $newKeywords);
-
-        if (!empty($added) || !empty($removed)) {
-            $this->logAudit('synced', null, [
-                'relation' => 'keywords',
-                'added' => $added,
-                'removed' => $removed
-            ]);
-        }
-    }
-
-    /**
-     * Attach panelists to research with audit logging
-     */
-    public function attachPanelists(array $facultyIds): void
-    {
-        $oldPanelists = $this->panelists()->pluck('faculty.id')->toArray();
-        $this->panelists()->sync($facultyIds);
-        
-        $newPanelists = $this->panelists()->pluck('faculty.id')->toArray();
-        $added = array_diff($newPanelists, $oldPanelists);
-        $removed = array_diff($oldPanelists, $newPanelists);
-
-        if (!empty($added) || !empty($removed)) {
-            $this->logAudit('synced', null, [
-                'relation' => 'panelists',
-                'added' => $added,
-                'removed' => $removed
-            ]);
-        }
-    }
-
+    
     /**
      * Clean up files when research is deleted.
      */
