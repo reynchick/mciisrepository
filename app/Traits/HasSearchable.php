@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 trait HasSearchable
 {
     /**
-     * Scope a query to search by multiple fields.
+     * Scope a query to search by multiple fields and relations.
      */
     public function scopeSearch(Builder $query, ?string $search): Builder
     {
@@ -17,7 +17,16 @@ trait HasSearchable
 
         return $query->where(function ($q) use ($search) {
             foreach ($this->getSearchableFields() as $field) {
-                $q->orWhere($field, 'like', "%{$search}%");
+                if (str_contains($field, '.')) {
+                    // Handle relation searches
+                    [$relation, $relationField] = explode('.', $field, 2);
+                    $q->orWhereHas($relation, function ($relationQuery) use ($relationField, $search) {
+                        $relationQuery->where($relationField, 'like', "%{$search}%");
+                    });
+                } else {
+                    // Handle direct field searches
+                    $q->orWhere($field, 'like', "%{$search}%");
+                }
             }
         });
     }

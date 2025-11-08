@@ -10,7 +10,7 @@ class StoreResearchEntryLogRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->isMCIISStaff() || $this->user()->isFaculty();
     }
 
     public function rules(): array

@@ -5,14 +5,23 @@ namespace Database\Seeders;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class AdminStaffSeeder extends Seeder
 {
+    /**
+     * Pre-create admin/staff accounts for Google SSO.
+     * 
+     * These accounts have NO passwords - they can ONLY log in via Google SSO.
+     * When they log in with Google for the first time, their google_id and avatar
+     * will be populated automatically by GoogleAuthController.
+     */
     public function run(): void
     {
+        // Create all roles
         $adminRole = Role::firstOrCreate(['name' => 'Administrator']);
         $staffRole = Role::firstOrCreate(['name' => 'MCIIS Staff']);
+        Role::firstOrCreate(['name' => 'Faculty']);
+        Role::firstOrCreate(['name' => 'Student']);
 
         $users = [
             [
@@ -34,18 +43,24 @@ class AdminStaffSeeder extends Seeder
         ];
 
         foreach ($users as $data) {
+            $roleId = $data['role_id'];
+            unset($data['role_id']);
+            
             $user = User::updateOrCreate(
                 ['email' => $data['email']],
                 [
                     ...$data,
                     'student_id' => null,
-                    'password' => Hash::make('TempPassword123!'),
-                    'email_verified_at' => now(), // Pre-verified for admin/staff
-                    'must_change_password' => true,
-                    'is_temporary_password' => true,
-                    'password_changed_at' => null,
+                    'faculty_id' => null,
+                    'password' => null, // No password - Google SSO only
+                    'google_id' => null, // Will be set on first Google login
+                    'avatar' => null, // Will be set on first Google login
+                    'email_verified_at' => null, // Will be set on first Google login
                 ],
             );
+            
+            // Attach role using pivot table
+            $user->roles()->syncWithoutDetaching([$roleId]);
         }
     }
 }

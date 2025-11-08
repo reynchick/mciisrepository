@@ -29,10 +29,19 @@ class ResearchPolicy
     /**
      * Determine whether the user can create models.
      */
-    public function create(User $user): bool
+    public function create(User $user, $adviserId = null): bool
     {
-        // Faculty and MCIIS Staff can create research
-        return $user->isFaculty() || $user->isMCIISStaff();
+        // MCIIS Staff can create any research
+        if ($user->isMCIISStaff()) {
+            return true;
+        }
+        
+        // Faculty can only create research they advise
+        if ($user->isFaculty() && $user->faculty && $adviserId) {
+            return $adviserId == $user->faculty->id;
+        }
+    
+        return false;
     }
 
     /**
@@ -46,8 +55,8 @@ class ResearchPolicy
         }
         
         // Faculty can only update research they advise
-        if ($user->isFaculty()) {
-            return $research->research_adviser === $user->id;
+        if ($user->isFaculty() && $user->faculty) {
+            return $research->research_adviser === $user->faculty->id;
         }
         
         return false;

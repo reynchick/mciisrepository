@@ -11,11 +11,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Sdg;
 use App\Models\Srig;
+use App\Traits\HasSearchable;
 
 class Research extends Model
 {
     /** @use HasFactory<\Database\Factories\ResearchFactory> */
-    use HasFactory;
+    use HasFactory, HasSearchable;
 
     protected $table = 'researches';
 
@@ -32,6 +33,16 @@ class Research extends Model
         'archived_at',
         'archived_by',
         'archive_reason',
+    ];
+
+    /**
+     * Fields that should be searchable.
+     * Use dot notation for relation searches (e.g., 'keywords.keyword_name').
+     */
+    protected array $searchableFields = [
+        'research_title',
+        'research_abstract',
+        'keywords.keyword_name'
     ];
 
     /**
@@ -185,24 +196,6 @@ class Research extends Model
     public function scopeArchived($query): Builder
     {
         return $query->whereNotNull('archived_at');
-    }
-
-    /**
-     * Scope a query to search research by title, abstract or keywords.
-     */
-    public function scopeSearch($query, $search)
-    {
-        if (is_null($search) || trim($search) === '') {
-            return $query;
-        }
-
-        return $query->where(function ($q) use ($search) {
-            $q->where('research_title', 'like', "%{$search}%")
-              ->orWhere('research_abstract', 'like', "%{$search}%")
-              ->orWhereHas('keywords', function ($k) use ($search) {
-                  $k->where('keyword_name', 'like', "%{$search}%");
-              });
-        });
     }
 
     /**

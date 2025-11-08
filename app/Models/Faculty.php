@@ -6,10 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\HasFullName;
+use App\Traits\HasSearchable;
+use App\Traits\NormalizesEmail;
 
 class Faculty extends Model
 {
+    use HasFullName, HasSearchable, NormalizesEmail, SoftDeletes;    
 
+    protected array $searchableFields = ['first_name', 'last_name', 'faculty_id', 'email'];
+    
     protected $fillable = [
         'faculty_id',
         'first_name',
@@ -57,18 +64,7 @@ class Faculty extends Model
         return $this->hasMany(FacultyAuditLog::class, 'target_faculty_id');
     }
 
-    /**
-     * Scope a query to search faculty by name or ID.
-     */
-    public function scopeSearch($query, $search)
-    {
-        return $query->where(function ($q) use ($search) {
-            $q->where('first_name', 'like', "%{$search}%")
-              ->orWhere('last_name', 'like', "%{$search}%")
-              ->orWhere('faculty_id', 'like', "%{$search}%")
-              ->orWhere('email', 'like', "%{$search}%");
-        });
-    }
+
 
     /**
      * Check if the faculty member is a panelist for a specific research.
@@ -77,17 +73,6 @@ class Faculty extends Model
     {
         return $this->panelResearch()->where('research.id', $research->id)->exists();
     }
-
-    /**
-     * Get the full name of the faculty member.
-     */
-    public function getFullNameAttribute(): string
-    {
-        return collect([$this->first_name, $this->middle_name, $this->last_name])
-            ->filter()
-            ->join(' ');
-    }
-
 
     /**
      * Get the number of researches this faculty has advised and paneled.

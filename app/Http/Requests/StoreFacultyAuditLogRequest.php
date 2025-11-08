@@ -10,7 +10,7 @@ class StoreFacultyAuditLogRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->isAdministrator() || $this->user()->isFaculty();
     }
 
     public function rules(): array

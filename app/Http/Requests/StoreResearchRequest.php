@@ -12,7 +12,8 @@ class StoreResearchRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        $adviserId = $this->input('research_adviser');
+        return $this->user()->can('create', [\App\Models\Research::class, $adviserId]);
     }
 
     /**

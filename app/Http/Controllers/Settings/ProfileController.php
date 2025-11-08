@@ -60,4 +60,41 @@ class ProfileController extends Controller
 
         return redirect('/');
     }
+
+    /**
+     * Show the profile completion page for new students.
+     */
+    public function showComplete(Request $request): Response|RedirectResponse
+    {
+        // Only students without student_id need to complete profile
+        if (!$request->user()->isStudent() || $request->user()->student_id) {
+            return redirect()->route('dashboard');
+        }
+        
+        return Inertia::render('profile/complete', [
+            'user' => $request->user(),
+        ]);
+    }
+
+    /**
+     * Store the completed profile information.
+     */
+    public function storeComplete(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'student_id' => 'required|regex:/^\d{4}-\d{5}$/|unique:users,student_id',
+            'contact_number' => 'required|regex:/^(09|\+63\s?9)\d{9}$/',
+        ], [
+            'student_id.regex' => 'Student ID must be in format YYYY-NNNNN (e.g., 2023-00800)',
+            'contact_number.regex' => 'Please enter a valid Philippine mobile number',
+        ]);
+        
+        $request->user()->update([
+            'student_id' => $request->student_id,
+            'contact_number' => $request->contact_number,
+        ]);
+        
+        return redirect()->route('dashboard')
+            ->with('status', 'Profile completed successfully!');
+    }
 }

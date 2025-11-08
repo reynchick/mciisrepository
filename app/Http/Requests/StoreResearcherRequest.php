@@ -11,7 +11,10 @@ class StoreResearcherRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        $researchId = $this->input('research_id');
+        $research = $researchId ? \App\Models\Research::find($researchId) : null;
+        
+        return $this->user()->can('create', [\App\Models\Researcher::class, $research]);
     }
 
     /**

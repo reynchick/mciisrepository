@@ -9,7 +9,8 @@ class UpdateResearcherRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $researcher = $this->route('researcher');
+        return $this->user()->can('update', $researcher);
     }
 
     public function rules(): array

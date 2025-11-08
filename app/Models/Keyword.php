@@ -4,14 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Traits\HasSearchable;
 
 class Keyword extends Model
 {
+    use HasSearchable;
 
     protected $fillable = [
         'keyword_id',
         'keyword_name',
     ];
+
+    /**
+     * Fields that should be searchable.
+     */
+    protected array $searchableFields = ['keyword_name'];
 
     /**
      * Get the researches that use this keyword.
@@ -29,13 +36,7 @@ class Keyword extends Model
         return $this->hasMany(KeywordSearchLog::class, 'keyword_id');
     }
 
-    /**
-     * Scope a query to search keywords by name.
-     */
-    public function scopeSearch($query, $search)
-    {
-        return $query->where('keyword_name', 'like', "%{$search}%");
-    }
+
 
     /**
      * Get the number of times this keyword has been searched.

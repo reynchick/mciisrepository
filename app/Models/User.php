@@ -2,17 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\HasFullName;
+use App\Traits\HasSearchable;
+use App\Traits\NormalizesEmail;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasFullName, HasSearchable, NormalizesEmail;
 
     /**
      * The attributes that are mass assignable.
@@ -27,8 +30,14 @@ class User extends Authenticatable implements MustVerifyEmail
         'last_name',
         'contact_number',
         'email',
-        'role_id',
+        'google_id',
+        'avatar',
     ];
+
+    /**
+     * Fields that should be searchable.
+     */
+    protected array $searchableFields = ['first_name', 'last_name', 'email', 'student_id', 'faculty_id'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -57,11 +66,21 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the role associated with this user.
+     * Get the roles associated with this user (many-to-many).
      */
-    public function role(): BelongsTo
+    public function roles(): BelongsToMany
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsToMany(Role::class, 'role_user')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the primary role (for backward compatibility).
+     * Returns the first role or null.
+     */
+    public function role(): ?Role
+    {
+        return $this->roles()->first();
     }
 
     /**
@@ -143,24 +162,21 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(FacultyAuditLog::class, 'modified_by');
     }
-    
-    /**
-     * Get the user's full name.
-     */
-    public function getFullNameAttribute(): string
-    {
-        return collect([$this->first_name, $this->middle_name, $this->last_name])
-            ->filter()
-            ->join(' ');
-    }
-
 
     /**
-     * Check if user has a specific role
+     * Check if user has a specific role (supports multiple roles)
      */
     public function hasRole(string $role): bool
     {
-        return $this->role && $this->role->name === $role;
+        return $this->roles()->where('name', $role)->exists();
+    }
+
+    /**
+     * Check if user has any of the given roles
+     */
+    public function hasAnyRole(array $roles): bool
+    {
+        return $this->roles()->whereIn('name', $roles)->exists();
     }
 
     /**

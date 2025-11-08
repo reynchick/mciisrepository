@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->boolean('must_change_password')->default(false)->after('password');
-            $table->timestamp('password_changed_at')->nullable()->after('must_change_password');
-            $table->boolean('is_temporary_password')->default(false)->after('password_changed_at');
+            $table->string('google_id')->nullable()->unique()->after('email');
+            $table->string('avatar')->nullable()->after('google_id');
+            $table->string('password')->nullable()->change();
         });
     }
 
@@ -24,7 +24,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['must_change_password', 'password_changed_at', 'is_temporary_password']);
+            $table->dropColumn(['google_id', 'avatar']);
+            $table->string('password')->nullable(false)->change();
         });
     }
 };

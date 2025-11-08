@@ -27,9 +27,19 @@ class ResearcherPolicy
     /**
      * Determine whether the user can create models.
      */
-    public function create(User $user): bool
+    public function create(User $user, \App\Models\Research $research = null): bool
     {
-        return $user->isFaculty() || $user->isMCIISStaff();
+        // MCIIS Staff can add researchers to any research
+        if ($user->isMCIISStaff()) {
+            return true;
+        }
+        
+        // Faculty can only add researchers to research they advise
+        if ($user->isFaculty() && $user->faculty && $research) {
+            return $research->research_adviser === $user->faculty->id;
+        }
+        
+        return false;
     }
 
     /**
@@ -37,7 +47,18 @@ class ResearcherPolicy
      */
     public function update(User $user, Researcher $researcher): bool
     {
-        return $user->isMCIISStaff();
+        // MCIIS Staff can update any researcher
+        if ($user->isMCIISStaff()) {
+            return true;
+        }
+        
+        // Faculty can update researchers of research they advise
+        if ($user->isFaculty() && $user->faculty) {
+            $research = $researcher->research;
+            return $research && $research->research_adviser === $user->faculty->id;
+        }
+        
+        return false;
     }
 
     /**
@@ -45,7 +66,18 @@ class ResearcherPolicy
      */
     public function delete(User $user, Researcher $researcher): bool
     {
-        return $user->isMCIISStaff();
+       // MCIIS Staff can delete any researcher
+        if ($user->isMCIISStaff()) {
+            return true;
+        }
+        
+        // Faculty can delete researchers of research they advise
+        if ($user->isFaculty() && $user->faculty) {
+            $research = $researcher->research;
+            return $research && $research->research_adviser === $user->faculty->id;
+        }
+        
+        return false;
     }
 
     /**
@@ -53,7 +85,17 @@ class ResearcherPolicy
      */
     public function restore(User $user, Researcher $researcher): bool
     {
-        return $user->isMCIISStaff();
+        // MCIIS Staff can restore any researcher
+        if ($user->isMCIISStaff()) {
+            return true;
+        }
+        
+        // Faculty can restore researchers of research they advise
+        if ($user->isFaculty() && $user->faculty) {
+        $research = $researcher->research;
+            return $research && $research->research_adviser === $user->faculty->id;
+        }
+        return false;
     }
 
     /**

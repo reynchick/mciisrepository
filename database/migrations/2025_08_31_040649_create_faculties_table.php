@@ -26,6 +26,7 @@ return new class extends Migration
             $table->text('field_of_specialization')->nullable();
             $table->text('research_interest')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

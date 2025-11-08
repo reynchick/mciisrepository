@@ -1,8 +1,7 @@
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
-import { send } from '@/routes/verification';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
-import { Form, Head, Link, usePage } from '@inertiajs/react';
+import { Form, Head, usePage } from '@inertiajs/react';
 
 import DeleteUser from '@/components/delete-user';
 import HeadingSmall from '@/components/heading-small';
@@ -45,74 +44,74 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                 {/* Name Fields */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div className="grid gap-2">
-                                        <Label htmlFor="firstName">First Name *</Label>
+                                        <Label htmlFor="first_name">First Name *</Label>
                                         <Input
-                                            id="firstName"
+                                            id="first_name"
                                             className="mt-1 block w-full"
-                                            defaultValue={auth.user.firstName}
-                                            name="firstName"
+                                            defaultValue={auth.user.first_name}
+                                            name="first_name"
                                             required
                                             autoComplete="given-name"
                                             placeholder="First name"
                                         />
-                                        <InputError className="mt-2" message={errors.firstName} />
+                                        <InputError className="mt-2" message={errors.first_name} />
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <Label htmlFor="middleName">Middle Name</Label>
+                                        <Label htmlFor="middle_name">Middle Name</Label>
                                         <Input
-                                            id="middleName"
+                                            id="middle_name"
                                             className="mt-1 block w-full"
-                                            defaultValue={auth.user.middleName}
-                                            name="middleName"
+                                            defaultValue={auth.user.middle_name}
+                                            name="middle_name"
                                             autoComplete="additional-name"
                                             placeholder="Middle name"
                                         />
-                                        <InputError className="mt-2" message={errors.middleName} />
+                                        <InputError className="mt-2" message={errors.middle_name} />
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <Label htmlFor="lastName">Last Name *</Label>
+                                        <Label htmlFor="last_name">Last Name *</Label>
                                         <Input
-                                            id="lastName"
+                                            id="last_name"
                                             className="mt-1 block w-full"
-                                            defaultValue={auth.user.lastName}
-                                            name="lastName"
+                                            defaultValue={auth.user.last_name}
+                                            name="last_name"
                                             required
                                             autoComplete="family-name"
                                             placeholder="Last name"
                                         />
-                                        <InputError className="mt-2" message={errors.lastName} />
+                                        <InputError className="mt-2" message={errors.last_name} />
                                     </div>
                                 </div>
 
                                 {/* Student ID Field */}
                                 <div className="grid gap-2">
-                                    <Label htmlFor="studentID">Student ID</Label>
+                                    <Label htmlFor="student_id">Student ID</Label>
                                     <Input
-                                        id="studentID"
+                                        id="student_id"
                                         className="mt-1 block w-full"
-                                        defaultValue={auth.user.studentID}
-                                        name="studentID"
+                                        defaultValue={auth.user.student_id}
+                                        name="student_id"
                                         placeholder="2023-00800"
                                     />
-                                    <InputError className="mt-2" message={errors.studentID} />
+                                    <InputError className="mt-2" message={errors.student_id} />
                                 </div>
 
                                 {/* Contact Number */}
                                 <div className="grid gap-2">
-                                    <Label htmlFor="contactNumber">Contact Number *</Label>
+                                    <Label htmlFor="contact_number">Contact Number *</Label>
                                     <Input
-                                        id="contactNumber"
+                                        id="contact_number"
                                         type="tel"
                                         className="mt-1 block w-full"
-                                        defaultValue={auth.user.contactNumber}
-                                        name="contactNumber"
+                                        defaultValue={auth.user.contact_number}
+                                        name="contact_number"
                                         required
                                         autoComplete="tel"
                                         placeholder="09XXXXXXXXX or +63 9XXXXXXXXX"
                                     />
-                                    <InputError className="mt-2" message={errors.contactNumber} />
+                                    <InputError className="mt-2" message={errors.contact_number} />
                                 </div>
 
                                 {/* Email Field */}
@@ -148,26 +147,6 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                     <InputError className="mt-2" message={errors.role} />
                                 </div>
 
-                                {mustVerifyEmail && auth.user.email_verified_at === null && (
-                                    <div>
-                                        <p className="-mt-4 text-sm text-muted-foreground">
-                                            Your email address is unverified.{' '}
-                                            <Link
-                                                href={send()}
-                                                as="button"
-                                                className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
-                                            >
-                                                Click here to resend the verification email.
-                                            </Link>
-                                        </p>
-
-                                        {status === 'verification-link-sent' && (
-                                            <div className="mt-2 text-sm font-medium text-green-600">
-                                                A new verification link has been sent to your email address.
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
 
                                 <div className="flex items-center gap-4">
                                     <Button disabled={processing}>Save</Button>

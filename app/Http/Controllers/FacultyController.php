@@ -36,6 +36,21 @@ class FacultyController extends Controller
     }
 
     /**
+     * Display the specified resource.
+     */
+    public function show(Faculty $faculty): Response
+    {
+        $faculty->load(['advisedResearches' => function ($query) {
+            $query->with(['program', 'researchers', 'keywords'])
+                  ->latest();
+        }]);
+
+        return Inertia::render('Faculty/Show', [
+            'faculty' => $faculty
+        ]);
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
     public function create(): Response
@@ -52,21 +67,6 @@ class FacultyController extends Controller
         
         return redirect()->route('faculty.show', $faculty)
             ->with('success', 'Faculty member created successfully.');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Faculty $faculty): Response
-    {
-        $faculty->load(['advisedResearches' => function ($query) {
-            $query->with(['program', 'researchers', 'keywords'])
-                  ->latest();
-        }]);
-
-        return Inertia::render('Faculty/Show', [
-            'faculty' => $faculty
-        ]);
     }
 
     /**
@@ -95,75 +95,24 @@ class FacultyController extends Controller
      */
     public function destroy(Faculty $faculty)
     {
+        // Check for advised researches
         if ($faculty->advisedResearches()->count() > 0) {
             return $this->error('Cannot delete faculty member with existing research advising.');
+        }
+        
+        // Check for paneled research
+        if ($faculty->paneledResearch()->count() > 0) {
+            return $this->error('Cannot delete faculty member assigned as panelist to research.');
+        }
+        
+        // Check for linked user account
+        if ($faculty->user()->exists()) {
+            return $this->error('Cannot delete faculty member with linked user account.');
         }
 
         $faculty->delete();
         
         return redirect()->route('faculty.index')
             ->with('success', 'Faculty member deleted successfully.');
-    }
-
-    /**
-     * Get research statistics for faculty member
-     */
-    public function statistics(Faculty $faculty)
-    {
-        $stats = [
-            'total_researches' => $faculty->advisedResearches()->count(),
-            'active_researches' => $faculty->advisedResearches()->whereNull('archived_at')->count(),
-            'by_program' => $faculty->advisedResearches()
-                ->select('program_id')
-                ->with('program')
-                ->get()
-                ->groupBy('program.name')
-                ->map->count(),
-            'by_year' => $faculty->advisedResearches()
-                ->select('published_year')
-                ->get()
-                ->groupBy('published_year')
-                ->map->count()
-        ];
-        
-        return $this->success('Statistics retrieved successfully', $stats);
-    }
-
-    /**
-     * Export faculty data to CSV
-     */
-    public function export()
-    {
-        $faculties = Faculty::with(['advisedResearches' => function ($query) {
-            $query->with('program');
-        }])->get();
-
-        return response()->streamDownload(function () use ($faculties) {
-            $csv = fopen('php://output', 'w');
-            
-            // Headers
-            fputcsv($csv, [
-                'Faculty ID',
-                'Name',
-                'Designation',
-                'Email',
-                'Research Count',
-                'Active Research Count'
-            ]);
-
-            // Data
-            foreach ($faculties as $faculty) {
-                fputcsv($csv, [
-                    $faculty->faculty_id,
-                    $faculty->full_name,
-                    $faculty->designation,
-                    $faculty->email,
-                    $faculty->advised_researches_count,
-                    $faculty->advised_researches->whereNull('archived_at')->count()
-                ]);
-            }
-
-            fclose($csv);
-        }, 'faculty-data.csv');
     }
 }

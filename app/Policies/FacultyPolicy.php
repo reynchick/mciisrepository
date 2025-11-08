@@ -79,31 +79,4 @@ class FacultyPolicy
         // Only Administrator can permanently delete faculty
         return $user->isAdministrator();
     }
-
-    /**
-     * Determine whether the user can assign faculty as advisers or panelists.
-     */
-    public function assignAdviserOrPanelist(User $user, Faculty $faculty): bool
-    {
-        // Only MCIIS Staff can assign faculty as advisers/panelists
-        return $user->isMCIISStaff();
-    }
-
-    /**
-     * Determine whether the user can generate productivity reports.
-     */
-    public function generateReport(User $user): bool
-    {
-        // Only MCIIS Staff can generate productivity reports
-        return $user->isMCIISStaff();
-    }
-
-    /**
-     * Determine whether the user can perform audit logging.
-     */
-    public function auditLog(User $user): bool
-    {
-        // Only Administrator can perform audit logging
-        return $user->isAdministrator();
-    }
 }

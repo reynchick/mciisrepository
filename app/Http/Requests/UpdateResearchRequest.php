@@ -12,7 +12,8 @@ class UpdateResearchRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        $research = $this->route('research');
+        return $this->user()->can('update', $research);
     }
 
     /**

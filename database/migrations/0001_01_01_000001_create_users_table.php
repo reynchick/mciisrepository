@@ -22,6 +22,9 @@ return new class extends Migration
             $table->string('email')->unique()->where('email', 'LIKE', '%@usep.edu.ph');
             $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete()->index();
             $table->string('password');
+            $table->boolean('must_change_password')->default(false);
+            $table->timestamp('password_changed_at')->nullable();
+            $table->boolean('is_temporary_password')->default(false);
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
@@ -30,6 +33,7 @@ return new class extends Migration
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');
+            $table->string('password');
             $table->timestamp('created_at')->nullable();
         });
 
