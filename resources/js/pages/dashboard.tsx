@@ -1,10 +1,14 @@
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, Users, FileText, TrendingUp, Clock, LineChart, Building2 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useState } from 'react';
+import ProgramBarChart from '@/components/dashboard/ProgramBarChart';
+import YearBarChart from '@/components/dashboard/YearBarChart';
+import TopKeywords from '@/components/dashboard/TopKeywords';
+import { exportNodeAsPng } from '@/lib/chart-export';
 
 
 interface Stats {
@@ -63,6 +67,30 @@ export default function Dashboard({ stats, recentActivities, topResearch, topKey
     const [selectedProgram, setSelectedProgram] = useState<string | null>(null);
     const [selectedYear, setSelectedYear] = useState<number | null>(null);
 
+    const programChartData = collegeView.map((item) => ({
+        program: item.program,
+        count: item.count,
+        topAlignments: [
+            { label: 'SDG', percentage: item.sdg_percentage },
+            { label: 'SRIG', percentage: item.srig_percentage },
+            { label: 'Agenda', percentage: item.agenda_percentage },
+        ],
+    }));
+
+    const yearChartData = programView.map((item) => ({
+        year: item.year,
+        count: item.count,
+        topAlignments: [
+            { label: 'SDG', percentage: item.sdg_percentage },
+            { label: 'SRIG', percentage: item.srig_percentage },
+            { label: 'Agenda', percentage: item.agenda_percentage },
+        ],
+    }));
+
+    const keywordItems = topKeywords.map((item) => ({ keyword: item.name ?? '', count: item.count, trend: 'flat' as const }));
+
+    const goProgram = (program: string) => router.get('/', { program }, { preserveState: true, preserveScroll: true });
+    const goYear = (year: number) => router.get('/', { year }, { preserveState: true, preserveScroll: true });
 
     const formatDate = (date: string) => {
         return new Date(date).toLocaleString('en-US', {
@@ -146,232 +174,10 @@ export default function Dashboard({ stats, recentActivities, topResearch, topKey
                 </div>
 
 
-                {/* College View - Research per Program with SDG/SRIG/Agenda Breakdown */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Building2 className="h-5 w-5" />
-                            College View
-                        </CardTitle>
-                        <CardDescription>Research distribution by program with SDG, SRIG, and Agenda breakdowns</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {collegeView.length === 0 ? (
-                            <div className="text-center py-8 text-muted-foreground">No data available</div>
-                        ) : (
-                            <div className="space-y-4">
-                                {collegeView.map((item, index) => {
-                                    const maxCount = Math.max(...collegeView.map((d) => d.count));
-                                    const width = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
-                                    const isSelected = selectedProgram === item.program;
+<ProgramBarChart data={programChartData} onBarClick={goProgram} onExport={(node) => exportNodeAsPng(node, 'program-chart.png')} />
 
 
-                                    return (
-                                        <div key={index} className="space-y-2">
-                                            <div
-                                                className={`p-3 rounded-lg border transition-all cursor-pointer hover:bg-accent ${
-                                                    isSelected ? 'bg-accent border-primary' : ''
-                                                }`}
-                                                onClick={() => setSelectedProgram(isSelected ? null : item.program)}
-                                            >
-                                                <div className="flex items-center justify-between text-sm mb-2">
-                                                    <span className="font-medium truncate flex-1">{item.program}</span>
-                                                    <span className="text-muted-foreground ml-2">
-                                                        {item.count} {item.count === 1 ? 'research' : 'researches'}
-                                                    </span>
-                                                </div>
-                                                <div className="w-full bg-secondary rounded-full h-3">
-                                                    <div
-                                                        className="bg-primary rounded-full h-3 transition-all"
-                                                        style={{ width: `${width}%`, minWidth: width > 0 ? '8px' : '0' }}
-                                                    />
-                                                </div>
-
-
-                                                {/* Show percentages when clicked */}
-                                                {isSelected && (
-                                                    <div className="mt-4 pt-4 border-t space-y-3">
-                                                        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                                                            Research Distribution
-                                                        </div>
-
-
-                                                        {/* SDG Percentage */}
-                                                        <div className="space-y-1">
-                                                            <div className="flex items-center justify-between text-sm">
-                                                                <span className="font-medium flex items-center gap-2">
-                                                                    <div className="w-3 h-3 rounded-full bg-blue-500" />
-                                                                    SDG (Sustainable Development Goals)
-                                                                </span>
-                                                                <span className="text-muted-foreground">{item.sdg_percentage}%</span>
-                                                            </div>
-                                                            <div className="w-full bg-secondary rounded-full h-2">
-                                                                <div
-                                                                    className="bg-blue-500 rounded-full h-2 transition-all"
-                                                                    style={{ width: `${item.sdg_percentage}%` }}
-                                                                />
-                                                            </div>
-                                                        </div>
-
-
-                                                        {/* SRIG Percentage */}
-                                                        <div className="space-y-1">
-                                                            <div className="flex items-center justify-between text-sm">
-                                                                <span className="font-medium flex items-center gap-2">
-                                                                    <div className="w-3 h-3 rounded-full bg-green-500" />
-                                                                    SRIG (Strategic Research Interest Groups)
-                                                                </span>
-                                                                <span className="text-muted-foreground">{item.srig_percentage}%</span>
-                                                            </div>
-                                                            <div className="w-full bg-secondary rounded-full h-2">
-                                                                <div
-                                                                    className="bg-green-500 rounded-full h-2 transition-all"
-                                                                    style={{ width: `${item.srig_percentage}%` }}
-                                                                />
-                                                            </div>
-                                                        </div>
-
-
-                                                        {/* Agenda Percentage */}
-                                                        <div className="space-y-1">
-                                                            <div className="flex items-center justify-between text-sm">
-                                                                <span className="font-medium flex items-center gap-2">
-                                                                    <div className="w-3 h-3 rounded-full bg-purple-500" />
-                                                                    Agendas
-                                                                </span>
-                                                                <span className="text-muted-foreground">{item.agenda_percentage}%</span>
-                                                            </div>
-                                                            <div className="w-full bg-secondary rounded-full h-2">
-                                                                <div
-                                                                    className="bg-purple-500 rounded-full h-2 transition-all"
-                                                                    style={{ width: `${item.agenda_percentage}%` }}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-
-
-                {/* Program View - Research per Year with SDG/SRIG/Agenda Breakdown */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <LineChart className="h-5 w-5" />
-                            Program View
-                        </CardTitle>
-                        <CardDescription>Research distribution by year with SDG, SRIG, and Agenda breakdowns</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {programView.length === 0 ? (
-                            <div className="text-center py-8 text-muted-foreground">No data available</div>
-                        ) : (
-                            <div className="space-y-4">
-                                {programView.map((item, index) => {
-                                    const maxCount = Math.max(...programView.map((d) => d.count));
-                                    const width = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
-                                    const isSelected = selectedYear === item.year;
-
-
-                                    return (
-                                        <div key={index} className="space-y-2">
-                                            <div
-                                                className={`p-3 rounded-lg border transition-all cursor-pointer hover:bg-accent ${
-                                                    isSelected ? 'bg-accent border-primary' : ''
-                                                }`}
-                                                onClick={() => setSelectedYear(isSelected ? null : item.year)}
-                                            >
-                                                <div className="flex items-center justify-between text-sm mb-2">
-                                                    <span className="font-medium truncate flex-1">{item.year}</span>
-                                                    <span className="text-muted-foreground ml-2">
-                                                        {item.count} {item.count === 1 ? 'research' : 'researches'}
-                                                    </span>
-                                                </div>
-                                                <div className="w-full bg-secondary rounded-full h-3">
-                                                    <div
-                                                        className="bg-primary rounded-full h-3 transition-all"
-                                                        style={{ width: `${width}%`, minWidth: width > 0 ? '8px' : '0' }}
-                                                    />
-                                                </div>
-
-
-                                                {/* Show percentages when clicked */}
-                                                {isSelected && (
-                                                    <div className="mt-4 pt-4 border-t space-y-3">
-                                                        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                                                            Research Distribution
-                                                        </div>
-
-
-                                                        {/* SDG Percentage */}
-                                                        <div className="space-y-1">
-                                                            <div className="flex items-center justify-between text-sm">
-                                                                <span className="font-medium flex items-center gap-2">
-                                                                    <div className="w-3 h-3 rounded-full bg-blue-500" />
-                                                                    SDG (Sustainable Development Goals)
-                                                                </span>
-                                                                <span className="text-muted-foreground">{item.sdg_percentage}%</span>
-                                                            </div>
-                                                            <div className="w-full bg-secondary rounded-full h-2">
-                                                                <div
-                                                                    className="bg-blue-500 rounded-full h-2 transition-all"
-                                                                    style={{ width: `${item.sdg_percentage}%` }}
-                                                                />
-                                                            </div>
-                                                        </div>
-
-
-                                                        {/* SRIG Percentage */}
-                                                        <div className="space-y-1">
-                                                            <div className="flex items-center justify-between text-sm">
-                                                                <span className="font-medium flex items-center gap-2">
-                                                                    <div className="w-3 h-3 rounded-full bg-green-500" />
-                                                                    SRIG (Strategic Research Interest Groups)
-                                                                </span>
-                                                                <span className="text-muted-foreground">{item.srig_percentage}%</span>
-                                                            </div>
-                                                            <div className="w-full bg-secondary rounded-full h-2">
-                                                                <div
-                                                                    className="bg-green-500 rounded-full h-2 transition-all"
-                                                                    style={{ width: `${item.srig_percentage}%` }}
-                                                                />
-                                                            </div>
-                                                        </div>
-
-
-                                                        {/* Agenda Percentage */}
-                                                        <div className="space-y-1">
-                                                            <div className="flex items-center justify-between text-sm">
-                                                                <span className="font-medium flex items-center gap-2">
-                                                                    <div className="w-3 h-3 rounded-full bg-purple-500" />
-                                                                    Agendas
-                                                                </span>
-                                                                <span className="text-muted-foreground">{item.agenda_percentage}%</span>
-                                                            </div>
-                                                            <div className="w-full bg-secondary rounded-full h-2">
-                                                                <div
-                                                                    className="bg-purple-500 rounded-full h-2 transition-all"
-                                                                    style={{ width: `${item.agenda_percentage}%` }}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+<YearBarChart data={yearChartData} onBarClick={goYear} onExport={(node) => exportNodeAsPng(node, 'year-chart.png')} />
 
 
                 {/* Two Column Layout */}
@@ -460,14 +266,7 @@ export default function Dashboard({ stats, recentActivities, topResearch, topKey
                         {topKeywords.length === 0 ? (
                             <div className="text-center py-8 text-muted-foreground">No search data yet</div>
                         ) : (
-                            <div className="flex flex-wrap gap-3">
-                                {topKeywords.map((item, index) => (
-                                    <div key={index} className="flex items-center gap-2 px-3 py-2 border rounded-lg">
-                                        <Badge variant="secondary">{item.name}</Badge>
-                                        <span className="text-sm text-muted-foreground">{item.count} searches</span>
-                                    </div>
-                                ))}
-                            </div>
+                            <TopKeywords items={keywordItems} />
                         )}
                     </CardContent>
                 </Card>
