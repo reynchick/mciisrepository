@@ -10,7 +10,7 @@ import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, UserCog, UserCircle, ScrollText, Home, Users } from 'lucide-react';
 import AppLogo from './app-logo';
-
+import { type BreadcrumbItem } from '@/types';
 
 const footerNavItems: NavItem[] = [
     {
@@ -25,6 +25,23 @@ const footerNavItems: NavItem[] = [
     },
 ];
 
+export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItem[] }) {
+    return (
+        <header className="flex items-center gap-2 px-3 py-2">
+            <AppLogo />
+            {breadcrumbs.length > 0 && (
+                <nav aria-label="Breadcrumb" className="ml-auto text-sm text-muted-foreground">
+                    {breadcrumbs.map((b, i) => (
+                        <span key={b.href ?? i}>
+                            {i > 0 && ' / '}
+                            {b.href ? <Link href={b.href}>{b.title}</Link> : b.title}
+                        </span>
+                    ))}
+                </nav>
+            )}
+        </header>
+    );
+}
 
 export function AppSidebar() {
     const { auth } = usePage<SharedData>().props;
