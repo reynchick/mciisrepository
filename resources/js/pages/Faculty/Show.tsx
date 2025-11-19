@@ -8,6 +8,7 @@ import { ArrowLeft, Edit, Mail, Phone, Globe, User, GraduationCap, BookOpen, Tra
 import { Link, router, usePage } from '@inertiajs/react';
 import { SharedData } from '@/types';
 
+
 interface Faculty {
     id: number;
     faculty_id: string;
@@ -26,20 +27,24 @@ interface Faculty {
     updated_at: string;
 }
 
+
 interface Props {
     faculty: Faculty;
 }
 
+
 export default function FacultyShow({ faculty }: Props) {
     const { auth } = usePage<SharedData>().props;
+    const isAdmin = auth.user.roles?.some(role => role.name === 'Administrator') ?? false;
     const isOwnRecord = auth.user.faculty_id === faculty.faculty_id;
-    const canEdit = auth.user.role === 'Administrator' || isOwnRecord;
-    
+    const canEdit = isAdmin || isOwnRecord;
+   
     const handleDelete = () => {
         if (confirm('Are you sure you want to delete this faculty member? This action cannot be undone.')) {
             router.delete(`/faculties/${faculty.id}`);
         }
     };
+
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -48,6 +53,7 @@ export default function FacultyShow({ faculty }: Props) {
             day: 'numeric',
         });
     };
+
 
     const getFullName = () => {
         let name = faculty.first_name;
@@ -58,10 +64,11 @@ export default function FacultyShow({ faculty }: Props) {
         return name;
     };
 
+
     return (
         <AppSidebarLayout>
             <Head title={`${getFullName()} - Faculty Details`} />
-            
+           
             <div className="space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
@@ -88,7 +95,7 @@ export default function FacultyShow({ faculty }: Props) {
                                 </Link>
                             </Button>
                         )}
-                        {(auth.user.role === 'Administrator') && (
+                        {isAdmin && (
                             <Button variant="destructive" onClick={handleDelete}>
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Delete
@@ -96,6 +103,7 @@ export default function FacultyShow({ faculty }: Props) {
                         )}
                     </div>
                 </div>
+
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Main Information */}
@@ -119,9 +127,9 @@ export default function FacultyShow({ faculty }: Props) {
                                         <p className="text-lg font-semibold">{getFullName()}</p>
                                     </div>
                                 </div>
-                                
+                               
                                 <Separator />
-                                
+                               
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <p className="text-sm font-medium text-muted-foreground">Position</p>
@@ -147,6 +155,7 @@ export default function FacultyShow({ faculty }: Props) {
                             </CardContent>
                         </Card>
 
+
                         {/* Contact Information */}
                         <Card>
                             <CardHeader>
@@ -160,7 +169,7 @@ export default function FacultyShow({ faculty }: Props) {
                                     <div>
                                         <p className="text-sm font-medium text-muted-foreground">Email Address</p>
                                         {faculty.email ? (
-                                            <a 
+                                            <a
                                                 href={`mailto:${faculty.email}`}
                                                 className="text-blue-600 hover:underline flex items-center"
                                             >
@@ -174,7 +183,7 @@ export default function FacultyShow({ faculty }: Props) {
                                     <div>
                                         <p className="text-sm font-medium text-muted-foreground">Contact Number</p>
                                         {faculty.contact_number ? (
-                                            <a 
+                                            <a
                                                 href={`tel:${faculty.contact_number}`}
                                                 className="text-blue-600 hover:underline flex items-center"
                                             >
@@ -186,13 +195,13 @@ export default function FacultyShow({ faculty }: Props) {
                                         )}
                                     </div>
                                 </div>
-                                
+                               
                                 <Separator />
-                                
+                               
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">ORCID ID</p>
                                     {faculty.orcid ? (
-                                        <a 
+                                        <a
                                             href={`https://orcid.org/${faculty.orcid}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
@@ -207,6 +216,7 @@ export default function FacultyShow({ faculty }: Props) {
                                 </div>
                             </CardContent>
                         </Card>
+
 
                         {/* Academic Information */}
                         <Card>
@@ -235,9 +245,9 @@ export default function FacultyShow({ faculty }: Props) {
                                         </p>
                                     </div>
                                 </div>
-                                
+                               
                                 <Separator />
-                                
+                               
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">Research Interests</p>
                                     <p className="text-base">
@@ -254,6 +264,7 @@ export default function FacultyShow({ faculty }: Props) {
                             </CardContent>
                         </Card>
                     </div>
+
 
                     {/* Sidebar */}
                     <div className="space-y-6">
@@ -276,6 +287,7 @@ export default function FacultyShow({ faculty }: Props) {
                                 </Button>
                             </CardContent>
                         </Card>
+
 
                         {/* Record Information */}
                         <Card>

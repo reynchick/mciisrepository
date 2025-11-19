@@ -1,19 +1,23 @@
 import { InertiaLinkProps } from '@inertiajs/react';
 import { LucideIcon } from 'lucide-react';
 
+
 export interface Auth {
     user: User;
 }
+
 
 export interface BreadcrumbItem {
     title: string;
     href: string;
 }
 
+
 export interface NavGroup {
     title: string;
     items: NavItem[];
 }
+
 
 export interface NavItem {
     title: string;
@@ -21,6 +25,7 @@ export interface NavItem {
     icon?: LucideIcon | null;
     isActive?: boolean;
 }
+
 
 export interface SharedData {
     name: string;
@@ -30,6 +35,14 @@ export interface SharedData {
     [key: string]: unknown;
 }
 
+
+export interface Role {
+    id: number;
+    name: 'Administrator' | 'MCIIS Staff' | 'Faculty' | 'Student';
+    description: string | null;
+}
+
+
 export interface User {
     id: number;
     student_id?: string;
@@ -38,7 +51,7 @@ export interface User {
     last_name: string;
     contact_number?: string;
     email: string;
-    role: 'Administrator' | 'MCIIS Staff' | 'Faculty' | 'Student';
+    roles?: Role[];
     avatar?: string;
     email_verified_at: string | null;
     created_at: string;

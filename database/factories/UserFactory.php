@@ -40,7 +40,6 @@ class UserFactory extends Factory
             'last_name'         => fake()->lastName(),
             'contact_number'    => fake()->optional()->regexify('09\d{9}'),
             'email'             => $email,
-            'role_id'           => $role->id,
             'email_verified_at' => now(),
             'password'          => static::$password ??= Hash::make('password'),
             'remember_token'    => Str::random(10),
@@ -55,5 +54,15 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function (\App\Models\User $user) {
+            $roleId = Role::query()->inRandomOrder()->value('id');
+            if ($roleId) {
+                $user->roles()->syncWithoutDetaching([$roleId]);
+            }
+        });
     }
 }

@@ -22,7 +22,7 @@ return new class extends Migration
             // Target research
             $table->foreignId('target_research_id')
                 ->nullable()
-                ->constrained('research')
+                ->constrained('researches')
                 ->nullOnDelete()
                 ->cascadeOnUpdate()
                 ->index();

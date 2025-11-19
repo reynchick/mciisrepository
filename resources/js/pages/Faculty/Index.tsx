@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Plus, Search, Download, BarChart3, Trash2 } from 'lucide-react';
 import { Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import { SharedData } from '@/types';
+
 
 interface Faculty {
     id: number;
@@ -25,6 +27,7 @@ interface Faculty {
     research_interest?: string;
 }
 
+
 interface Props {
     faculties: {
         data: Faculty[];
@@ -40,26 +43,34 @@ interface Props {
     };
 }
 
+
 export default function FacultyIndex({ faculties, filters }: Props) {
+    const { auth } = usePage<SharedData>().props;
+    const isAdmin = auth.user.roles?.some(role => role.name === 'Administrator') ?? false;
+   
     const [search, setSearch] = useState(filters.search || '');
     const [selectedFaculties, setSelectedFaculties] = useState<number[]>([]);
+
 
     const handleSearch = () => {
         router.get('/faculties', { search }, { preserveState: true });
     };
+
 
     const handleSort = (field: string) => {
         const newOrder = filters.sort_by === field && filters.sort_order === 'asc' ? 'desc' : 'asc';
         router.get('/faculties', { ...filters, sort_by: field, sort_order: newOrder }, { preserveState: true });
     };
 
+
     const handleBulkDelete = () => {
         if (selectedFaculties.length === 0) return;
-        
+       
         if (confirm(`Are you sure you want to delete ${selectedFaculties.length} faculty member(s)?`)) {
             router.post('/faculties/bulk-destroy', { faculty_ids: selectedFaculties });
         }
     };
+
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
@@ -69,6 +80,7 @@ export default function FacultyIndex({ faculties, filters }: Props) {
         }
     };
 
+
     const handleSelectFaculty = (id: number, checked: boolean) => {
         if (checked) {
             setSelectedFaculties([...selectedFaculties, id]);
@@ -77,28 +89,32 @@ export default function FacultyIndex({ faculties, filters }: Props) {
         }
     };
 
+
     return (
         <AppSidebarLayout>
             <Head title="Faculty Management" />
-            
+           
             <div className="space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Faculty Management</h1>
+                        <h1 className="text-3xl font-bold tracking-tight">Faculty {isAdmin ? 'Management' : 'Directory'}</h1>
                         <p className="text-muted-foreground">
-                            Manage faculty members and their information
+                            {isAdmin ? 'Manage faculty members and their information' : 'View faculty members and their information'}
                         </p>
                     </div>
-                    <div className="flex items-center space-x-2">
-                        <Button asChild>
-                            <Link href="/faculties/create">
-                                <Plus className="mr-2 h-4 w-4" />
-                                Add Faculty
-                            </Link>
-                        </Button>
-                    </div>
+                    {isAdmin && (
+                        <div className="flex items-center space-x-2">
+                            <Button asChild>
+                                <Link href="/faculties/create">
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    Add Faculty
+                                </Link>
+                            </Button>
+                        </div>
+                    )}
                 </div>
+
 
                 {/* Search and Filters */}
                 <Card>
@@ -123,6 +139,7 @@ export default function FacultyIndex({ faculties, filters }: Props) {
                     </CardContent>
                 </Card>
 
+
                 {/* Faculty Table */}
                 <Card>
                     <CardHeader>
@@ -133,7 +150,7 @@ export default function FacultyIndex({ faculties, filters }: Props) {
                                     {faculties.total} faculty member(s) found
                                 </CardDescription>
                             </div>
-                            {selectedFaculties.length > 0 && (
+                            {isAdmin && selectedFaculties.length > 0 && (
                                 <Button variant="destructive" onClick={handleBulkDelete}>
                                     <Trash2 className="mr-2 h-4 w-4" />
                                     Delete Selected ({selectedFaculties.length})
@@ -145,14 +162,16 @@ export default function FacultyIndex({ faculties, filters }: Props) {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="w-12">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedFaculties.length === faculties.data.length && faculties.data.length > 0}
-                                            onChange={(e) => handleSelectAll(e.target.checked)}
-                                        />
-                                    </TableHead>
-                                    <TableHead 
+                                    {isAdmin && (
+                                        <TableHead className="w-12">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedFaculties.length === faculties.data.length && faculties.data.length > 0}
+                                                onChange={(e) => handleSelectAll(e.target.checked)}
+                                            />
+                                        </TableHead>
+                                    )}
+                                    <TableHead
                                         className="cursor-pointer hover:bg-muted/50"
                                         onClick={() => handleSort('faculty_id')}
                                     >
@@ -163,7 +182,7 @@ export default function FacultyIndex({ faculties, filters }: Props) {
                                             </span>
                                         )}
                                     </TableHead>
-                                    <TableHead 
+                                    <TableHead
                                         className="cursor-pointer hover:bg-muted/50"
                                         onClick={() => handleSort('last_name')}
                                     >
@@ -183,13 +202,15 @@ export default function FacultyIndex({ faculties, filters }: Props) {
                             <TableBody>
                                 {faculties.data.map((faculty) => (
                                     <TableRow key={faculty.id}>
-                                        <TableCell>
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedFaculties.includes(faculty.id)}
-                                                onChange={(e) => handleSelectFaculty(faculty.id, e.target.checked)}
-                                            />
-                                        </TableCell>
+                                        {isAdmin && (
+                                            <TableCell>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedFaculties.includes(faculty.id)}
+                                                    onChange={(e) => handleSelectFaculty(faculty.id, e.target.checked)}
+                                                />
+                                            </TableCell>
+                                        )}
                                         <TableCell>
                                             <Badge variant="secondary">{faculty.faculty_id}</Badge>
                                         </TableCell>
@@ -212,7 +233,7 @@ export default function FacultyIndex({ faculties, filters }: Props) {
                                         </TableCell>
                                         <TableCell>
                                             {faculty.email ? (
-                                                <a 
+                                                <a
                                                     href={`mailto:${faculty.email}`}
                                                     className="text-blue-600 hover:underline"
                                                 >
@@ -234,17 +255,20 @@ export default function FacultyIndex({ faculties, filters }: Props) {
                                                         View
                                                     </Link>
                                                 </Button>
-                                                <Button size="sm" variant="outline" asChild>
-                                                    <Link href={`/faculties/${faculty.id}/edit`}>
-                                                        Edit
-                                                    </Link>
-                                                </Button>
+                                                {isAdmin && (
+                                                    <Button size="sm" variant="outline" asChild>
+                                                        <Link href={`/faculties/${faculty.id}/edit`}>
+                                                            Edit
+                                                        </Link>
+                                                    </Button>
+                                                )}
                                             </div>
                                         </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
                         </Table>
+
 
                         {/* Pagination */}
                         {faculties.last_page > 1 && (

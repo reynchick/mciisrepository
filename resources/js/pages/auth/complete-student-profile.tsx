@@ -143,9 +143,6 @@ export default function CompleteProfile({ user }: { user: User }) {
                                 onChange={(e) => setData('contact_number', e.target.value)}
                                 placeholder="09123456789 (optional)"
                             />
-                            <p className="text-xs text-muted-foreground mt-1">
-                                Philippine mobile number (09XXXXXXXXX)
-                            </p>
                             <InputError message={errors.contact_number} />
                         </div>
 

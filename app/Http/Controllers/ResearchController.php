@@ -1,10 +1,15 @@
 <?php
 
+
 namespace App\Http\Controllers;
+
 
 use App\Models\Research;
 use App\Models\Program;
 use App\Models\Faculty;
+use App\Models\ResearchAccessLog;
+use App\Models\KeywordSearchLog;
+use App\Models\Keyword;
 use App\Http\Requests\StoreResearchRequest;
 use App\Http\Requests\UpdateResearchRequest;
 use Illuminate\Http\Request;
@@ -17,6 +22,7 @@ use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
+
 class ResearchController extends Controller
 {
     public function __construct()
@@ -28,6 +34,22 @@ class ResearchController extends Controller
      */
     public function index(Request $request): Response
     {
+        // Log keyword search if search parameter exists
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            // Try to find matching keyword
+            $keyword = Keyword::where('keyword_name', 'like', "%{$searchTerm}%")->first();
+           
+            if ($keyword) {
+                KeywordSearchLog::create([
+                    'keyword_id' => $keyword->id,
+                    'user_id' => Auth::id(),
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                ]);
+            }
+        }
+       
         $query = Research::with([
                 'program:id,name',
                 'adviser:id,first_name,middle_name,last_name',
@@ -52,8 +74,10 @@ class ResearchController extends Controller
                 $query->active();
             });
 
+
         $researches = $query->paginate(15)
             ->withQueryString();
+
 
         return Inertia::render('research/Index', [
             'researches' => $researches,
@@ -62,6 +86,7 @@ class ResearchController extends Controller
             'filters' => $request->only(['search', 'program', 'adviser', 'year', 'archived'])
         ]);
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -74,13 +99,14 @@ class ResearchController extends Controller
         ]);
     }
 
+
     /**
      * Store a newly created resource in storage.
      */
     public function store(StoreResearchRequest $request): RedirectResponse
     {
         $research = Research::create($request->safe()->except(['approval_sheet', 'manuscript']));
-        
+       
         if ($request->hasFile('approval_sheet') || $request->hasFile('manuscript')) {
             $research->uploadFiles(
                 $request->file('approval_sheet'),
@@ -88,9 +114,11 @@ class ResearchController extends Controller
             );
         }
 
+
         return redirect()->route('research.show', $research)
             ->with('success', 'Research created successfully.');
     }
+
 
     /**
      * Display the specified resource.
@@ -104,11 +132,20 @@ class ResearchController extends Controller
             'keywords:id,keyword_name',
             'uploader:id,first_name,last_name,email'
         ]);
-        
+       
+        // Log research access
+        ResearchAccessLog::create([
+            'research_id' => $research->id,
+            'user_id' => Auth::id(),
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+       
         return Inertia::render('research/Show', [
             'research' => $research
         ]);
     }
+
 
     /**
      * Show the form for editing the specified resource.
@@ -116,7 +153,7 @@ class ResearchController extends Controller
     public function edit(Research $research): Response
     {
         $research->load(['researchers', 'keywords']);
-        
+       
         return Inertia::render('research/Edit', [
             'research' => $research,
             'programs' => Program::select('id', 'name')->get(),
@@ -124,13 +161,14 @@ class ResearchController extends Controller
         ]);
     }
 
+
     /**
      * Update the specified resource in storage.
      */
     public function update(UpdateResearchRequest $request, Research $research): RedirectResponse
     {
         $research->update($request->safe()->except(['approval_sheet', 'manuscript']));
-        
+       
         if ($request->hasFile('approval_sheet') || $request->hasFile('manuscript')) {
             $research->uploadFiles(
                 $request->file('approval_sheet'),
@@ -138,9 +176,11 @@ class ResearchController extends Controller
             );
         }
 
+
         return redirect()->route('research.show', $research)
             ->with('success', 'Research updated successfully.');
     }
+
 
     /**
      * Remove the specified resource from storage.
@@ -148,10 +188,11 @@ class ResearchController extends Controller
     public function destroy(Research $research): RedirectResponse
     {
         $research->delete();
-        
+       
         return redirect()->route('research.index')
             ->with('success', 'Research deleted successfully.');
     }
+
 
     public function archive(Request $request, Research $research): RedirectResponse
     {
@@ -160,29 +201,35 @@ class ResearchController extends Controller
             'reason' => 'required|string|max:500'
         ]);
 
+
         $research->archive(Auth::user(), $request->reason);
+
 
         return redirect()->route('research.index')
             ->with('success', 'Research archived successfully.');
     }
+
 
     public function restore(Research $research): RedirectResponse
     {
         $this->authorize('restoreFromArchive', $research);
         $research->restore();
 
+
         return redirect()->route('research.index')
             ->with('success', 'Research restored successfully.');
     }
+
 
     public function export(): StreamedResponse
     {
         $this->authorize('export', Research::class);
         $researches = Research::with(['program', 'adviser', 'researchers', 'keywords'])->get();
 
+
         return response()->streamDownload(function () use ($researches) {
             $csv = fopen('php://output', 'w');
-            
+           
             // Headers
             fputcsv($csv, [
                 'Title',
@@ -193,6 +240,7 @@ class ResearchController extends Controller
                 'Year',
                 'Status'
             ]);
+
 
             // Data
             foreach ($researches as $research) {
@@ -207,9 +255,11 @@ class ResearchController extends Controller
                 ]);
             }
 
+
             fclose($csv);
         }, 'research-data.csv');
     }
+
 
     public function statistics(): JsonResponse
     {
@@ -228,8 +278,10 @@ class ResearchController extends Controller
                 ->get()
         ];
 
+
         return $this->success('Statistics retrieved successfully', $stats);
     }
+
 
     public function downloadPdf(Research $research): BinaryFileResponse|JsonResponse
     {
@@ -237,6 +289,7 @@ class ResearchController extends Controller
         if (!$research->research_manuscript) {
             return $this->error('No manuscript file available.');
         }
+
 
         return response()->download(
             Storage::disk('public')->path($research->research_manuscript),

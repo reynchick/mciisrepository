@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('panels', function (Blueprint $table) {
             $table->id();
             $table->foreignId('research_id')
-                ->constrained('research')
+                ->constrained('researches')
                 ->cascadeOnDelete()
                 ->cascadeOnUpdate()
                 ->index();

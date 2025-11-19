@@ -4,14 +4,11 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FacultyController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\LogsController;
 use App\Http\Controllers\Auth\CompleteStudentProfileController;
 use App\Http\Controllers\Auth\CompleteFacultyProfileController;
 use App\Http\Controllers\ResearchController;
-
-Route::get('/', function () {
-    return Inertia::render('welcome');
-})->name('home');
 
 /*
  |---------------------------------------------------------------------------
@@ -23,6 +20,9 @@ Route::get('/', function () {
  |
  */
 Route::middleware(['auth'])->group(function () {
+    // Landing page (Research List - accessible to all authenticated users)
+    Route::get('/', [DashboardController::class, 'home'])->name('home');
+
     // Profile completion (authentication flow for new users)
     // Student profile completion
     Route::get('/student/profile/complete', [CompleteStudentProfileController::class, 'show'])->name('student.profile.complete');
@@ -32,14 +32,22 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/faculty/profile/complete', [CompleteFacultyProfileController::class, 'show'])->name('faculty.profile.complete');
     Route::post('/faculty/profile/complete', [CompleteFacultyProfileController::class, 'store'])->name('faculty.profile.complete.store');
 
-    // Dashboard (controller)
+    // Admin Dashboard (Analytics - admin only, middleware applied in controller)
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Profile
+    Route::get('profile', function () {
+        return Inertia::render('Profile');
+    })->name('profile');
 
     // Faculties
     Route::resource('faculties', FacultyController::class);
     Route::post('faculties/bulk-destroy', [FacultyController::class, 'bulkDestroy'])->name('faculties.bulk-destroy');
     Route::get('faculties/export', [FacultyController::class, 'export'])->name('faculties.export');
     Route::get('faculties/statistics', [FacultyController::class, 'statistics'])->name('faculties.statistics');
+
+    // Users (Admin User Management)
+    Route::resource('users', UserController::class);
 
     // Research (resource + extra actions present in your ResearchController)
     Route::resource('research', ResearchController::class);
@@ -51,9 +59,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('research/{research}/download', [ResearchController::class, 'downloadPdf'])->name('research.download');
 
     // Logs (admin-only via controller authorization)
-    Route::prefix('logs')->group(function () {
+    Route::prefix('logs')->middleware('can:viewLogs')->group(function () {
+        Route::get('/', function () {
+            return Inertia::render('Logs/Index');
+        })->name('logs.index');
+       
         Route::get('/research-access', [LogsController::class, 'researchAccess'])->name('logs.research-access');
         Route::get('/keyword-search', [LogsController::class, 'keywordSearch'])->name('logs.keyword-search');
+        Route::get('/user-faculty-audits', [LogsController::class, 'userFacultyAudits'])->name('logs.user-faculty-audits');
         Route::get('/user-audits', [LogsController::class, 'userAudits'])->name('logs.user-audits');
         Route::get('/faculty-audits', [LogsController::class, 'facultyAudits'])->name('logs.faculty-audits');
         Route::get('/research-entries', [LogsController::class, 'researchEntries'])->name('logs.research-entries');
@@ -63,6 +76,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/stats/top-keywords', [LogsController::class, 'topKeywords'])->name('logs.stats.top-keywords');
     });
 });
+
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

@@ -1,8 +1,11 @@
 <?php
 
+
 namespace App\Http\Requests;
 
+
 use Illuminate\Foundation\Http\FormRequest;
+
 
 class StoreUserRequest extends FormRequest
 {
@@ -10,6 +13,7 @@ class StoreUserRequest extends FormRequest
     {
         return $this->user()->isAdministrator();
     }
+
 
     public function rules(): array
     {
@@ -27,27 +31,33 @@ class StoreUserRequest extends FormRequest
                 'unique:users,email',
                 'regex:/^[^@]+@usep\.edu\.ph$/'
             ],
-            'role_id' => ['required', 'exists:roles,id'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'must_change_password' => ['sometimes', 'boolean'],
-            'is_temporary_password' => ['sometimes', 'boolean'],
+            'role_ids' => ['required', 'array', 'min:1'],
+            'role_ids.*' => ['required', 'exists:roles,id'],
         ];
     }
+
 
     public function messages(): array
     {
         return [
             'email.regex' => 'Email must be a valid USeP email address ending with @usep.edu.ph',
-            'password.confirmed' => 'The password confirmation does not match.',
-            'role_id.exists' => 'Selected role does not exist.',
+            'role_ids.required' => 'At least one role must be selected.',
+            'role_ids.*.exists' => 'One or more selected roles do not exist.',
         ];
     }
+
 
     protected function prepareForValidation(): void
     {
         foreach (['first_name', 'middle_name', 'last_name', 'contact_number', 'student_id', 'faculty_id'] as $field) {
             if ($this->has($field)) {
-                $this->merge([$field => trim((string) $this->input($field))]);
+                $value = trim((string) $this->input($field));
+                // Convert empty strings to null for student_id and faculty_id (they have UNIQUE constraints)
+                if (in_array($field, ['student_id', 'faculty_id']) && $value === '') {
+                    $this->merge([$field => null]);
+                } else {
+                    $this->merge([$field => $value]);
+                }
             }
         }
         if ($this->has('email')) {

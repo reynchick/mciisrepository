@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,22 +14,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
         $this->call([
+            RoleSeeder::class,
+            FacultySeeder::class,
+            ProgramSeeder::class,
             AdminStaffSeeder::class,
             AgendaSeeder::class,
-            FacultySeeder::class,
-            KeywordSeeder::class,
-            ProgramSeeder::class,
-            ReportFormatSeeder::class,
-            ReportTypeSeeder::class,
-            ResearcherSeeder::class,
-            ResearchKeywordSeeder::class,
-            ResearchSeeder::class,
-            RoleSeeder::class,
             SdgSeeder::class,
             SrigSeeder::class,
+            ResearchSeeder::class,
+            KeywordSeeder::class,
+            ResearcherSeeder::class,
+            ResearchKeywordSeeder::class,
+            ReportTypeSeeder::class,
+            ReportFormatSeeder::class,
         ]);
+        
+        \App\Models\Research::factory()->count(10)->create();
     }
 }

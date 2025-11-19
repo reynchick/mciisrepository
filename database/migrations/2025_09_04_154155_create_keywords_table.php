@@ -15,7 +15,7 @@ return new class extends Migration
         });
 
         Schema::create('research_keywords', function (Blueprint $table) {
-            $table->foreignId('research_id')->constrained('research')->cascadeOnDelete();
+            $table->foreignId('research_id')->constrained('researches')->cascadeOnDelete();
             $table->foreignId('keyword_id')->constrained('keywords')->cascadeOnDelete();
             $table->primary(['research_id', 'keyword_id']); 
             $table->timestamps();

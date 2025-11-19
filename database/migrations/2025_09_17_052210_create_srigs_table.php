@@ -19,7 +19,7 @@ return new class extends Migration
         });
         
         Schema::create('research_srig', function (Blueprint $table) {
-            $table->foreignId('research_id')->constrained()->onDelete('cascade');
+            $table->foreignId('research_id')->constrained('researches')->onDelete('cascade');
             $table->foreignId('srig_id')->constrained('srigs')->onDelete('cascade');
             $table->primary(['research_id', 'srig_id']);
             $table->timestamps();

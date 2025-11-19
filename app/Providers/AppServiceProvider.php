@@ -1,11 +1,13 @@
 <?php
 
+
 namespace App\Providers;
+
 
 use App\Models\{
     Agenda,
     CompiledReport,
-    Faculty, 
+    Faculty,
     Keyword,
     Program,
     Research,
@@ -30,13 +32,17 @@ use App\Policies\{
     UserPolicy
 };
 
+
 use App\Observers\{
     FacultyObserver,
+    ResearchObserver,
     UserObserver
 };
 
+
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -47,6 +53,7 @@ class AppServiceProvider extends ServiceProvider
     {
         //
     }
+
 
     /**
      * Bootstrap any application services.
@@ -63,6 +70,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(User::class, UserPolicy::class);
         User::observe(UserObserver::class);
         Faculty::observe(FacultyObserver::class);
+        Research::observe(ResearchObserver::class);
+
 
         Gate::define('viewLogs', function (User $user) {
             return $user->isAdministrator();

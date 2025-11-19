@@ -85,9 +85,9 @@ class GoogleAuthController extends Controller
                 
                 if ($faculty) {
                     // Check if this is first login OR profile is incomplete
+                    // Profile completeness is based on position and designation; contact number is optional.
                     $profileIncomplete = empty($faculty->position) ||
-                                       empty($faculty->designation) ||
-                                       empty($faculty->contact_number);
+                                       empty($faculty->designation);
                     
                     if ($isNewUser || $profileIncomplete) {
                         return redirect()->route('faculty.profile.complete')

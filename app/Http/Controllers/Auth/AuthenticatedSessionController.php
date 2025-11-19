@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Faculty;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -47,6 +48,22 @@ class AuthenticatedSessionController extends Controller
         if ($request->user()->needsPasswordChange()) {
             return redirect()->route('auth.change-password.show')
                 ->with('status', 'Please change your temporary password to something more secure.');
+        }
+
+        // Check if faculty needs to complete profile
+        if ($request->user()->isFaculty() && $request->user()->faculty_id) {
+            $faculty = Faculty::where('faculty_id', $request->user()->faculty_id)->first();
+            
+            if ($faculty) {
+                // Check if profile is incomplete (position/designation only; contact number is optional)
+                $profileIncomplete = empty($faculty->position) ||
+                                   empty($faculty->designation);
+                
+                if ($profileIncomplete) {
+                    return redirect()->route('faculty.profile.complete')
+                        ->with('status', 'Welcome! Please complete your faculty profile.');
+                }
+            }
         }
 
         return redirect()->intended(route('dashboard', absolute: false));

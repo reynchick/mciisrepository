@@ -23,14 +23,9 @@ class CompleteFacultyProfileController extends Controller
             return redirect()->route('dashboard');
         }
 
-        $faculty = Faculty::find($request->user()->faculty_id);
+        $faculty = $request->user()->faculty;
 
         if (!$faculty) {
-            return redirect()->route('dashboard');
-        }
-
-        // Check if profile is already complete
-        if ($faculty->position && $faculty->designation && $faculty->contact_number) {
             return redirect()->route('dashboard');
         }
 
@@ -59,19 +54,18 @@ class CompleteFacultyProfileController extends Controller
             abort(404, 'Faculty record not found');
         }
 
-        // Validate input (faculty_id, email, and orcid are read-only)
+        // Validate input (faculty_id and email are read-only)
         $validated = $request->validate([
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'position' => ['required', 'string', 'max:255'],
             'designation' => ['required', 'string', 'max:255'],
-            'contact_number' => ['required', 'regex:/^(09|\+63\s?9)\d{9}$/'],
+            'orcid' => ['nullable', 'string', 'max:255'],
+            'contact_number' => ['nullable', 'string', 'max:255'],
             'educational_attainment' => ['nullable', 'string', 'max:255'],
             'field_of_specialization' => ['nullable', 'string'],
             'research_interest' => ['nullable', 'string'],
-        ], [
-            'contact_number.regex' => 'Please enter a valid Philippine mobile number',
         ]);
 
         // Set custom metadata for UserObserver before updating user
@@ -95,10 +89,11 @@ class CompleteFacultyProfileController extends Controller
         ];
 
         // Update faculty record - FacultyObserver will automatically log this
-        // Only update editable fields (not faculty_id, email, or orcid)
+        // Only update editable fields (not faculty_id, email)
         $faculty->update([
             'position' => $validated['position'],
             'designation' => $validated['designation'],
+            'orcid' => $validated['orcid'],
             'contact_number' => $validated['contact_number'],
             'educational_attainment' => $validated['educational_attainment'],
             'field_of_specialization' => $validated['field_of_specialization'],

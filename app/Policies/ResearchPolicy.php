@@ -1,30 +1,35 @@
 <?php
 
+
 namespace App\Policies;
+
 
 use App\Models\Research;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
+
 
 class ResearchPolicy
 {
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
-        // All authenticated users can view research list
+        // Anyone (including guests) can view research list
         return true;
     }
+
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Research $research): bool
+    public function view(?User $user, Research $research): bool
     {
-        // All authenticated users can view individual research
+        // Anyone (including guests) can view individual research
         return true;
     }
+
 
     /**
      * Determine whether the user can create models.
@@ -35,14 +40,15 @@ class ResearchPolicy
         if ($user->isMCIISStaff()) {
             return true;
         }
-        
+       
         // Faculty can only create research they advise
         if ($user->isFaculty() && $user->faculty && $adviserId) {
             return $adviserId == $user->faculty->id;
         }
-    
+   
         return false;
     }
+
 
     /**
      * Determine whether the user can update the model.
@@ -53,14 +59,15 @@ class ResearchPolicy
         if ($user->isMCIISStaff()) {
             return true;
         }
-        
+       
         // Faculty can only update research they advise
         if ($user->isFaculty() && $user->faculty) {
             return $research->research_adviser === $user->faculty->id;
         }
-        
+       
         return false;
     }
+
 
     /**
      * Determine whether the user can delete the model.
@@ -71,6 +78,7 @@ class ResearchPolicy
         return $user->isMCIISStaff();
     }
 
+
     /**
      * Determine whether the user can restore the model.
      */
@@ -80,6 +88,7 @@ class ResearchPolicy
         return false;
     }
 
+
     /**
      * Determine whether the user can permanently delete the model.
      */
@@ -88,6 +97,7 @@ class ResearchPolicy
         // No one can permanently delete research
         return false;
     }
+
 
     /**
      * Determine whether the user can assign researchers to research.
@@ -99,13 +109,16 @@ class ResearchPolicy
             return true;
         }
 
+
         // Faculty can assign researchers to their own research
         if ($user->isFaculty()) {
             return $research->research_adviser === $user->id;
         }
 
+
         return false;
     }
+
 
     /**
      * Determine whether the user can assign keywords to research.
@@ -117,13 +130,16 @@ class ResearchPolicy
             return true;
         }
 
+
         // Faculty can assign keywords to their own research
         if ($user->isFaculty()) {
             return $research->research_adviser === $user->id;
         }
 
+
         return false;
     }
+
 
     /**
      * Determine whether the user can assign panelists to research.
@@ -135,13 +151,16 @@ class ResearchPolicy
             return true;
         }
 
+
         // Faculty can assign panelists to research they advise
         if ($user->isFaculty()) {
             return $research->research_adviser === $user->id;
         }
 
+
         return false;
     }
+
 
     /**
      * Determine whether the user can generate reports.
@@ -152,6 +171,7 @@ class ResearchPolicy
         return $user->isAdministrator() || $user->isMCIISStaff();
     }
 
+
     /**
      * Determine whether the user can view research statistics.
      */
@@ -160,6 +180,7 @@ class ResearchPolicy
         // Administrator and MCIIS Staff can view statistics
         return $user->isAdministrator() || $user->isMCIISStaff();
     }
+
 
     /**
      * Determine whether the user can export research data.
@@ -170,6 +191,7 @@ class ResearchPolicy
         return $user->isAdministrator() || $user->isMCIISStaff();
     }
 
+
     /**
      * Determine whether the user can manage research files (upload/download).
      */
@@ -179,14 +201,15 @@ class ResearchPolicy
         if ($user->isMCIISStaff()) {
             return true;
         }
-        
+       
         // Faculty can manage files of research they advise
         if ($user->isFaculty()) {
             return $research->research_adviser === $user->id;
         }
-        
+       
         return false;
     }
+
 
     /**
      * Determine whether the user can upload files to research.
@@ -198,13 +221,16 @@ class ResearchPolicy
             return true;
         }
 
+
         // Faculty can upload files to their own research
         if ($user->isFaculty()) {
             return $research->research_adviser === $user->id;
         }
 
+
         return false;
     }
+
 
     /**
      * Determine whether the user can view research details.
@@ -215,6 +241,7 @@ class ResearchPolicy
         return true;
     }
 
+
     /**
      * Determine whether the user can filter research by various criteria.
      */
@@ -223,6 +250,7 @@ class ResearchPolicy
         // All authenticated users can filter research
         return true;
     }
+
 
     /**
      * Determine whether the user can archive the model.
@@ -233,6 +261,7 @@ class ResearchPolicy
         return $user->isMCIISStaff();
     }
 
+
     /**
      * Determine whether the user can restore the model from archive.
      */
@@ -241,6 +270,7 @@ class ResearchPolicy
         // Only MCIIS Staff can restore archived research
         return $user->isMCIISStaff();
     }
+
 
     /**
      * Determine whether the user can view archived research.

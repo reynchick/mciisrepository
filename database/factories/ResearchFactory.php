@@ -5,6 +5,11 @@ namespace Database\Factories;
 use App\Models\Program;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\Agenda;
+use App\Models\Sdg;
+use App\Models\Srig;
+use App\Models\Research;
+use Illuminate\Support\Carbon;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Research>
@@ -32,5 +37,24 @@ class ResearchFactory extends Factory
             'archived_by'             => null,
             'archive_reason'          => null,
         ];
+    }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function (Research $research) {
+            $now = Carbon::now();
+
+            $agendas = Agenda::query()->inRandomOrder()->limit(random_int(1, 3))->pluck('id')->all();
+            $sdgs = Sdg::query()->inRandomOrder()->limit(random_int(1, 3))->pluck('id')->all();
+            $srigs = Srig::query()->inRandomOrder()->limit(random_int(1, 3))->pluck('id')->all();
+
+            $map = function (array $ids) use ($now) {
+                return collect($ids)->mapWithKeys(fn ($id) => [$id => ['created_at' => $now, 'updated_at' => $now]])->all();
+            };
+
+            $research->agendas()->syncWithoutDetaching($map($agendas));
+            $research->sdgs()->syncWithoutDetaching($map($sdgs));
+            $research->srigs()->syncWithoutDetaching($map($srigs));
+        });
     }
 }

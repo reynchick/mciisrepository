@@ -1,6 +1,8 @@
 <?php
 
+
 namespace App\Http\Controllers;
+
 
 use App\Models\KeywordSearchLog;
 use App\Models\ResearchAccessLog;
@@ -12,6 +14,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\JsonResponse;
 
+
 class LogsController extends Controller
 {
     public function __construct()
@@ -19,11 +22,13 @@ class LogsController extends Controller
         $this->middleware('can:viewLogs');
     }
 
+
     /**
      * Display a listing of research access logs.
      */
     public function researchAccess(Request $request): Response
     {
+
 
         $logs = ResearchAccessLog::with([
                 'user:id,first_name,last_name,email',
@@ -37,17 +42,20 @@ class LogsController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return Inertia::render('logs/ResearchAccess', [
+
+        return Inertia::render('Logs/ResearchAccess', [
             'logs' => $logs,
             'filters' => $request->only(['user', 'research', 'from', 'to']),
         ]);
     }
+
 
     /**
      * Display a listing of keyword search logs.
      */
     public function keywordSearch(Request $request): Response
     {
+
 
         $logs = KeywordSearchLog::with([
                 'user:id,first_name,last_name,email',
@@ -61,17 +69,147 @@ class LogsController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return Inertia::render('logs/KeywordSearch', [
+
+        return Inertia::render('Logs/KeywordSearch', [
             'logs' => $logs,
             'filters' => $request->only(['user', 'keyword', 'from', 'to']),
         ]);
     }
+
+
+    /**
+     * Display a combined listing of user and faculty audit logs.
+     */
+    public function userFacultyAudits(Request $request): Response
+    {
+        // Get user audit logs
+        $userLogs = UserAuditLog::with([
+                'modifiedBy:id,first_name,last_name,email',
+                'targetUser:id,first_name,last_name,email',
+            ])
+            ->when($request->filled('modified_by'), fn ($q) => $q->where('modified_by', $request->modified_by))
+            ->when($request->filled('action_type'), fn ($q) => $q->where('action_type', $request->action_type))
+            ->when($request->filled('from'), fn ($q) => $q->whereDate('created_at', '>=', $request->from))
+            ->when($request->filled('to'), fn ($q) => $q->whereDate('created_at', '<=', $request->to))
+            ->when($request->input('log_type') === 'user', fn ($q) => $q)
+            ->when($request->input('log_type') === 'faculty', fn ($q) => $q->whereRaw('1 = 0')) // Exclude all if filtering by faculty
+            ->get()
+            ->map(function ($log) {
+                return [
+                    'id' => $log->id,
+                    'modified_by' => $log->modified_by,
+                    'target_user_id' => $log->target_user_id,
+                    'action_type' => $log->action_type,
+                    'old_values' => $log->old_values,
+                    'new_values' => $log->new_values,
+                    'metadata' => $log->metadata,
+                    'ip_address' => $log->ip_address,
+                    'user_agent' => $log->user_agent,
+                    'created_at' => $log->created_at,
+                    'log_type' => 'user',
+                    'modifiedBy' => $log->modifiedBy,
+                    'targetUser' => $log->targetUser,
+                ];
+            });
+
+
+        // Get faculty audit logs
+        $facultyLogs = FacultyAuditLog::with([
+                'modifiedBy:id,first_name,last_name,email',
+                'targetFaculty:id,faculty_id,first_name,last_name,email',
+            ])
+            ->when($request->filled('modified_by'), fn ($q) => $q->where('modified_by', $request->modified_by))
+            ->when($request->filled('action_type'), fn ($q) => $q->where('action_type', $request->action_type))
+            ->when($request->filled('from'), fn ($q) => $q->whereDate('created_at', '>=', $request->from))
+            ->when($request->filled('to'), fn ($q) => $q->whereDate('created_at', '<=', $request->to))
+            ->when($request->input('log_type') === 'faculty', fn ($q) => $q)
+            ->when($request->input('log_type') === 'user', fn ($q) => $q->whereRaw('1 = 0')) // Exclude all if filtering by user
+            ->get()
+            ->map(function ($log) {
+                return [
+                    'id' => $log->id,
+                    'modified_by' => $log->modified_by,
+                    'target_faculty_id' => $log->target_faculty_id,
+                    'action_type' => $log->action_type,
+                    'old_values' => $log->old_values,
+                    'new_values' => $log->new_values,
+                    'metadata' => $log->metadata,
+                    'ip_address' => $log->ip_address,
+                    'user_agent' => $log->user_agent,
+                    'created_at' => $log->created_at,
+                    'log_type' => 'faculty',
+                    'modifiedBy' => $log->modifiedBy,
+                    'targetFaculty' => $log->targetFaculty,
+                ];
+            });
+
+
+        // Combine and sort by created_at
+        $combinedLogs = $userLogs->concat($facultyLogs)
+            ->sortByDesc('created_at')
+            ->values();
+
+
+        // Manual pagination
+        $page = (int) $request->input('page', 1);
+        $perPage = 15;
+        $total = $combinedLogs->count();
+        $lastPage = max(1, (int) ceil($total / $perPage));
+       
+        $paginatedLogs = $combinedLogs->forPage($page, $perPage)->values()->toArray();
+
+
+        // Create pagination links
+        $links = [];
+        $links[] = [
+            'url' => $page > 1 ? $request->fullUrlWithQuery(['page' => $page - 1]) : null,
+            'label' => '&laquo; Previous',
+            'active' => false,
+        ];
+       
+        for ($i = 1; $i <= min($lastPage, 10); $i++) {
+            $links[] = [
+                'url' => $request->fullUrlWithQuery(['page' => $i]),
+                'label' => (string) $i,
+                'active' => $i === $page,
+            ];
+        }
+       
+        $links[] = [
+            'url' => $page < $lastPage ? $request->fullUrlWithQuery(['page' => $page + 1]) : null,
+            'label' => 'Next &raquo;',
+            'active' => false,
+        ];
+
+
+        // Combine action types from both models
+        $actionTypes = array_merge(
+            UserAuditLog::getActionTypes(),
+            FacultyAuditLog::getActionTypes()
+        );
+
+
+        return Inertia::render('Logs/UserFacultyAudits', [
+            'logs' => [
+                'data' => $paginatedLogs,
+                'current_page' => $page,
+                'last_page' => $lastPage,
+                'per_page' => $perPage,
+                'total' => $total,
+                'links' => $links,
+            ],
+            'filters' => $request->only(['modified_by', 'action_type', 'log_type', 'from', 'to']),
+            'actionTypes' => $actionTypes,
+        ]);
+    }
+
 
     /**
      * Display a listing of user audit logs.
      */
     public function userAudits(Request $request): Response
     {
+
 
         $logs = UserAuditLog::with([
                 'modifiedBy:id,first_name,last_name,email',
@@ -86,18 +224,21 @@ class LogsController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return Inertia::render('logs/UserAudits', [
+
+        return Inertia::render('Logs/UserAudits', [
             'logs' => $logs,
             'filters' => $request->only(['modified_by', 'target_user_id', 'action_type', 'from', 'to']),
             'actionTypes' => UserAuditLog::getActionTypes(),
         ]);
     }
 
+
     /**
      * Display a listing of faculty audit logs.
      */
     public function facultyAudits(Request $request): Response
     {
+
 
         $logs = FacultyAuditLog::with([
                 'modifiedBy:id,first_name,last_name,email',
@@ -112,18 +253,21 @@ class LogsController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return Inertia::render('logs/FacultyAudits', [
+
+        return Inertia::render('Logs/FacultyAudits', [
             'logs' => $logs,
             'filters' => $request->only(['modified_by', 'target_faculty_id', 'action_type', 'from', 'to']),
             'actionTypes' => FacultyAuditLog::getActionTypes(),
         ]);
     }
 
+
     /**
      * Display a listing of research entry logs.
      */
     public function researchEntries(Request $request): Response
     {
+
 
         $logs = ResearchEntryLog::with([
                 'modifiedBy:id,first_name,last_name,email',
@@ -138,18 +282,21 @@ class LogsController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return Inertia::render('logs/ResearchEntries', [
+
+        return Inertia::render('Logs/ResearchEntries', [
             'logs' => $logs,
             'filters' => $request->only(['modified_by', 'target_research_id', 'action_type', 'from', 'to']),
             'actionTypes' => ResearchEntryLog::getActionTypes(),
         ]);
     }
 
+
     /**
      * Display top accessed research statistics.
      */
     public function topAccessedResearch(Request $request): JsonResponse
     {
+
 
         $top = ResearchAccessLog::selectRaw('research_id, COUNT(*) as accesses')
             ->when($request->filled('from'), fn ($q) => $q->whereDate('created_at', '>=', $request->from))
@@ -160,14 +307,17 @@ class LogsController extends Controller
             ->with('research:id,research_title')
             ->get();
 
+
         return $this->success('Top accessed research', $top);
     }
+
 
     /**
      * Display top keywords statistics.
      */
     public function topKeywords(Request $request): JsonResponse
     {
+
 
         $top = KeywordSearchLog::selectRaw('keyword_id, COUNT(*) as searches')
             ->when($request->filled('from'), fn ($q) => $q->whereDate('created_at', '>=', $request->from))
@@ -177,6 +327,7 @@ class LogsController extends Controller
             ->limit(5)
             ->with('keyword:id,keyword_name')
             ->get();
+
 
         return $this->success('Top keywords', $top);
     }

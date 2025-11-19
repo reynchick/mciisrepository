@@ -46,6 +46,7 @@ export default function CompleteFacultyProfile({ user, faculty }: Props) {
         last_name: user.last_name || '',
         position: faculty.position || '',
         designation: faculty.designation || '',
+        orcid: faculty.orcid || '',
         contact_number: user.contact_number || faculty.contact_number || '',
         educational_attainment: faculty.educational_attainment || '',
         field_of_specialization: faculty.field_of_specialization || '',
@@ -90,12 +91,6 @@ export default function CompleteFacultyProfile({ user, faculty }: Props) {
                                 <span className="text-muted-foreground">Faculty ID:</span>
                                 <span className="ml-2 font-mono font-medium">{faculty.faculty_id}</span>
                             </div>
-                            {faculty.orcid && (
-                                <div>
-                                    <span className="text-muted-foreground">ORCID:</span>
-                                    <span className="ml-2 font-mono font-medium">{faculty.orcid}</span>
-                                </div>
-                            )}
                         </div>
                     </div>
 
@@ -181,18 +176,26 @@ export default function CompleteFacultyProfile({ user, faculty }: Props) {
                             </div>
 
                             <div>
-                                <Label htmlFor="contact_number">Contact Number *</Label>
+                                <Label htmlFor="orcid">ORCID</Label>
+                                <Input 
+                                    id="orcid"
+                                    name="orcid"
+                                    value={data.orcid}
+                                    onChange={(e) => setData('orcid', e.target.value)}
+                                    placeholder="e.g., 0000-0002-1825-0097"
+                                />
+                                <InputError message={errors.orcid} />
+                            </div>
+
+                            <div>
+                                <Label htmlFor="contact_number">Contact Number</Label>
                                 <Input 
                                     id="contact_number"
                                     name="contact_number"
                                     value={data.contact_number}
                                     onChange={(e) => setData('contact_number', e.target.value)}
                                     placeholder="09123456789"
-                                    required
                                 />
-                                <p className="text-xs text-muted-foreground mt-1">
-                                    Philippine mobile number (09XXXXXXXXX)
-                                </p>
                                 <InputError message={errors.contact_number} />
                             </div>
                         </div>
