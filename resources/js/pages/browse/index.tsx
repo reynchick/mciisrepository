@@ -413,7 +413,7 @@ export default function Browse({ researches, filters, filterOptions }: BrowsePag
               <div className="mb-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">Browse Research</h2>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">Browse Researchjustine</h2>
                     <p className="mt-0.5 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                       {indexedCount.toLocaleString()} papers indexed
                     </p>
