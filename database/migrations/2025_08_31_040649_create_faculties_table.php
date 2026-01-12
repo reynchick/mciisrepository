@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('educational_attainment')->nullable();
             $table->text('field_of_specialization')->nullable();
             $table->text('research_interest')->nullable();
+            $table->string('profile_picture')->nullable()->comment('Path to faculty profile picture');
             $table->timestamps();
             $table->softDeletes();
         });

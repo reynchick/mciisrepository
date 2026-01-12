@@ -12,7 +12,7 @@ class CompiledReportPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['Admin', 'MCIIS Staff']);
+        return $user->isAdministrator();
     }
 
     /**
@@ -20,7 +20,7 @@ class CompiledReportPolicy
      */
     public function view(User $user, CompiledReport $compiledReport): bool
     {
-        return $user->hasAnyRole(['Admin', 'MCIIS Staff']);
+        return $user->isAdministrator();
     }
 
     /**
@@ -28,7 +28,7 @@ class CompiledReportPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['Admin', 'MCIIS Staff']);
+        return $user->isAdministrator();
     }
 
     /**
@@ -36,7 +36,7 @@ class CompiledReportPolicy
      */
     public function download(User $user, CompiledReport $compiledReport): bool
     {
-        return $user->hasAnyRole(['Admin', 'MCIIS Staff']);
+        return $user->isAdministrator();
     }
 
     /**
@@ -44,6 +44,6 @@ class CompiledReportPolicy
      */
     public function delete(User $user, CompiledReport $compiledReport): bool
     {
-        return $user->hasRole('Admin');
+        return $user->isAdministrator();
     }
 }

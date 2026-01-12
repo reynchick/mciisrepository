@@ -14,9 +14,9 @@ class ResearchPolicy
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(?User $user): bool
+    public function viewAny(User $user): bool
     {
-        // Anyone (including guests) can view research list
+        // Anyone can view research list
         return true;
     }
 
@@ -24,7 +24,7 @@ class ResearchPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(?User $user, Research $research): bool
+    public function view(User $user, Research $research): bool
     {
         // Anyone (including guests) can view individual research
         return true;
@@ -111,8 +111,8 @@ class ResearchPolicy
 
 
         // Faculty can assign researchers to their own research
-        if ($user->isFaculty()) {
-            return $research->research_adviser === $user->id;
+        if ($user->isFaculty() && $user->faculty) {
+            return $research->research_adviser === $user->faculty->id;
         }
 
 
@@ -132,8 +132,8 @@ class ResearchPolicy
 
 
         // Faculty can assign keywords to their own research
-        if ($user->isFaculty()) {
-            return $research->research_adviser === $user->id;
+        if ($user->isFaculty() && $user->faculty) {
+            return $research->research_adviser === $user->faculty->id;
         }
 
 
@@ -153,8 +153,8 @@ class ResearchPolicy
 
 
         // Faculty can assign panelists to research they advise
-        if ($user->isFaculty()) {
-            return $research->research_adviser === $user->id;
+        if ($user->isFaculty() && $user->faculty) {
+            return $research->research_adviser === $user->faculty->id;
         }
 
 
@@ -203,8 +203,8 @@ class ResearchPolicy
         }
        
         // Faculty can manage files of research they advise
-        if ($user->isFaculty()) {
-            return $research->research_adviser === $user->id;
+        if ($user->isFaculty() && $user->faculty) {
+            return $research->research_adviser === $user->faculty->id;
         }
        
         return false;

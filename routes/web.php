@@ -5,10 +5,17 @@ use Inertia\Inertia;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\LogsController;
+use App\Http\Controllers\Logs\ResearchAccessLogController;
+use App\Http\Controllers\Logs\KeywordSearchLogController;
+use App\Http\Controllers\Logs\UserAuditLogController;
+use App\Http\Controllers\Logs\FacultyAuditLogController;
+use App\Http\Controllers\Logs\ResearchEntryLogController;
 use App\Http\Controllers\Auth\CompleteStudentProfileController;
 use App\Http\Controllers\Auth\CompleteFacultyProfileController;
 use App\Http\Controllers\ResearchController;
+use App\Http\Controllers\ResearchDownloadController;
+use App\Http\Controllers\ResearchSearchController;
+use App\Http\Controllers\BrowseController;
 
 /*
  |---------------------------------------------------------------------------
@@ -19,64 +26,79 @@ use App\Http\Controllers\ResearchController;
  | protected by the auth middleware.
  |
  */
-Route::middleware(['auth'])->group(function () {
-    // Landing page (Research List - accessible to all authenticated users)
-    Route::get('/', [DashboardController::class, 'home'])->name('home');
-
+Route::get('/', function () { return redirect()->route('browse'); })->name('welcome');
+    Route::middleware(['auth'])->group(function () {
     // Profile completion (authentication flow for new users)
     // Student profile completion
     Route::get('/student/profile/complete', [CompleteStudentProfileController::class, 'show'])->name('student.profile.complete');
     Route::post('/student/profile/complete', [CompleteStudentProfileController::class, 'store'])->name('student.profile.complete.store');
 
-    // Faculty profile completion
+     // Faculty profile completion
     Route::get('/faculty/profile/complete', [CompleteFacultyProfileController::class, 'show'])->name('faculty.profile.complete');
     Route::post('/faculty/profile/complete', [CompleteFacultyProfileController::class, 'store'])->name('faculty.profile.complete.store');
 
-    // Admin Dashboard (Analytics - admin only, middleware applied in controller)
-    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Landing page (Browse grid with filters)
+    Route::get('/browse', [ResearchSearchController::class, 'browse'])->name('browse');
 
-    // Profile
-    Route::get('profile', function () {
-        return Inertia::render('Profile');
-    })->name('profile');
+    // Inline research details & file downloads
+    Route::get('/research/{research}/details', [ResearchSearchController::class, 'details'])->name('research.details');
 
-    // Faculties
-    Route::resource('faculties', FacultyController::class);
-    Route::post('faculties/bulk-destroy', [FacultyController::class, 'bulkDestroy'])->name('faculties.bulk-destroy');
-    Route::get('faculties/export', [FacultyController::class, 'export'])->name('faculties.export');
-    Route::get('faculties/statistics', [FacultyController::class, 'statistics'])->name('faculties.statistics');
+    // Research downloads and export
+    Route::prefix('research')->name('research.')->group(function () {
+        Route::get('export', [ResearchDownloadController::class, 'export'])->name('export');
+        Route::get('{research}/manuscript', [ResearchDownloadController::class, 'downloadPdf'])->name('manuscript.download');
+        Route::get('{research}/approval-sheet', [ResearchDownloadController::class, 'downloadApprovalSheet'])->name('approval.download');
+    });
+    
+    // Admin/Staff/Faculty/Student Dashboard (role-adaptive)
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Users (Admin User Management)
+    // Faculty resource routes
+    Route::resource('faculty', FacultyController::class);
+
+    // Faculty lookup by email (for user creation)
+    Route::get('/api/faculty/by-email', [FacultyController::class, 'findByEmail'])->name('faculty.by-email');
+
+    // Research resource routes
+    Route::resource('research', ResearchController::class);
+
+    // User search suggestions (must be before resource route to avoid conflict)
+    Route::get('/users/suggestions', [UserController::class, 'suggestions'])->name('users.suggestions');
+
+    // User email uniqueness check (AJAX)
+    Route::get('/users/check-email', [UserController::class, 'checkEmail'])->name('users.check-email');
+    
+    // User student ID uniqueness check (AJAX)
+    Route::get('/users/check-student-id', [UserController::class, 'checkStudentId'])->name('users.check-student-id');
+    
+    // User resource routes (Admin only)
     Route::resource('users', UserController::class);
 
-    // Research (resource + extra actions present in your ResearchController)
-    Route::resource('research', ResearchController::class);
-    Route::post('research/bulk-destroy', [ResearchController::class, 'bulkDestroy'])->name('research.bulk-destroy');
-    Route::get('research/export', [ResearchController::class, 'export'])->name('research.export');
-    Route::get('research/statistics', [ResearchController::class, 'statistics'])->name('research.statistics');
-    Route::post('research/{research}/archive', [ResearchController::class, 'archive'])->name('research.archive');
-    Route::post('research/{research}/restore', [ResearchController::class, 'restore'])->name('research.restore');
-    Route::get('research/{research}/download', [ResearchController::class, 'downloadPdf'])->name('research.download');
+    // User restore route (Admin only)
+    Route::post('/users/{user}/restore', [UserController::class, 'restore'])->name('users.restore')->withTrashed();
 
-    // Logs (admin-only via controller authorization)
-    Route::prefix('logs')->middleware('can:viewLogs')->group(function () {
-        Route::get('/', function () {
-            return Inertia::render('Logs/Index');
-        })->name('logs.index');
-       
-        Route::get('/research-access', [LogsController::class, 'researchAccess'])->name('logs.research-access');
-        Route::get('/keyword-search', [LogsController::class, 'keywordSearch'])->name('logs.keyword-search');
-        Route::get('/user-faculty-audits', [LogsController::class, 'userFacultyAudits'])->name('logs.user-faculty-audits');
-        Route::get('/user-audits', [LogsController::class, 'userAudits'])->name('logs.user-audits');
-        Route::get('/faculty-audits', [LogsController::class, 'facultyAudits'])->name('logs.faculty-audits');
-        Route::get('/research-entries', [LogsController::class, 'researchEntries'])->name('logs.research-entries');
-
-        // Stats endpoints
-        Route::get('/stats/top-accessed-research', [LogsController::class, 'topAccessedResearch'])->name('logs.stats.top-accessed-research');
-        Route::get('/stats/top-keywords', [LogsController::class, 'topKeywords'])->name('logs.stats.top-keywords');
+    // Log routes
+    Route::prefix('logs')->name('logs.')->group(function () {
+        Route::resource('research-access', ResearchAccessLogController::class)->only('index');
+        Route::resource('keyword-search', KeywordSearchLogController::class)->only('index');
+        Route::resource('user-audits', UserAuditLogController::class)->only('index');
+        Route::resource('faculty-audits', FacultyAuditLogController::class)->only('index');
+        Route::resource('research-entries', ResearchEntryLogController::class)->only('index');
     });
-});
 
+    // Research access logging (auth required)
+    Route::post('/api/research-access', [ResearchSearchController::class, 'logAccess'])->name('research.access.log');
+
+    // Unified search suggestions (typed autocomplete)
+    Route::get('/api/search-suggestions', [ResearchSearchController::class, 'searchSuggestions'])->name('search.suggestions');
+
+    // Keyword-only suggestions
+    Route::get('/api/keyword-suggestions', [ResearchSearchController::class, 'keywordSuggestions'])->name('keyword.suggestions');
+    
+    // Keyword search logging (on submit)
+    Route::post('/api/keyword-search', [ResearchSearchController::class, 'logKeywordSearch'])->name('keyword.search.log');
+
+});
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

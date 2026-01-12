@@ -54,10 +54,12 @@ class CompleteStudentProfileController extends Controller
             'note' => 'Student completed profile after first login',
         ];
         
-        // Update user - UserObserver will automatically log this
-        $user->update($validated);
+        // Update user with profile data and mark profile as complete
+        $user->update(array_merge($validated, [
+            'profile_completed' => true,
+        ]));
         
-        return redirect()->route('dashboard')
+        return redirect()->route('browse')
             ->with('status', 'Profile completed successfully!');
     }
 }

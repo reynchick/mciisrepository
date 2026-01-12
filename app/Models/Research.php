@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
+use App\Traits\ResearchScopes;
 use App\Models\Sdg;
 use App\Models\Srig;
 use App\Traits\HasSearchable;
@@ -16,7 +16,7 @@ use App\Traits\HasSearchable;
 class Research extends Model
 {
     /** @use HasFactory<\Database\Factories\ResearchFactory> */
-    use HasFactory, HasSearchable;
+    use HasFactory, HasSearchable, ResearchScopes;
 
     protected $table = 'researches';
 
@@ -42,7 +42,11 @@ class Research extends Model
     protected array $searchableFields = [
         'research_title',
         'research_abstract',
-        'keywords.keyword_name'
+        'keywords.keyword_name',
+        'adviser.first_name',
+        'adviser.last_name',
+        'researchers.first_name',
+        'researchers.last_name'
     ];
 
     /**
@@ -149,56 +153,6 @@ class Research extends Model
     }
 
     /**
-     * Scope a query to filter by program.
-     */
-    public function scopeByProgram($query, $programId)
-    {
-        return $query->where('program_id', $programId);
-    }
-
-    /**
-     * Scope a query to filter by adviser.
-     */
-    public function scopeByAdviser($query, $adviserId)
-    {
-        return $query->where('research_adviser', $adviserId);
-    }
-
-    /**
-     * Scope a query to filter by year.
-     */
-    public function scopeByYear($query, $year)
-    {
-        return $query->where('published_year', $year);
-    }
-
-    /**
-     * Scope a query to filter by panelist.
-     */
-    public function scopeByPanelist($query, $facultyId)
-    {
-        return $query->whereHas('panelists', function ($q) use ($facultyId) {
-            $q->where('faculty_id', $facultyId);
-        });
-    }
-
-    /**
-     * Scope a query to only include non-archived research.
-     */
-    public function scopeActive($query): Builder
-    {
-        return $query->whereNull('archived_at');
-    }
-
-    /**
-     * Scope a query to only include archived research.
-     */
-    public function scopeArchived($query): Builder
-    {
-        return $query->whereNotNull('archived_at');
-    }
-
-    /**
      * Check if the research is archived.
      */
     public function isArchived(): bool
@@ -268,4 +222,5 @@ class Research extends Model
             }
         });
     }
+
 }

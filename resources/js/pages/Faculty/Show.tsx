@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
+import AppLayout from '@/layouts/app/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -66,7 +66,7 @@ export default function FacultyShow({ faculty }: Props) {
 
 
     return (
-        <AppSidebarLayout>
+        <AppLayout title={`${getFullName()} - Faculty Details`}>
             <Head title={`${getFullName()} - Faculty Details`} />
            
             <div className="space-y-6">
@@ -308,6 +308,6 @@ export default function FacultyShow({ faculty }: Props) {
                     </div>
                 </div>
             </div>
-        </AppSidebarLayout>
+        </AppLayout>
     );
 }

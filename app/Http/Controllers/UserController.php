@@ -1,72 +1,98 @@
 <?php
 
-
 namespace App\Http\Controllers;
 
-
 use App\Models\User;
-use App\Models\Faculty;
+use App\Models\UserAuditLog;
+use App\Models\Role;
+use App\Services\FacultyService;
+use App\Services\AuditLogService;
+use App\Services\UserStatisticsService;
+use App\Repositories\UserRepository;
+use App\Http\Actions\User\CheckEmailUniquenessAction;
+use App\Http\Actions\User\CheckStudentIdUniquenessAction;
+use App\Http\Actions\User\GetUserSuggestionsAction;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Inertia\Response;
 use Inertia\Inertia;
 
-
 class UserController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(function ($request, $next) {
-            if (!$request->user() || !$request->user()->isAdministrator()) {
-                abort(403, 'Unauthorized action.');
-            }
-            return $next($request);
-        });
+    public function __construct(
+        protected FacultyService $facultyService,
+        protected UserStatisticsService $statisticsService,
+        protected UserRepository $userRepository,
+        protected CheckEmailUniquenessAction $checkEmailAction,
+        protected CheckStudentIdUniquenessAction $checkStudentIdAction,
+        protected GetUserSuggestionsAction $getUserSuggestionsAction
+    ) {
+        $this->authorizeResource(User::class, 'user');
     }
 
+    /**
+     * Check if an email is unique for user creation/edit.
+     * Accepts ?email= and optional ?ignore=ID for edit mode.
+     */
+    public function checkEmail(): JsonResponse
+    {
+        $email = request('email', '');
+        $ignoreId = request('ignore') ? (int) request('ignore') : null;
+        
+        return $this->checkEmailAction->execute($email, $ignoreId);
+    }
+
+    /**
+     * Check if a student ID is unique for user creation/edit.
+     * Accepts ?student_id= and optional ?ignore=ID for edit mode.
+     */
+    public function checkStudentId(): JsonResponse
+    {
+        $studentId = request('student_id', '');
+        $ignoreId = request('ignore') ? (int) request('ignore') : null;
+        
+        return $this->checkStudentIdAction->execute($studentId, $ignoreId);
+    }
+
+    /**
+     * Get user suggestions for autocomplete.
+     */
+    public function suggestions(): JsonResponse
+    {
+        $query = request('q', '');
+        
+        $suggestions = $this->getUserSuggestionsAction->execute($query);
+        
+        return response()->json(['suggestions' => $suggestions->toArray()]);
+    }
 
     /**
      * Display a listing of the resource.
      */
     public function index(): Response
     {
-        $users = User::with('roles')
-            ->when(request('search'), function($query, $search) {
-                $query->where(function($q) use ($search) {
-                    $q->where('first_name', 'like', "%{$search}%")
-                      ->orWhere('last_name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%")
-                      ->orWhere('student_id', 'like', "%{$search}%")
-                      ->orWhere('faculty_id', 'like', "%{$search}%");
-                });
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+        // Get users from repository with all filters applied
+        $users = $this->userRepository->findWithFilters(request()->all());
 
+        // Get all statistics from the service
+        $statistics = $this->statisticsService->getAllStatistics();
 
-        // User role distribution for pie chart
-        $roleDistribution = User::with('roles')
-            ->get()
-            ->flatMap(fn($user) => $user->roles)
-            ->groupBy('name')
-            ->map(fn($group) => $group->count())
-            ->map(fn($count, $name) => [
-                'role' => $name,
-                'count' => $count,
-            ])
-            ->values();
-
-
-        // Recent user registrations (last 30 days)
-        $recentRegistrations = User::where('created_at', '>=', now()->subDays(30))->count();
-
-
-        return Inertia::render('User/Index', [
+        return Inertia::render('users/index', [
             'users' => $users,
-            'filters' => request()->only(['search']),
-            'roleDistribution' => $roleDistribution,
-            'recentRegistrations' => $recentRegistrations,
+            'filters' => [
+                'search' => request('search'),
+                'search_label' => request('search_label'),
+                'role' => request('role'),
+                'sort_by' => request('sort_by'),
+                'sort_order' => request('sort_order'),
+                'status' => request('status'),
+            ],
+            'roleDistribution' => $statistics['roleDistribution'],
+            'recentRegistrations' => $statistics['recentRegistrations'],
+            'totalUsersCount' => $statistics['totalUsersCount'],
+            'deletedUsersCount' => $statistics['deletedUsersCount'],
         ]);
     }
 
@@ -76,10 +102,9 @@ class UserController extends Controller
      */
     public function create(): Response
     {
-        $roles = \App\Models\Role::all();
-       
-        return Inertia::render('User/Create', [
-            'roles' => $roles
+        return Inertia::render('users/create', [
+            'roles' => $this->userRepository->getAllRoles(),
+            'adminCount' => $this->userRepository->getAdministratorCount(),
         ]);
     }
 
@@ -93,35 +118,60 @@ class UserController extends Controller
     public function store(StoreUserRequest $request): RedirectResponse
     {
         $userData = $request->validated();
-       
-        // Validate that faculty_id and email exists in faculty table if faculty_id is provided
-        if (!empty($userData['faculty_id'])) {
-            $faculty = Faculty::where('faculty_id', $userData['faculty_id'])
-                ->where('email', $userData['email'])
-                ->first();
-            if (!$faculty) {
-                return back()->withErrors([
-                    'faculty_id' => 'This Faculty ID and email combination is not registered in our faculty database.',
-                    'email' => 'This Faculty ID and email combination is not registered in our faculty database.'
-                ]);
-            }
-        }
-       
-        // Extract role_ids before creating user
         $roleIds = $userData['role_ids'];
         unset($userData['role_ids']);
-       
-        // Pre-register user (they will sign in via Google SSO)
-        $user = User::create([
-            ...$userData,
-            'password' => null, // No password - Google SSO only
-            'email_verified_at' => null, // Will be verified on first Google sign-in
-        ]);
 
+        // Determine if Faculty role is being assigned
+        $isFaculty = false;
+        foreach ($roleIds as $roleId) {
+            $role = \App\Models\Role::find($roleId);
+            if ($role && $role->name === 'Faculty') {
+                $isFaculty = true;
+                break;
+            }
+        }
 
-        // Attach the roles
-        $user->roles()->attach($roleIds);
+        if ($isFaculty) {
+            // Lookup faculty by email
+            $faculty = $this->facultyService->findByEmail($userData['email']);
+            if (!$faculty) {
+                return back()->withErrors([
+                    'email' => 'This email is not registered in the faculty database. Assigning Faculty role requires a matching faculty email.'
+                ]);
+            }
+            $userData['faculty_id'] = $faculty->faculty_id;
+        } else {
+            $userData['faculty_id'] = null;
+        }
 
+        // If Student role, allow student_id to be set/edited. Otherwise, clear it.
+        $isStudent = false;
+        foreach ($roleIds as $roleId) {
+            $role = \App\Models\Role::find($roleId);
+            if ($role && $role->name === 'Student') {
+                $isStudent = true;
+                break;
+            }
+        }
+        if (!$isStudent) {
+            $userData['student_id'] = null;
+        }
+
+        try {
+            $user = User::create([
+                ...$userData,
+                'password' => null, // No password - Google SSO only
+                'email_verified_at' => null, // Will be verified on first Google sign-in
+            ]);
+            $user->roles()->attach($roleIds);
+        } catch (\Throwable $e) {
+            \Log::error('User store failed', [
+                'message' => $e->getMessage(),
+                'data' => $userData,
+                'role_ids' => $roleIds,
+            ]);
+            throw $e;
+        }
 
         return redirect()->route('users.index')
             ->with('success', 'User pre-registered successfully. They can now sign in with Google using their USeP email.');
@@ -133,14 +183,13 @@ class UserController extends Controller
      */
     public function edit(User $user): Response
     {
-        $roles = \App\Models\Role::all();
-       
-        return Inertia::render('User/Edit', [
+        return Inertia::render('users/edit', [
             'user' => $user->load('roles'),
-            'roles' => $roles
+            'roles' => $this->userRepository->getAllRoles(),
+            'auditLogs' => $this->userRepository->getAuditLogs($user),
+            'adminCount' => $this->userRepository->getAdministratorCount(),
         ]);
     }
-
 
     /**
      * Update the specified resource in storage.
@@ -148,16 +197,78 @@ class UserController extends Controller
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
         $userData = $request->validated();
-       
-        // Extract role_ids before updating user
         $roleIds = $userData['role_ids'];
         unset($userData['role_ids']);
-       
+
+        // Capture original state before changes
+        $originalData = $user->getAttributes();
+        $originalRoles = $user->roles->pluck('name', 'id')->toArray();
+
+        // Determine if Faculty role is being assigned
+        $isFaculty = false;
+        foreach ($roleIds as $roleId) {
+            $role = \App\Models\Role::find($roleId);
+            if ($role && $role->name === 'Faculty') {
+                $isFaculty = true;
+                break;
+            }
+        }
+
+        if ($isFaculty) {
+            // Lookup faculty by email
+            $faculty = $this->facultyService->findByEmail($userData['email']);
+            if (!$faculty) {
+                return back()->withErrors([
+                    'email' => 'This email is not registered in the faculty database. Assigning Faculty role requires a matching faculty email.'
+                ]);
+            }
+            $userData['faculty_id'] = $faculty->faculty_id;
+        } else {
+            $userData['faculty_id'] = null;
+        }
+
+        // If Student role, allow student_id to be set/edited. Otherwise, clear it.
+        $isStudent = false;
+        foreach ($roleIds as $roleId) {
+            $role = \App\Models\Role::find($roleId);
+            if ($role && $role->name === 'Student') {
+                $isStudent = true;
+                break;
+            }
+        }
+        if (!$isStudent) {
+            $userData['student_id'] = null;
+        }
+
+        // Update user attributes
         $user->update($userData);
-       
-        // Sync the roles
-        $user->roles()->sync($roleIds);
-       
+        
+        // Sync roles and capture changes
+        $syncResult = $user->roles()->sync($roleIds);
+        
+        // Check if roles changed (attached, detached, or updated)
+        $rolesChanged = !empty($syncResult['attached']) || !empty($syncResult['detached']) || !empty($syncResult['updated']);
+        
+        if ($rolesChanged) {
+            // Fallback: log role changes explicitly to ensure audit capture even if pivot events are missed
+            // Qualify columns to avoid ambiguous column errors on SQLite when plucking with pivot joins
+            // Reload roles to reflect the synced state
+            $newRoles = $user->roles()
+                ->select('roles.id', 'roles.name')
+                ->pluck('roles.name', 'roles.id')
+                ->toArray();
+            $addedRoles = Role::whereIn('id', $syncResult['attached'] ?? [])->pluck('name', 'id')->toArray();
+            $removedRoles = Role::whereIn('id', $syncResult['detached'] ?? [])->pluck('name', 'id')->toArray();
+
+            app(AuditLogService::class)->logUserRoleChange(
+                $user,
+                $originalRoles,
+                $newRoles,
+                $addedRoles,
+                $removedRoles
+            );
+        }
+
         return redirect()->route('users.index')
             ->with('success', 'User updated successfully');
     }
@@ -168,9 +279,22 @@ class UserController extends Controller
      */
     public function destroy(User $user): RedirectResponse
     {
+        $this->authorize('delete', $user);
         $user->delete();
        
         return redirect()->route('users.index')
             ->with('success', 'User deleted successfully');
+    }
+
+    /**
+     * Restore a soft-deleted user account.
+     */
+    public function restore(User $user): RedirectResponse
+    {
+        $this->authorize('restore', $user);
+        $user->restore();
+       
+        return redirect()->route('users.index')
+            ->with('success', 'User restored successfully');
     }
 }

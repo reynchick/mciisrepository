@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FacultyAuditLog extends Model
 {
+    use HasFactory;
     public const ACTION_CREATE = 'create_faculty';
     public const ACTION_UPDATE = 'update_faculty';
     public const ACTION_DELETE = 'delete_faculty';

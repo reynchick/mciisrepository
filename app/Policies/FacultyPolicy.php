@@ -46,7 +46,7 @@ class FacultyPolicy
         }
 
         // Faculty can update their own record
-        if ($user->isFaculty() && $user->faculty_id === $faculty->faculty_id) {
+        if ($user->isFaculty() && $user->faculty && $user->faculty->id === $faculty->id) {
             return true;
         }
 

@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ResearchEntryLog extends Model
 {
+    use HasFactory;
     public const ACTION_CREATE = 'create_research_entry';
     public const ACTION_UPDATE = 'update_research_entry';
     public const ACTION_ARCHIVE = 'archive_research_entry';

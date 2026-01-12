@@ -10,17 +10,18 @@ class ProgramSeeder extends Seeder
     public function run(): void
     {
         $programs = [
-            'Bachelor of Science in Information Technology',
-            'Bachelor of Science in Computer Science',
-            'Bachelor of Library and Information Science',
-            'Master of Library and Information Science',
-            'Master in Information Technology',
+            ['name' => 'Bachelor of Science in Information Technology', 'code' => 'BSIT'],
+            ['name' => 'Bachelor of Science in Computer Science', 'code' => 'BSCS'],
+            ['name' => 'Bachelor of Library and Information Science', 'code' => 'BLIS'],
+            ['name' => 'Master of Library and Information Science', 'code' => 'MLIS'],
+            ['name' => 'Master in Information Technology', 'code' => 'MIT'],
         ];
 
         foreach ($programs as $program) {
-            Program::create([
-                'name' => $program
-            ]);
+            Program::updateOrCreate(
+                ['name' => $program['name']],
+                $program
+            );
         }
     }
 }

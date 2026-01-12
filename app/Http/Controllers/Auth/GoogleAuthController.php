@@ -49,11 +49,17 @@ class GoogleAuthController extends Controller
             $isNewUser = false;
 
             if ($user) {
-                // Update existing user with Google info
+                // Update existing user with Google info (admin-created accounts logging in for first time)
+                UserObserver::$customMetadata = [
+                    'action' => 'first_google_login',
+                    'note' => 'User logged in via Google SSO for the first time',
+                ];
+                
                 $user->update([
                     'google_id' => $googleUser->getId(),
                     'avatar' => $googleUser->getAvatar(),
                     'email_verified_at' => $user->email_verified_at ?? now(), // Auto-verify via Google
+                    'first_login_completed' => true,
                 ]);
             } else {
                 // Set custom metadata for UserObserver before creating user
@@ -78,25 +84,15 @@ class GoogleAuthController extends Controller
                     ->with('status', 'Welcome! Please complete your profile by entering your student ID.');
             }
 
-            // Check if faculty needs to complete profile
-            // Only redirect if: (1) New user OR (2) Existing user with incomplete profile
-            if ($user->isFaculty() && $user->faculty_id) {
-                $faculty = Faculty::where('faculty_id', $user->faculty_id)->first();
-                
-                if ($faculty) {
-                    // Check if this is first login OR profile is incomplete
-                    // Profile completeness is based on position and designation; contact number is optional.
-                    $profileIncomplete = empty($faculty->position) ||
-                                       empty($faculty->designation);
-                    
-                    if ($isNewUser || $profileIncomplete) {
-                        return redirect()->route('faculty.profile.complete')
-                            ->with('status', 'Welcome! Please complete your faculty profile.');
-                    }
-                }
+            // Check if faculty needs to verify/update profile on first login
+            // Faculty data is pre-seeded, so we just redirect if profile_completed = false
+            // This allows them to verify and update their information on first system access
+            if ($user->isFaculty() && $user->faculty_id && !$user->profile_completed) {
+                return redirect()->route('faculty.profile.complete')
+                    ->with('status', 'Welcome! Please verify and update your profile information.');
             }
 
-            return redirect()->intended(route('dashboard', absolute: false));
+            return redirect()->intended(route('browse', absolute: false));
 
         } catch (\Exception $e) {
             return redirect()->route('login')
@@ -164,6 +160,8 @@ class GoogleAuthController extends Controller
             'avatar' => $googleUser->getAvatar(),
             'email_verified_at' => now(),
             'password' => null,
+            'profile_completed' => false,
+            'first_login_completed' => true,
         ]);
 
         // Attach Student role (multi-role support)
@@ -193,6 +191,8 @@ class GoogleAuthController extends Controller
             'avatar' => $googleUser->getAvatar(),
             'email_verified_at' => now(),
             'password' => null,
+            'profile_completed' => false,
+            'first_login_completed' => true,
         ]);
 
         // Attach Faculty role (multi-role support)

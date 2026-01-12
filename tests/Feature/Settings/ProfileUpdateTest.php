@@ -5,7 +5,7 @@ use App\Models\User;
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('profile page is displayed', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->withoutRoles()->create(['profile_completed' => true]);
 
     $response = $this
         ->actingAs($user)
@@ -15,13 +15,15 @@ test('profile page is displayed', function () {
 });
 
 test('profile information can be updated', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->withoutRoles()->create(['profile_completed' => true]);
 
     $response = $this
         ->actingAs($user)
         ->patch(route('profile.update'), [
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'first_name' => 'Test',
+            'middle_name' => 'M',
+            'last_name' => 'User',
+            'contact_number' => '09123456789',
         ]);
 
     $response
@@ -30,19 +32,20 @@ test('profile information can be updated', function () {
 
     $user->refresh();
 
-    expect($user->name)->toBe('Test User');
-    expect($user->email)->toBe('test@example.com');
-    expect($user->email_verified_at)->toBeNull();
+    expect($user->first_name)->toBe('Test');
+    expect($user->last_name)->toBe('User');
 });
 
 test('email verification status is unchanged when the email address is unchanged', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->withoutRoles()->create(['profile_completed' => true]);
 
     $response = $this
         ->actingAs($user)
         ->patch(route('profile.update'), [
-            'name' => 'Test User',
-            'email' => $user->email,
+            'first_name' => 'Test',
+            'middle_name' => 'M',
+            'last_name' => 'User',
+            'contact_number' => '09123456789',
         ]);
 
     $response
@@ -53,7 +56,7 @@ test('email verification status is unchanged when the email address is unchanged
 });
 
 test('user can delete their account', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->withoutRoles()->create(['profile_completed' => true]);
 
     $response = $this
         ->actingAs($user)
@@ -63,14 +66,15 @@ test('user can delete their account', function () {
 
     $response
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('home'));
+        ->assertRedirect('/');
 
     $this->assertGuest();
-    expect($user->fresh())->toBeNull();
+    // User should be soft-deleted, not hard deleted
+    expect($user->fresh()->deleted_at)->not->toBeNull();
 });
 
 test('correct password must be provided to delete account', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->withoutRoles()->create(['profile_completed' => true]);
 
     $response = $this
         ->actingAs($user)

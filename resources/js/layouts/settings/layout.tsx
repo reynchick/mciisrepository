@@ -12,12 +12,10 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'Profile',
         href: edit(),
-        icon: null,
     },
     {
         title: 'Appearance',
         href: appearance(),
-        icon: null,
     },
 ];
 
@@ -46,7 +44,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                     'bg-muted': currentPath === (typeof item.href === 'string' ? item.href : item.href.url),
                                 })}
                             >
-                                <Link href={item.href} prefetch>
+                                <Link href={typeof item.href === 'string' ? item.href : item.href.url} prefetch>
                                     {item.icon && <item.icon className="h-4 w-4" />}
                                     {item.title}
                                 </Link>

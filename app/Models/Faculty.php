@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\HasFullName;
 use App\Traits\HasSearchable;
 use App\Traits\NormalizesEmail;
+use Illuminate\Support\Collection;
 
 class Faculty extends Model
 {
@@ -30,6 +31,7 @@ class Faculty extends Model
         'educational_attainment',
         'field_of_specialization',
         'research_interest',
+        'profile_picture',
     ];
 
     /**
@@ -71,7 +73,7 @@ class Faculty extends Model
      */
     public function isPanelistFor(Research $research): bool
     {
-        return $this->panelResearch()->where('research.id', $research->id)->exists();
+        return $this->paneledResearch()->where('research.id', $research->id)->exists();
     }
 
     /**
@@ -79,8 +81,19 @@ class Faculty extends Model
      */
     public function getResearchCounts() {
         return [
-            'advised' => $this->advisedResearch()->count(),
+            'advised' => $this->advisedResearches()->count(),
             'paneled' => $this->paneledResearch()->count()
         ];
+    }
+
+    public static function advisersWithActiveCounts(): Collection
+    {
+        return static::has('advisedResearches')
+            ->select('id', 'first_name', 'middle_name', 'last_name')
+            ->withCount(['advisedResearches' => function ($query) {
+                $query->whereNull('archived_at');
+            }])
+            ->orderBy('last_name')
+            ->get();
     }
 }

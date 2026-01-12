@@ -19,6 +19,10 @@ class UserObserver
      */
     public function created(User $user): void
     {
+        if (!$this->shouldLog()) {
+            self::$customMetadata = null;
+            return;
+        }
         $metadata = array_merge(
             ['event' => 'created'],
             self::$customMetadata ?? []
@@ -41,6 +45,10 @@ class UserObserver
      */
     public function updated(User $user): void
     {
+        if (!$this->shouldLog()) {
+            self::$customMetadata = null;
+            return;
+        }
         $changes = $user->getChanges();
 
         // Figure out which fields actually changed
@@ -80,6 +88,9 @@ class UserObserver
      */
     public function deleted(User $user): void
     {
+        if (!$this->shouldLog()) {
+            return;
+        }
         $this->logUserAudit(
             $user,
             UserAuditLog::ACTION_DEACTIVATE,
@@ -99,12 +110,17 @@ class UserObserver
         ?array $newValues,
         array $metadata = []
     ): void {
+        $baseSnapshots = [
+            'actor_snapshot' => $this->actorSnapshot(),
+            'target_snapshot' => $user->auditSnapshot(),
+        ];
+
         UserAuditLog::create(array_merge($this->requestContext($user), [
             'target_user_id' => $user->id,
             'action_type' => $action,
             'old_values' => $oldValues,
             'new_values' => $newValues,
-            'metadata' => $metadata,
+            'metadata' => array_merge($baseSnapshots, $metadata),
         ]));
     }
 
@@ -119,5 +135,17 @@ class UserObserver
             'ip_address' => request()?->ip(),
             'user_agent' => request()?->userAgent(),
         ];
+    }
+
+    protected function actorSnapshot(): ?array
+    {
+        $actor = Auth::user();
+        return $actor?->auditSnapshot();
+    }
+
+    protected function shouldLog(): bool
+    {
+        // Avoid logging during seeding/CLI where no HTTP request exists
+        return !app()->runningInConsole() && request() !== null;
     }
 }

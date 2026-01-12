@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Observers\UserObserver;
 use Illuminate\Database\Seeder;
 
 class AdminStaffSeeder extends Seeder
@@ -12,8 +13,10 @@ class AdminStaffSeeder extends Seeder
      * Pre-create admin/staff accounts for Google SSO.
      * 
      * These accounts have NO passwords - they can ONLY log in via Google SSO.
-     * When they log in with Google for the first time, their google_id and avatar
-     * will be populated automatically by GoogleAuthController.
+     * When they log in with Google for the first time:
+     * - google_id and avatar will be populated automatically by GoogleAuthController
+     * - first_login_completed will be set to true
+     * - They will be redirected to complete their profile (profile_completed = false)
      */
     public function run(): void
     {
@@ -29,7 +32,7 @@ class AdminStaffSeeder extends Seeder
                 'middle_name' => 'D.',
                 'last_name' => 'Menil',
                 'contact_number' => '09123456789',
-                'email' => 'emdmenil00759@usep.edu.ph',
+                'email' => 'gjeroque00800@usep.edu.ph',
                 'role_id' => $adminRole->id,
             ],
             [
@@ -46,6 +49,9 @@ class AdminStaffSeeder extends Seeder
             $roleId = $data['role_id'];
             unset($data['role_id']);
             
+            // Set metadata for admin-created account audit log
+            UserObserver::$customMetadata = ['source' => 'admin_created'];
+            
             $user = User::updateOrCreate(
                 ['email' => $data['email']],
                 [
@@ -55,6 +61,8 @@ class AdminStaffSeeder extends Seeder
                     'password' => null, // No password - Google SSO only
                     'google_id' => null, // Will be set on first Google login
                     'avatar' => null, // Will be set on first Google login
+                    'profile_completed' => false, // Will be set after user completes profile
+                    'first_login_completed' => false, // Will be set on first Google login
                     'email_verified_at' => null, // Will be set on first Google login
                 ],
             );

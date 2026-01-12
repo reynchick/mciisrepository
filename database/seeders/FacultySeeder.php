@@ -217,7 +217,7 @@ class FacultySeeder extends Seeder
                 'last_name' => 'Reyes',
                 'position' => 'Associate Professor',
                 'designation' => null,
-                'email' => 'ariel.reyes@usep.edu.ph',
+                'email' => 'jmmlurzano00587@usep.edu.ph',
                 'orcid' => '0000-0001-6234-6099',
                 'contact_number' => '(082) 227-8192 local 249',
                 'educational_attainment' => 'Bachelor of Science in Computer Engineering, Master\'s in Engineering Program - Electronics and Communications Engineering (MEP-ECE), Doctor in Information Technology (DIT)',
@@ -437,7 +437,10 @@ class FacultySeeder extends Seeder
         ];
 
         foreach ($faculties as $facultyData) {
-            Faculty::create($facultyData);
+            Faculty::updateOrCreate(
+                ['email' => $facultyData['email']],
+                $facultyData
+            );
         }
     }
 }

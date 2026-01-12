@@ -41,6 +41,15 @@ use App\Observers\{
 
 
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Event;
+use App\Events\ResearchAccessed;
+use App\Events\KeywordSearched;
+use App\Events\UserRoleAttached;
+use App\Events\UserRoleDetached;
+use App\Listeners\LogResearchAccess;
+use App\Listeners\LogKeywordSearch;
+use App\Listeners\LogUserRoleAttached;
+use App\Listeners\LogUserRoleDetached;
 use Illuminate\Support\ServiceProvider;
 
 
@@ -75,6 +84,27 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::define('viewLogs', function (User $user) {
             return $user->isAdministrator();
+        });
+
+        // Register event listeners for access/search logging
+        Event::listen(ResearchAccessed::class, [LogResearchAccess::class, 'handle']);
+        Event::listen(KeywordSearched::class, [LogKeywordSearch::class, 'handle']);
+        
+        // Register event listeners for user role changes
+        Event::listen(UserRoleAttached::class, [LogUserRoleAttached::class, 'handle']);
+        Event::listen(UserRoleDetached::class, [LogUserRoleDetached::class, 'handle']);
+
+        // Dispatch custom events when pivot events occur (use generic listener and filter relation)
+        Event::listen('eloquent.attached: App\Models\User', function ($model, $relationName, $ids) {
+            if ($relationName === 'roles') {
+                event(new UserRoleAttached($model, $ids));
+            }
+        });
+
+        Event::listen('eloquent.detached: App\Models\User', function ($model, $relationName, $ids) {
+            if ($relationName === 'roles') {
+                event(new UserRoleDetached($model, $ids));
+            }
         });
     }
 }

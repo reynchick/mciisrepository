@@ -1,13 +1,11 @@
-import AppLayout from '@/layouts/app-layout';
+import AppLayout from '@/layouts/app/app-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Head, router, Link } from '@inertiajs/react';
+import { Head, router} from '@inertiajs/react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useState } from 'react';
-import { type BreadcrumbItem } from '@/types';
-import { Edit2, Trash2, Archive, RotateCcw, Eye, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface Program { id: number; name: string }
 interface Adviser { id: number; first_name?: string; last_name?: string; middle_name?: string }
@@ -49,10 +47,6 @@ interface Props {
     };
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Research', href: { url: '/researches' } as any },
-];
-
 export default function ResearchIndex({ researches, programs, advisers, filters }: Props) {
     const [search, setSearch] = useState(String(filters.search ?? ''));
     const [program, setProgram] = useState(String(filters.program ?? ''));
@@ -77,7 +71,7 @@ export default function ResearchIndex({ researches, programs, advisers, filters 
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout>
             <Head title="Research" />
             <div className="space-y-6 p-4">
                 <div className="flex items-center justify-between">

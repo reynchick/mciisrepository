@@ -9,6 +9,9 @@ use App\Models\Agenda;
 use App\Models\Sdg;
 use App\Models\Srig;
 use App\Models\Research;
+use App\Models\Faculty;
+use App\Models\Keyword;
+use App\Models\Researcher;
 use Illuminate\Support\Carbon;
 
 /**
@@ -47,6 +50,8 @@ class ResearchFactory extends Factory
             $agendas = Agenda::query()->inRandomOrder()->limit(random_int(1, 3))->pluck('id')->all();
             $sdgs = Sdg::query()->inRandomOrder()->limit(random_int(1, 3))->pluck('id')->all();
             $srigs = Srig::query()->inRandomOrder()->limit(random_int(1, 3))->pluck('id')->all();
+            $panelists = Faculty::query()->inRandomOrder()->limit(random_int(1, 3))->pluck('id')->all();
+            $keywords = Keyword::query()->inRandomOrder()->limit(random_int(2, 6))->pluck('id')->all();
 
             $map = function (array $ids) use ($now) {
                 return collect($ids)->mapWithKeys(fn ($id) => [$id => ['created_at' => $now, 'updated_at' => $now]])->all();
@@ -55,6 +60,19 @@ class ResearchFactory extends Factory
             $research->agendas()->syncWithoutDetaching($map($agendas));
             $research->sdgs()->syncWithoutDetaching($map($sdgs));
             $research->srigs()->syncWithoutDetaching($map($srigs));
+            $research->panelists()->syncWithoutDetaching($map($panelists));
+            $research->keywords()->syncWithoutDetaching($map($keywords));
+
+            $count = random_int(1, 3);
+            for ($i = 0; $i < $count; $i++) {
+                Researcher::create([
+                    'research_id' => $research->id,
+                    'first_name' => fake()->firstName(),
+                    'middle_name' => fake()->optional()->firstName(),
+                    'last_name' => fake()->lastName(),
+                    'email' => fake()->boolean(80) ? fake()->unique()->safeEmail() : null,
+                ]);
+            }
         });
     }
 }

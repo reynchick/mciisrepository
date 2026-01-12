@@ -10,6 +10,7 @@ use App\Http\Requests\UpdateFacultyRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Http\JsonResponse;
 
 
 class FacultyController extends Controller
@@ -37,7 +38,7 @@ class FacultyController extends Controller
         $faculties = $query->paginate(15);
 
 
-        return Inertia::render('faculty/Index', [
+        return Inertia::render('faculty/index', [
             'faculties' => $faculties,
             'filters' => $request->only(['search', 'designation'])
         ]);
@@ -55,7 +56,7 @@ class FacultyController extends Controller
         }]);
 
 
-        return Inertia::render('faculty/Show', [
+        return Inertia::render('faculty/show', [
             'faculty' => $faculty
         ]);
     }
@@ -66,7 +67,7 @@ class FacultyController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('faculty/Create');
+        return Inertia::render('faculty/create');
     }
 
 
@@ -87,7 +88,7 @@ class FacultyController extends Controller
      */
     public function edit(Faculty $faculty): Response
     {
-        return Inertia::render('faculty/Edit', [
+        return Inertia::render('faculty/edit', [
             'faculty' => $faculty
         ]);
     }
@@ -131,6 +132,36 @@ class FacultyController extends Controller
        
         return redirect()->route('faculty.index')
             ->with('success', 'Faculty member deleted successfully.');
+    }
+
+    /**
+     * Find faculty by email for user creation.
+     */
+    public function findByEmail(Request $request): JsonResponse
+    {
+        if (!$request->user() || !$request->user()->isAdministrator()) {
+            abort(403, 'Unauthorized');
+        }
+
+        $email = strtolower(trim((string) $request->query('email')));
+
+        if ($email === '') {
+            return response()->json(['message' => 'Email is required'], 422);
+        }
+
+        $faculty = Faculty::whereRaw('LOWER(email) = ?', [strtolower(trim($email))])->first();
+
+        if (!$faculty) {
+            return response()->json(['exists' => false]);
+        }
+
+        return response()->json([
+            'exists' => true,
+            'faculty_id' => $faculty->faculty_id,
+            'first_name' => $faculty->first_name,
+            'middle_name' => $faculty->middle_name,
+            'last_name' => $faculty->last_name,
+        ]);
     }
 
 

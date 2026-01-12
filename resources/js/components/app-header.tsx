@@ -41,15 +41,20 @@ const activeItemStyles = 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral
 
 interface AppHeaderProps {
     breadcrumbs?: BreadcrumbItem[];
+    showBreadcrumbs?: boolean;
 }
 
-export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
+export function AppHeader({ breadcrumbs = [], showBreadcrumbs = false }: AppHeaderProps) {
     const page = usePage<SharedData>();
     const { auth } = page.props;
     const getInitials = useInitials();
     
     // Use the full name from the new fields
     const fullName = `${auth.user.first_name} ${auth.user.middle_name ? auth.user.middle_name + ' ' : ''}${auth.user.last_name}`;
+    
+    const getHrefString = (href: string | { url: string }): string => {
+        return typeof href === 'string' ? href : href.url;
+    };
     
     return (
         <>
@@ -72,7 +77,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                     <div className="flex h-full flex-col justify-between text-sm">
                                         <div className="flex flex-col space-y-4">
                                             {mainNavItems.map((item) => (
-                                                <Link key={item.title} href={item.href} className="flex items-center space-x-2 font-medium">
+                                                <Link key={item.title} href={getHrefString(item.href)} className="flex items-center space-x-2 font-medium">
                                                     {item.icon && <Icon iconNode={item.icon} className="h-5 w-5" />}
                                                     <span>{item.title}</span>
                                                 </Link>
@@ -83,7 +88,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                             {rightNavItems.map((item) => (
                                                 <a
                                                     key={item.title}
-                                                    href={typeof item.href === 'string' ? item.href : item.href.url}
+                                                    href={getHrefString(item.href)}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="flex items-center space-x-2 font-medium"
@@ -110,17 +115,17 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                 {mainNavItems.map((item, index) => (
                                     <NavigationMenuItem key={index} className="relative flex h-full items-center">
                                         <Link
-                                            href={item.href}
+                                            href={getHrefString(item.href)}
                                             className={cn(
                                                 navigationMenuTriggerStyle(),
-                                                page.url === (typeof item.href === 'string' ? item.href : item.href.url) && activeItemStyles,
+                                                page.url === getHrefString(item.href) && activeItemStyles,
                                                 'h-9 cursor-pointer px-3',
                                             )}
                                         >
                                             {item.icon && <Icon iconNode={item.icon} className="mr-2 h-4 w-4" />}
                                             {item.title}
                                         </Link>
-                                        {page.url === item.href && (
+                                        {page.url === getHrefString(item.href) && (
                                             <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"></div>
                                         )}
                                     </NavigationMenuItem>
@@ -140,7 +145,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                         <Tooltip>
                                             <TooltipTrigger>
                                                 <a
-                                                    href={typeof item.href === 'string' ? item.href : item.href.url}
+                                                    href={getHrefString(item.href)}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="group ml-1 inline-flex h-9 w-9 items-center justify-center rounded-md bg-transparent p-0 text-sm font-medium text-accent-foreground ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
@@ -161,7 +166,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="size-10 rounded-full p-1">
                                     <Avatar className="size-8 overflow-hidden rounded-full">
-                                        <AvatarImage src={auth.user.avatar} alt={fullName} />
+                                        <AvatarImage src={auth.user.avatar ?? undefined} alt={fullName} />
                                         <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
                                             {getInitials(fullName)}
                                         </AvatarFallback>
@@ -175,7 +180,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                     </div>
                 </div>
             </div>
-            {breadcrumbs.length > 1 && (
+            {showBreadcrumbs && breadcrumbs.length > 1 && (
                 <div className="flex w-full border-b border-sidebar-border/70">
                     <div className="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl">
                         <Breadcrumbs breadcrumbs={breadcrumbs} />

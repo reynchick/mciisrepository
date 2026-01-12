@@ -19,6 +19,10 @@ class FacultyObserver
      */
     public function created(Faculty $faculty): void
     {
+        if (!$this->shouldLog()) {
+            self::$customMetadata = null;
+            return;
+        }
         $metadata = array_merge(
             ['event' => 'created'],
             self::$customMetadata ?? []
@@ -41,6 +45,10 @@ class FacultyObserver
      */
     public function updated(Faculty $faculty): void
     {
+        if (!$this->shouldLog()) {
+            self::$customMetadata = null;
+            return;
+        }
         $changes = $faculty->getChanges();
 
         if (!empty($changes)) {
@@ -67,6 +75,9 @@ class FacultyObserver
      */
     public function deleted(Faculty $faculty): void
     {
+        if (!$this->shouldLog()) {
+            return;
+        }
         $this->logFacultyAudit(
             $faculty,
             FacultyAuditLog::ACTION_DELETE,
@@ -107,5 +118,10 @@ class FacultyObserver
             'ip_address' => request()?->ip(),
             'user_agent' => request()?->userAgent(),
         ];
+    }
+
+    protected function shouldLog(): bool
+    {
+        return !app()->runningInConsole() && request() !== null;
     }
 }

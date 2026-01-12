@@ -1,89 +1,53 @@
 <?php
-
-
 namespace App\Http\Controllers;
 
 
 use App\Models\Research;
 use App\Models\Program;
 use App\Models\Faculty;
-use App\Models\ResearchAccessLog;
-use App\Models\KeywordSearchLog;
-use App\Models\Keyword;
+use App\Http\Actions\Research\ArchiveResearchAction;
+use App\Http\Actions\Research\RestoreResearchAction;
+use App\Repositories\ResearchRepository;
 use App\Http\Requests\StoreResearchRequest;
 use App\Http\Requests\UpdateResearchRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 
 class ResearchController extends Controller
 {
-    public function __construct()
-    {
+    public function __construct(
+        protected ArchiveResearchAction $archiveAction,
+        protected RestoreResearchAction $restoreAction,
+        protected ResearchRepository $researchRepository,
+    ) {
         $this->authorizeResource(Research::class);
     }
+    
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request): Response
     {
-        // Log keyword search if search parameter exists
-        if ($request->filled('search')) {
-            $searchTerm = $request->search;
-            // Try to find matching keyword
-            $keyword = Keyword::where('keyword_name', 'like', "%{$searchTerm}%")->first();
-           
-            if ($keyword) {
-                KeywordSearchLog::create([
-                    'keyword_id' => $keyword->id,
-                    'user_id' => Auth::id(),
-                    'ip_address' => $request->ip(),
-                    'user_agent' => $request->userAgent(),
-                ]);
-            }
-        }
-       
-        $query = Research::with([
-                'program:id,name',
-                'adviser:id,first_name,middle_name,last_name',
-                'researchers:id,first_name,middle_name,last_name',
-                'keywords:id,keyword_name'
-            ])
-            ->when($request->filled('search'), function ($query) use ($request) {
-                $query->search($request->search);
-            })
-            ->when($request->filled('program'), function ($query) use ($request) {
-                $query->byProgram($request->program);
-            })
-            ->when($request->filled('adviser'), function ($query) use ($request) {
-                $query->byAdviser($request->adviser);
-            })
-            ->when($request->filled('year'), function ($query) use ($request) {
-                $query->byYear($request->year);
-            })
-            ->when($request->boolean('archived'), function ($query) {
-                $query->archived();
-            }, function ($query) {
-                $query->active();
-            });
+        $query = $this->researchRepository->queryWithRelations();
+        $filters = $request->only([
+            'search', 'program', 'adviser', 'panelist', 'year', 'archived',
+            'years', 'programs', 'advisers',
+        ]);
+
+        $this->researchRepository->applyFilters($query, $filters);
+
+        $researches = $query->paginate(15)->withQueryString();
 
 
-        $researches = $query->paginate(15)
-            ->withQueryString();
-
-
-        return Inertia::render('research/Index', [
+        return Inertia::render('research/index', [
             'researches' => $researches,
             'programs' => Program::select('id', 'name')->get(),
             'advisers' => Faculty::select('id', 'first_name', 'middle_name', 'last_name')->get(),
-            'filters' => $request->only(['search', 'program', 'adviser', 'year', 'archived'])
+            'filters' => $request->only(['search', 'program', 'adviser', 'panelist', 'year', 'archived'])
         ]);
     }
 
@@ -93,7 +57,7 @@ class ResearchController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('research/Create', [
+        return Inertia::render('research/create', [
             'programs' => Program::select('id', 'name')->get(),
             'advisers' => Faculty::select('id', 'first_name', 'middle_name', 'last_name')->get(),
         ]);
@@ -128,24 +92,15 @@ class ResearchController extends Controller
         $research->load([
             'program:id,name',
             'adviser:id,first_name,middle_name,last_name',
-            'researchers:id,first_name,middle_name,last_name',
+            'researchers:id,research_id,first_name,middle_name,last_name',
             'keywords:id,keyword_name',
             'uploader:id,first_name,last_name,email'
         ]);
        
-        // Log research access
-        ResearchAccessLog::create([
-            'research_id' => $research->id,
-            'user_id' => Auth::id(),
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-        ]);
-       
-        return Inertia::render('research/Show', [
+        return Inertia::render('research/show', [
             'research' => $research
         ]);
     }
-
 
     /**
      * Show the form for editing the specified resource.
@@ -154,7 +109,7 @@ class ResearchController extends Controller
     {
         $research->load(['researchers', 'keywords']);
        
-        return Inertia::render('research/Edit', [
+        return Inertia::render('research/edit', [
             'research' => $research,
             'programs' => Program::select('id', 'name')->get(),
             'advisers' => Faculty::select('id', 'first_name', 'middle_name', 'last_name')->get(),
@@ -200,11 +155,7 @@ class ResearchController extends Controller
         $request->validate([
             'reason' => 'required|string|max:500'
         ]);
-
-
-        $research->archive(Auth::user(), $request->reason);
-
-
+        $this->archiveAction->execute($research, $request->reason, Auth::user());
         return redirect()->route('research.index')
             ->with('success', 'Research archived successfully.');
     }
@@ -213,87 +164,11 @@ class ResearchController extends Controller
     public function restore(Research $research): RedirectResponse
     {
         $this->authorize('restoreFromArchive', $research);
-        $research->restore();
-
-
+        $this->restoreAction->execute($research, Auth::user());
         return redirect()->route('research.index')
             ->with('success', 'Research restored successfully.');
     }
 
-
-    public function export(): StreamedResponse
-    {
-        $this->authorize('export', Research::class);
-        $researches = Research::with(['program', 'adviser', 'researchers', 'keywords'])->get();
-
-
-        return response()->streamDownload(function () use ($researches) {
-            $csv = fopen('php://output', 'w');
-           
-            // Headers
-            fputcsv($csv, [
-                'Title',
-                'Program',
-                'Adviser',
-                'Researchers',
-                'Keywords',
-                'Year',
-                'Status'
-            ]);
-
-
-            // Data
-            foreach ($researches as $research) {
-                fputcsv($csv, [
-                    $research->research_title,
-                    $research->program->name,
-                    $research->adviser->full_name ?? 'N/A',
-                    $research->researchers->pluck('full_name')->join(', '),
-                    $research->keywords->pluck('keyword_name')->join(', '),
-                    $research->published_year,
-                    $research->isArchived() ? 'Archived' : 'Active'
-                ]);
-            }
-
-
-            fclose($csv);
-        }, 'research-data.csv');
-    }
-
-
-    public function statistics(): JsonResponse
-    {
-        $this->authorize('viewStatistics', Research::class);
-        $stats = [
-            'total_research' => Research::count(),
-            'active_research' => Research::active()->count(),
-            'archived_research' => Research::archived()->count(),
-            'by_program' => Program::withCount('researches')->get(),
-            'by_year' => Research::select('published_year')
-                ->get()
-                ->groupBy('published_year')
-                ->map->count(),
-            'by_adviser' => Faculty::has('advisedResearches')
-                ->withCount('advisedResearches')
-                ->get()
-        ];
-
-
-        return $this->success('Statistics retrieved successfully', $stats);
-    }
-
-
-    public function downloadPdf(Research $research): BinaryFileResponse|JsonResponse
-    {
-        $this->authorize('manageFiles', $research);
-        if (!$research->research_manuscript) {
-            return $this->error('No manuscript file available.');
-        }
-
-
-        return response()->download(
-            Storage::disk('public')->path($research->research_manuscript),
-            $research->research_title . '.pdf'
-        );
-    }
 }
+
+

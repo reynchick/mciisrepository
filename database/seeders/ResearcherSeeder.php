@@ -445,13 +445,17 @@ class ResearcherSeeder extends Seeder
             
             if ($research) {
                 foreach ($researchers as $researcher) {
-                    Researcher::create([
-                        'research_id' => $research->id,
-                        'first_name' => $researcher['first_name'],
-                        'middle_name' => $researcher['middle_name'],
-                        'last_name' => $researcher['last_name'],
-                        'email' => $researcher['email'],
-                    ]);
+                    Researcher::updateOrCreate(
+                        [
+                            'email' => $researcher['email'],
+                            'research_id' => $research->id,
+                        ],
+                        [
+                            'first_name' => $researcher['first_name'],
+                            'middle_name' => $researcher['middle_name'],
+                            'last_name' => $researcher['last_name'],
+                        ]
+                    );
                 }
             }
         }

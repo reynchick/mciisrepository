@@ -74,12 +74,13 @@ class CompleteFacultyProfileController extends Controller
             'note' => 'Faculty completed profile after first login',
         ];
 
-        // Update user record - UserObserver will automatically log this
+        // Update user record with profile completion flag - UserObserver will automatically log this
         $user->update([
             'first_name' => $validated['first_name'],
             'middle_name' => $validated['middle_name'],
             'last_name' => $validated['last_name'],
             'contact_number' => $validated['contact_number'],
+            'profile_completed' => true,
         ]);
 
         // Set custom metadata for FacultyObserver before updating faculty
@@ -100,7 +101,7 @@ class CompleteFacultyProfileController extends Controller
             'research_interest' => $validated['research_interest'],
         ]);
 
-        return redirect()->route('dashboard')
+        return redirect()->route('browse')
             ->with('status', 'Faculty profile completed successfully!');
     }
 }

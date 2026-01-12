@@ -1,6 +1,8 @@
 import { Head, usePage } from '@inertiajs/react';
-import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
+import AppLayout from '@/layouts/app/app-layout';
 import { Button } from '@/components/ui/button';
+import Heading from '@/components/heading';
+import HeadingSmall from '@/components/heading-small';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -91,17 +93,13 @@ export default function FacultyIndex({ faculties, filters }: Props) {
 
 
     return (
-        <AppSidebarLayout>
+        <AppLayout>
             <Head title="Faculty Management" />
-           
-            <div className="space-y-6">
+            <div className="space-y-6 p-4 sm:p-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Faculty {isAdmin ? 'Management' : 'Directory'}</h1>
-                        <p className="text-muted-foreground">
-                            {isAdmin ? 'Manage faculty members and their information' : 'View faculty members and their information'}
-                        </p>
+                        <Heading title={`Faculty ${isAdmin ? 'Management' : 'Directory'}`} description={isAdmin ? 'Manage faculty members and their information' : 'View faculty members and their information'} />
                     </div>
                     {isAdmin && (
                         <div className="flex items-center space-x-2">
@@ -119,8 +117,7 @@ export default function FacultyIndex({ faculties, filters }: Props) {
                 {/* Search and Filters */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Search & Filters</CardTitle>
-                        <CardDescription>Find specific faculty members</CardDescription>
+                        <HeadingSmall title="Search & Filters" description="Find specific faculty members" />
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-center space-x-2">
@@ -145,10 +142,7 @@ export default function FacultyIndex({ faculties, filters }: Props) {
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <div>
-                                <CardTitle>Faculty Members</CardTitle>
-                                <CardDescription>
-                                    {faculties.total} faculty member(s) found
-                                </CardDescription>
+                                <HeadingSmall title="Faculty Members" description={`${faculties.total} faculty member(s) found`} />
                             </div>
                             {isAdmin && selectedFaculties.length > 0 && (
                                 <Button variant="destructive" onClick={handleBulkDelete}>
@@ -303,6 +297,6 @@ export default function FacultyIndex({ faculties, filters }: Props) {
                     </CardContent>
                 </Card>
             </div>
-        </AppSidebarLayout>
+        </AppLayout>
     );
 }

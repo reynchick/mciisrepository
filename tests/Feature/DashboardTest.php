@@ -9,7 +9,7 @@ test('guests are redirected to the login page', function () {
 });
 
 test('authenticated users can visit the dashboard', function () {
-    $this->actingAs($user = User::factory()->create());
+    $user = User::factory()->asAdministrator()->create(['profile_completed' => true]);
 
-    $this->get(route('dashboard'))->assertOk();
+    $this->actingAs($user)->get(route('dashboard'))->assertOk();
 });

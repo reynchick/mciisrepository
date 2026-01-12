@@ -22,6 +22,10 @@ class ResearchObserver
      */
     public function created(Research $research): void
     {
+        if (!$this->shouldLog()) {
+            self::$customMetadata = null;
+            return;
+        }
         $metadata = array_merge(
             ['event' => 'created'],
             self::$customMetadata ?? []
@@ -46,6 +50,10 @@ class ResearchObserver
      */
     public function updated(Research $research): void
     {
+        if (!$this->shouldLog()) {
+            self::$customMetadata = null;
+            return;
+        }
         $changes = $research->getChanges();
         $changedKeys = array_keys($changes);
 
@@ -85,6 +93,9 @@ class ResearchObserver
      */
     public function deleted(Research $research): void
     {
+        if (!$this->shouldLog()) {
+            return;
+        }
         $this->logResearchEntry(
             $research,
             ResearchEntryLog::ACTION_ARCHIVE,
@@ -125,5 +136,10 @@ class ResearchObserver
             'ip_address' => request()?->ip(),
             'user_agent' => request()?->userAgent(),
         ];
+    }
+
+    protected function shouldLog(): bool
+    {
+        return !app()->runningInConsole() && request() !== null;
     }
 }

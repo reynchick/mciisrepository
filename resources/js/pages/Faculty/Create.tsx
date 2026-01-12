@@ -1,5 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
-import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
+import AppLayout from '@/layouts/app/app-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,7 +30,7 @@ export default function FacultyCreate() {
     };
 
     return (
-        <AppSidebarLayout>
+        <AppLayout title="Add New Faculty Member">
             <Head title="Add New Faculty Member" />
 
             <div className="space-y-6">
@@ -279,6 +279,6 @@ export default function FacultyCreate() {
                     </div>
                 </form>
             </div>
-        </AppSidebarLayout>
+        </AppLayout>
     );
 }

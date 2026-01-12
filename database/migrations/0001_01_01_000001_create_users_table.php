@@ -20,12 +20,17 @@ return new class extends Migration
             $table->string('last_name');
             $table->string('contact_number')->nullable();
             $table->string('email')->unique()->where('email', 'LIKE', '%@usep.edu.ph');
-            $table->string('password');
+            $table->string('password')->nullable()->comment('Password hash - nullable for SSO-only accounts');
             $table->boolean('must_change_password')->default(false);
             $table->timestamp('password_changed_at')->nullable();
             $table->boolean('is_temporary_password')->default(false);
             $table->timestamp('email_verified_at')->nullable();
+            $table->string('google_id')->nullable()->unique()->comment('Google OAuth ID for SSO');
+            $table->string('avatar')->nullable()->comment('User avatar from Google');
+            $table->boolean('profile_completed')->default(false)->comment('Whether user has completed their profile');
+            $table->boolean('first_login_completed')->default(false)->comment('Whether user has logged in at least once');
             $table->rememberToken();
+            $table->softDeletes();
             $table->timestamps();
         });
 

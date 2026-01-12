@@ -11,10 +11,12 @@ return new class extends Migration
         Schema::create('keyword_search_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('keyword_id')
+                ->nullable()
                 ->constrained('keywords')
                 ->cascadeOnDelete()
                 ->cascadeOnUpdate()
                 ->index();
+            $table->string('search_term', 255)->nullable();
             $table->foreignId('user_id')
                 ->nullable()
                 ->constrained('users')
@@ -26,6 +28,7 @@ return new class extends Migration
             $table->timestamps();
     
             $table->index(['created_at']);
+            $table->index(['search_term']);
         });
     }
 

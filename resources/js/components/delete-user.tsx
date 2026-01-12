@@ -2,11 +2,13 @@ import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileCo
 import HeadingSmall from '@/components/heading-small';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Form } from '@inertiajs/react';
 import { useRef } from 'react';
+import { AlertTriangle } from 'lucide-react';
+import ModalHeader from '@/components/shared/modal-header';
 
 export default function DeleteUser() {
     const passwordInput = useRef<HTMLInputElement>(null);
@@ -25,7 +27,11 @@ export default function DeleteUser() {
                         <Button variant="destructive">Delete account</Button>
                     </DialogTrigger>
                     <DialogContent>
-                        <DialogTitle>Are you sure you want to delete your account?</DialogTitle>
+                        <ModalHeader
+                            title="Are you sure you want to delete your account?"
+                            variant="danger"
+                            icon={AlertTriangle}
+                        />
                         <DialogDescription>
                             Once your account is deleted, all of its resources and data will also be permanently deleted. Please enter your password
                             to confirm you would like to permanently delete your account.
@@ -59,17 +65,17 @@ export default function DeleteUser() {
                                         <InputError message={errors.password} />
                                     </div>
 
-                                    <DialogFooter className="gap-2">
+                                    <div className="flex gap-2 justify-end">
                                         <DialogClose asChild>
-                                            <Button variant="secondary" onClick={() => resetAndClearErrors()}>
+                                            <Button variant="outline" onClick={() => resetAndClearErrors()}>
                                                 Cancel
                                             </Button>
                                         </DialogClose>
 
                                         <Button variant="destructive" disabled={processing} asChild>
-                                            <button type="submit">Delete account</button>
+                                            <button type="submit">{processing ? 'Deleting…' : 'Delete account'}</button>
                                         </Button>
-                                    </DialogFooter>
+                                    </div>
                                 </>
                             )}
                         </Form>

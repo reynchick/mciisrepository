@@ -987,25 +987,68 @@ class ResearchKeywordSeeder extends Seeder
         ];
 
         foreach ($data as $titlePattern => $keywords) {
-            $research = Research::where('research_title', 'like', $titlePattern)->first();
+            $base = rtrim($titlePattern, '%');
+            $research = Research::where('research_title', 'like', $titlePattern)->first()
+                ?: Research::where('research_title', 'like', "%{$base}%")->first()
+                ?: $this->matchByContainsNormalized($base)
+                ?: $this->matchBySimilarity($base);
 
             if ($research) {
                 $now = Carbon::now();
-                
-                // Get keyword IDs and create attach data with timestamps
-                $keywordIds = Keyword::whereIn('keyword_name', $keywords)
-                    ->get()
+
+                $idsWithTimestamps = collect($keywords)
+                    ->map(function ($name) {
+                        return Keyword::firstOrCreate(['keyword_name' => $name]);
+                    })
                     ->mapWithKeys(function ($keyword) use ($now) {
                         return [$keyword->id => [
                             'created_at' => $now,
-                            'updated_at' => $now
+                            'updated_at' => $now,
                         ]];
                     })
                     ->toArray();
 
-                // Attach keywords with timestamps
-                $research->keywords()->attach($keywordIds);
+                $research->keywords()->syncWithoutDetaching($idsWithTimestamps);
             }
         }
+    }
+
+    protected function normalize(string $s): string
+    {
+        $s = strtolower($s);
+        $s = preg_replace('/[^a-z0-9]+/i', ' ', $s);
+        $s = preg_replace('/\s+/', ' ', $s);
+        return trim($s);
+    }
+
+    protected function matchByContainsNormalized(string $base): ?Research
+    {
+        $needle = $this->normalize($base);
+        foreach (Research::select('id', 'research_title')->get() as $r) {
+            $hay = $this->normalize($r->research_title);
+            if (str_contains($hay, $needle) || str_contains($needle, $hay)) {
+                return Research::find($r->id);
+            }
+        }
+        return null;
+    }
+
+    protected function matchBySimilarity(string $base): ?Research
+    {
+        $needle = $this->normalize($base);
+        $best = null;
+        $bestScore = PHP_INT_MAX;
+        foreach (Research::select('id', 'research_title')->get() as $r) {
+            $hay = $this->normalize($r->research_title);
+            $d = levenshtein($needle, $hay);
+            if ($d < $bestScore) {
+                $bestScore = $d;
+                $best = $r;
+            }
+        }
+        if (!$best) return null;
+        $len = max(1, strlen($needle));
+        $ratio = $bestScore / $len;
+        return $ratio <= 0.25 ? Research::find($best->id) : null;
     }
 }

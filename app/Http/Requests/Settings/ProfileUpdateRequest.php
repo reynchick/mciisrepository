@@ -20,17 +20,7 @@ class ProfileUpdateRequest extends FormRequest
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
-            'contact_number' => ['required', 'regex:/^(09|\+63\s?9)\d{9}$/'],
-        ];
-    }
-
-    /**
-     * Get custom error messages for validation rules.
-     */
-    public function messages(): array
-    {
-        return [
-            'contact_number.regex' => 'Please enter a valid Philippine mobile number (09XXXXXXXXX or +63 9XXXXXXXXX)',
+            'contact_number' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

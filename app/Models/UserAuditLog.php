@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserAuditLog extends Model
 {
+    use HasFactory;
     public const ACTION_CREATE = 'create_user';
     public const ACTION_UPDATE = 'update_user';
     public const ACTION_DEACTIVATE = 'deactivate_user';
@@ -36,7 +38,7 @@ class UserAuditLog extends Model
      */
     public function modifiedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'modified_by');
+        return $this->belongsTo(User::class, 'modified_by')->withTrashed();
     }
 
     /**
@@ -44,7 +46,7 @@ class UserAuditLog extends Model
      */
     public function targetUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'target_user_id');
+        return $this->belongsTo(User::class, 'target_user_id')->withTrashed();
     }
 
     public static function getActionTypes(): array

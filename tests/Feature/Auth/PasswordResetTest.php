@@ -1,75 +1,31 @@
 <?php
 
-use App\Models\User;
-use Illuminate\Auth\Notifications\ResetPassword;
-use Illuminate\Support\Facades\Notification;
+/*
+|--------------------------------------------------------------------------
+| Password Reset Tests (Skipped)
+|--------------------------------------------------------------------------
+| This app uses Google-only authentication (OAuth), so password reset
+| tests are not applicable. These tests are skipped intentionally.
+*/
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('reset password link screen can be rendered', function () {
-    $response = $this->get(route('password.request'));
-
-    $response->assertStatus(200);
+    $this->markTestSkipped('App uses Google OAuth authentication, not password reset flows.');
 });
 
 test('reset password link can be requested', function () {
-    Notification::fake();
-
-    $user = User::factory()->create();
-
-    $this->post(route('password.email'), ['email' => $user->email]);
-
-    Notification::assertSentTo($user, ResetPassword::class);
+    $this->markTestSkipped('App uses Google OAuth authentication, not password reset flows.');
 });
 
 test('reset password screen can be rendered', function () {
-    Notification::fake();
-
-    $user = User::factory()->create();
-
-    $this->post(route('password.email'), ['email' => $user->email]);
-
-    Notification::assertSentTo($user, ResetPassword::class, function ($notification) {
-        $response = $this->get(route('password.reset', $notification->token));
-
-        $response->assertStatus(200);
-
-        return true;
-    });
+    $this->markTestSkipped('App uses Google OAuth authentication, not password reset flows.');
 });
 
 test('password can be reset with valid token', function () {
-    Notification::fake();
-
-    $user = User::factory()->create();
-
-    $this->post(route('password.email'), ['email' => $user->email]);
-
-    Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
-        $response = $this->post(route('password.store'), [
-            'token' => $notification->token,
-            'email' => $user->email,
-            'password' => 'password',
-            'password_confirmation' => 'password',
-        ]);
-
-        $response
-            ->assertSessionHasNoErrors()
-            ->assertRedirect(route('login'));
-
-        return true;
-    });
+    $this->markTestSkipped('App uses Google OAuth authentication, not password reset flows.');
 });
 
 test('password cannot be reset with invalid token', function () {
-    $user = User::factory()->create();
-
-    $response = $this->post(route('password.store'), [
-        'token' => 'invalid-token',
-        'email' => $user->email,
-        'password' => 'newpassword123',
-        'password_confirmation' => 'newpassword123',
-    ]);
-
-    $response->assertSessionHasErrors('email');
+    $this->markTestSkipped('App uses Google OAuth authentication, not password reset flows.');
 });

@@ -1,5 +1,5 @@
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
-import { type BreadcrumbItem, type SharedData } from '@/types';
+import { type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Form, Head, usePage } from '@inertiajs/react';
 
@@ -10,22 +10,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import AppLayout from '@/layouts/app-layout';
+import AppLayout from '@/layouts/app/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import { edit } from '@/routes/profile';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Profile settings',
-        href: edit().url,
-    },
-];
-
-export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status?: string }) {
+export default function Profile() {
     const { auth } = usePage<SharedData>().props;
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout>
             <Head title="Profile settings" />
 
             <SettingsLayout>
@@ -62,7 +54,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                         <Input
                                             id="middle_name"
                                             className="mt-1 block w-full"
-                                            defaultValue={auth.user.middle_name}
+                                            defaultValue={auth.user.middle_name ?? ''}
                                             name="middle_name"
                                             autoComplete="additional-name"
                                             placeholder="Middle name"
@@ -86,20 +78,20 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                 </div>
 
                                 {/* Identification Fields (read-only) */}
-                                {auth.user.role === 'Student' && (
+                                {(auth.user.roles ?? []).some((r) => (r.name ?? '').trim().toLowerCase() === 'student') && (
                                     <div className="grid gap-2">
                                         <Label htmlFor="student_id">Student ID</Label>
                                         <Input
                                             id="student_id"
                                             className="mt-1 block w-full"
-                                            defaultValue={auth.user.student_id}
+                                            defaultValue={auth.user.student_id ?? ''}
                                             disabled
                                             readOnly
                                             placeholder="2023-00800"
                                         />
                                     </div>
                                 )}
-                                {auth.user.role === 'Faculty' && (
+                                {(auth.user.roles ?? []).some((r) => (r.name ?? '').trim().toLowerCase() === 'faculty') && (
                                     <div className="grid gap-2">
                                         <Label htmlFor="faculty_id">Faculty ID</Label>
                                         <Input
@@ -120,7 +112,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                         id="contact_number"
                                         type="tel"
                                         className="mt-1 block w-full"
-                                        defaultValue={auth.user.contact_number}
+                                        defaultValue={auth.user.contact_number ?? ''}
                                         name="contact_number"
                                         required
                                         autoComplete="tel"
@@ -143,11 +135,32 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                     />
                                 </div>
 
-                                {/* Role (read-only) */}
+                                {/* Roles (read-only) */}
                                 <div className="grid gap-2">
-                                    <Label>Role</Label>
-                                    <div className="mt-1">
-                                        <Badge variant="secondary">{auth.user.role}</Badge>
+                                    <Label>Roles</Label>
+                                    <div className="mt-1 flex flex-wrap gap-2">
+                                        {(() => {
+                                            const roles = (auth.user.roles ?? []).map((r) => ({
+                                                id: r.id,
+                                                name: (r.name ?? '').trim(),
+                                            }));
+                                            if (!roles.length) {
+                                                return <Badge variant="outline">No role assigned</Badge>;
+                                            }
+                                            const variantFor = (roleName: string) => {
+                                                const n = roleName.toLowerCase();
+                                                if (n === 'administrator') return 'default';
+                                                if (n === 'mciis staff') return 'secondary';
+                                                if (n === 'faculty') return 'secondary';
+                                                if (n === 'student') return 'outline';
+                                                return 'secondary';
+                                            };
+                                            return roles.map((role) => (
+                                                <Badge key={role.id} variant={variantFor(role.name) as any}>
+                                                    {role.name}
+                                                </Badge>
+                                            ));
+                                        })()}
                                     </div>
                                 </div>
 

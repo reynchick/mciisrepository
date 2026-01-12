@@ -619,9 +619,10 @@ class KeywordSeeder extends Seeder
         ];
 
         foreach ($keywords as $keyword) {
-            Keyword::create([
-                'keyword_name' => $keyword,
-            ]);
+            Keyword::updateOrCreate(
+                ['keyword_name' => $keyword],
+                ['keyword_name' => $keyword]
+            );
         }
     }
 }

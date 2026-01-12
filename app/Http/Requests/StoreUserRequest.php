@@ -5,6 +5,9 @@ namespace App\Http\Requests;
 
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log;
 
 
 class StoreUserRequest extends FormRequest
@@ -17,9 +20,13 @@ class StoreUserRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
-            'student_id' => ['nullable', 'string', 'max:255', 'unique:users,student_id'],
-            'faculty_id' => ['nullable', 'string', 'max:255', 'unique:users,faculty_id'],
+        $facultyRoleId = $this->getFacultyRoleId();
+        $studentRoleId = $this->getStudentRoleId();
+        $roles = $this->input('role_ids', []);
+        $isFaculty = in_array($facultyRoleId, $roles);
+        $isStudent = in_array($studentRoleId, $roles);
+
+        $rules = [
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
@@ -29,13 +36,45 @@ class StoreUserRequest extends FormRequest
                 'required',
                 'email',
                 'unique:users,email',
-                'regex:/^[^@]+@usep\.edu\.ph$/'
+                'regex:/^[^@]+@usep\\.edu\\.ph$/'
             ],
             'role_ids' => ['required', 'array', 'min:1'],
             'role_ids.*' => ['required', 'exists:roles,id'],
         ];
+
+        if ($isFaculty) {
+            $rules['faculty_id'] = [
+                'required', 'string', 'max:255', 'unique:users,faculty_id',
+                function ($attribute, $value, $fail) {
+                    $faculty = \App\Models\Faculty::whereRaw('LOWER(email) = ?', [strtolower($this->input('email'))])->first();
+                    if (!$faculty) {
+                        $fail('The email must match an existing faculty record.');
+                    } elseif ($faculty->faculty_id !== $value) {
+                        $fail('The faculty ID must match the faculty record for this email.');
+                    }
+                }
+            ];
+            $rules['student_id'] = ['nullable'];
+        } elseif ($isStudent) {
+            $rules['student_id'] = ['required', 'string', 'max:255', 'unique:users,student_id'];
+            $rules['faculty_id'] = ['nullable'];
+        } else {
+            $rules['student_id'] = ['nullable'];
+            $rules['faculty_id'] = ['nullable'];
+        }
+
+        return $rules;
     }
 
+    protected function getFacultyRoleId()
+    {
+        return \App\Models\Role::where('name', 'Faculty')->value('id');
+    }
+
+    protected function getStudentRoleId()
+    {
+        return \App\Models\Role::where('name', 'Student')->value('id');
+    }
 
     public function messages(): array
     {
