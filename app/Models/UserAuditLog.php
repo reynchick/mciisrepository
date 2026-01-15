@@ -9,9 +9,22 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class UserAuditLog extends Model
 {
     use HasFactory;
+    
+    // Action types
     public const ACTION_CREATE = 'create_user';
     public const ACTION_UPDATE = 'update_user';
     public const ACTION_DEACTIVATE = 'deactivate_user';
+    
+    // Metadata: Source (how account was created)
+    public const SOURCE_ADMIN_CREATED = 'admin_created';
+    public const SOURCE_GOOGLE_SSO = 'google_sso';
+    public const SOURCE_SEED_INITIALIZATION = 'seed_initialization';
+    
+    // Metadata: Context (what triggered the action)
+    public const CONTEXT_USER_REGISTRATION = 'user_registration';
+    public const CONTEXT_FIRST_LOGIN = 'first_login';
+    public const CONTEXT_PROFILE_COMPLETION = 'profile_completion';
+    public const CONTEXT_ROLE_CHANGE = 'role_change';
 
     protected $fillable = [
         'modified_by',

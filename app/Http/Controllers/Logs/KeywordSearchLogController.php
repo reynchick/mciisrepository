@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Logs;
 
 use App\Http\Controllers\Controller;
-use App\Http\Traits\HandlesLogFiltering;
+use App\Traits\HandlesLogFiltering;
 use App\Models\KeywordSearchLog;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

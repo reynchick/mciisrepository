@@ -29,6 +29,7 @@ return new class extends Migration
             $table->string('avatar')->nullable()->comment('User avatar from Google');
             $table->boolean('profile_completed')->default(false)->comment('Whether user has completed their profile');
             $table->boolean('first_login_completed')->default(false)->comment('Whether user has logged in at least once');
+            $table->boolean('created_by_admin')->default(false)->comment('Whether account was created by administrator (true) or via Google SSO self-registration (false)');
             $table->rememberToken();
             $table->softDeletes();
             $table->timestamps();
