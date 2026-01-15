@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Faculty;
+use App\Models\FacultyAuditLog;
+use App\Models\UserAuditLog;
 use App\Observers\FacultyObserver;
 use App\Observers\UserObserver;
 use Illuminate\Http\RedirectResponse;
@@ -18,19 +20,29 @@ class CompleteFacultyProfileController extends Controller
      */
     public function show(Request $request): Response|RedirectResponse
     {
-        // Only faculty with incomplete profiles need this
-        if (!$request->user()->isFaculty() || !$request->user()->faculty_id) {
+        $user = $request->user();
+        
+        // Only faculty need this page
+        if (!$user->isFaculty()) {
             return redirect()->route('dashboard');
         }
 
-        $faculty = $request->user()->faculty;
-
-        if (!$faculty) {
-            return redirect()->route('dashboard');
+        // If user doesn't have faculty_id set, try to find and link it
+        if (!$user->faculty_id) {
+            $faculty = Faculty::where('email', $user->email)->first();
+            
+            if ($faculty) {
+                // Link the user to the faculty record
+                $user->update(['faculty_id' => $faculty->faculty_id]);
+            }
         }
+
+        // Load the faculty record using the relationship
+        // This correctly matches faculty_id (string) instead of id (integer)
+        $faculty = $user->faculty;
 
         return Inertia::render('auth/complete-faculty-profile', [
-            'user' => $request->user(),
+            'user' => $user,
             'faculty' => $faculty,
         ]);
     }
@@ -44,17 +56,11 @@ class CompleteFacultyProfileController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->isFaculty() || !$user->faculty_id) {
+        if (!$user->isFaculty()) {
             abort(403, 'Unauthorized');
         }
 
-        $faculty = Faculty::find($user->faculty_id);
-
-        if (!$faculty) {
-            abort(404, 'Faculty record not found');
-        }
-
-        // Validate input (faculty_id and email are read-only)
+        // Validate input
         $validated = $request->validate([
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
@@ -70,8 +76,11 @@ class CompleteFacultyProfileController extends Controller
 
         // Set custom metadata for UserObserver before updating user
         UserObserver::$customMetadata = [
-            'action' => 'profile_completion',
-            'note' => 'Faculty completed profile after first login',
+            'source' => $user->created_by_admin 
+                ? UserAuditLog::SOURCE_ADMIN_CREATED 
+                : UserAuditLog::SOURCE_GOOGLE_SSO,
+            'context' => UserAuditLog::CONTEXT_PROFILE_COMPLETION,
+            'note' => 'Profile completed',
         ];
 
         // Update user record with profile completion flag - UserObserver will automatically log this
@@ -83,25 +92,35 @@ class CompleteFacultyProfileController extends Controller
             'profile_completed' => true,
         ]);
 
-        // Set custom metadata for FacultyObserver before updating faculty
-        FacultyObserver::$customMetadata = [
-            'action' => 'profile_completion',
-            'note' => 'Faculty completed profile after first login',
-        ];
+        // If user has a faculty relationship, update the faculty record as well
+        if ($user->faculty) {
+            $faculty = $user->faculty;
 
-        // Update faculty record - FacultyObserver will automatically log this
-        // Only update editable fields (not faculty_id, email)
-        $faculty->update([
-            'position' => $validated['position'],
-            'designation' => $validated['designation'],
-            'orcid' => $validated['orcid'],
-            'contact_number' => $validated['contact_number'],
-            'educational_attainment' => $validated['educational_attainment'],
-            'field_of_specialization' => $validated['field_of_specialization'],
-            'research_interest' => $validated['research_interest'],
-        ]);
+            if ($faculty) {
+                // Set custom metadata for FacultyObserver before updating faculty
+                FacultyObserver::$customMetadata = [
+                    'context' => FacultyAuditLog::CONTEXT_PROFILE_COMPLETION,
+                    'note' => 'Profile completed',
+                ];
+
+                // Update faculty record - FacultyObserver will automatically log this
+                // Update all editable fields including name (not faculty_id, email)
+                $faculty->update([
+                    'first_name' => $validated['first_name'],
+                    'middle_name' => $validated['middle_name'],
+                    'last_name' => $validated['last_name'],
+                    'position' => $validated['position'],
+                    'designation' => $validated['designation'],
+                    'orcid' => $validated['orcid'],
+                    'contact_number' => $validated['contact_number'],
+                    'educational_attainment' => $validated['educational_attainment'],
+                    'field_of_specialization' => $validated['field_of_specialization'],
+                    'research_interest' => $validated['research_interest'],
+                ]);
+            }
+        }
 
         return redirect()->route('browse')
-            ->with('status', 'Faculty profile completed successfully!');
+            ->with('status', 'Profile completed successfully!');
     }
 }

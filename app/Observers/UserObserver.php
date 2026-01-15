@@ -23,10 +23,9 @@ class UserObserver
             self::$customMetadata = null;
             return;
         }
-        $metadata = array_merge(
-            ['event' => 'created'],
-            self::$customMetadata ?? []
-        );
+        
+        // Extract and structure metadata
+        $metadata = $this->structureMetadata(self::$customMetadata ?? [], 'created');
 
         $this->logUserAudit(
             $user,
@@ -67,9 +66,13 @@ class UserObserver
             return;
         }
 
-        $metadata = array_merge(
-            ['changed' => $meaningfulChanged],
-            self::$customMetadata ?? []
+        // Extract and structure metadata
+        $metadata = $this->structureMetadata(
+            array_merge(
+                self::$customMetadata ?? [],
+                ['changed' => $meaningfulChanged]
+            ),
+            'updated'
         );
 
         $this->logUserAudit(
@@ -147,5 +150,69 @@ class UserObserver
     {
         // Avoid logging during seeding/CLI where no HTTP request exists
         return !app()->runningInConsole() && request() !== null;
+    }
+
+    /**
+     * Structure metadata with source and context extracted from action string.
+     * Maps old 'action' key to 'source' and 'context' constants.
+     * Also accepts source/context keys directly (new format).
+     */
+    private function structureMetadata(array $customMetadata, string $event): array
+    {
+        $structured = [
+            'source' => null,
+            'context' => null,
+        ];
+
+        // If source/context are already provided (new format), use them directly
+        if (isset($customMetadata['source'])) {
+            $structured['source'] = $customMetadata['source'];
+        }
+        if (isset($customMetadata['context'])) {
+            $structured['context'] = $customMetadata['context'];
+        }
+
+        // Backward compatibility: Extract source/context from 'action' key if not already set
+        if (isset($customMetadata['action']) && !isset($customMetadata['source'])) {
+            $action = $customMetadata['action'];
+            
+            // Map source
+            if (str_contains($action, 'google_sso')) {
+                $structured['source'] = UserAuditLog::SOURCE_GOOGLE_SSO;
+            } elseif (str_contains($action, 'admin_created') || $action === 'first_google_login') {
+                // 'first_google_login' means admin-created account on first login
+                $structured['source'] = UserAuditLog::SOURCE_ADMIN_CREATED;
+            }
+        }
+        
+        if (isset($customMetadata['action']) && !isset($customMetadata['context'])) {
+            $action = $customMetadata['action'];
+            
+            // Map context
+            if (str_contains($action, 'registration')) {
+                $structured['context'] = UserAuditLog::CONTEXT_USER_REGISTRATION;
+            } elseif (str_contains($action, 'first_login')) {
+                $structured['context'] = UserAuditLog::CONTEXT_FIRST_LOGIN;
+            } elseif (str_contains($action, 'profile_completion')) {
+                $structured['context'] = UserAuditLog::CONTEXT_PROFILE_COMPLETION;
+            }
+        }
+
+        // Preserve note and other custom fields
+        if (isset($customMetadata['note'])) {
+            $structured['note'] = $customMetadata['note'];
+        }
+        if (isset($customMetadata['google_id'])) {
+            $structured['google_id'] = $customMetadata['google_id'];
+        }
+
+        // Keep other metadata fields (excluding ones we've already handled)
+        foreach ($customMetadata as $key => $value) {
+            if (!in_array($key, ['action', 'source', 'context', 'note', 'google_id'])) {
+                $structured[$key] = $value;
+            }
+        }
+
+        return $structured;
     }
 }

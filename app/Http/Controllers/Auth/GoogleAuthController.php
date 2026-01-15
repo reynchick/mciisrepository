@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Faculty;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\UserAuditLog;
 use App\Observers\UserObserver;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -49,10 +50,24 @@ class GoogleAuthController extends Controller
             $isNewUser = false;
 
             if ($user) {
-                // Update existing user with Google info (admin-created accounts logging in for first time)
+                // Determine source based on how the account was created
+                $source = $user->created_by_admin
+                    ? UserAuditLog::SOURCE_ADMIN_CREATED
+                    : UserAuditLog::SOURCE_GOOGLE_SSO;
+
+                // If user is faculty but doesn't have faculty_id set, link it
+                if ($user->isFaculty() && !$user->faculty_id) {
+                    $faculty = Faculty::where('email', $user->email)->first();
+                    if ($faculty) {
+                        $user->faculty_id = $faculty->faculty_id;
+                    }
+                }
+
+                // Update existing user with Google info
                 UserObserver::$customMetadata = [
-                    'action' => 'first_google_login',
-                    'note' => 'User logged in via Google SSO for the first time',
+                    'source' => $source,
+                    'context' => UserAuditLog::CONTEXT_FIRST_LOGIN,
+                    'note' => 'User logged in via Google SSO',
                 ];
                 
                 $user->update([
@@ -60,11 +75,13 @@ class GoogleAuthController extends Controller
                     'avatar' => $googleUser->getAvatar(),
                     'email_verified_at' => $user->email_verified_at ?? now(), // Auto-verify via Google
                     'first_login_completed' => true,
+                    'faculty_id' => $user->faculty_id, // Include faculty_id in update
                 ]);
             } else {
                 // Set custom metadata for UserObserver before creating user
                 UserObserver::$customMetadata = [
-                    'action' => 'google_sso_registration',
+                    'source' => UserAuditLog::SOURCE_GOOGLE_SSO,
+                    'context' => UserAuditLog::CONTEXT_USER_REGISTRATION,
                     'note' => 'User registered via Google SSO',
                     'google_id' => $googleUser->getId(),
                 ];
@@ -162,6 +179,7 @@ class GoogleAuthController extends Controller
             'password' => null,
             'profile_completed' => false,
             'first_login_completed' => true,
+            'created_by_admin' => false,  // Self-registered via Google SSO
         ]);
 
         // Attach Student role (multi-role support)
@@ -193,6 +211,7 @@ class GoogleAuthController extends Controller
             'password' => null,
             'profile_completed' => false,
             'first_login_completed' => true,
+            'created_by_admin' => false,  // Self-registered via Google SSO
         ]);
 
         // Attach Faculty role (multi-role support)
