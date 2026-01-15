@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\UserAuditLog;
 use App\Observers\UserObserver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,13 +21,15 @@ class CompleteStudentProfileController extends Controller
      */
     public function show(Request $request): Response|RedirectResponse
     {
-        // Only students without student_id need to complete profile
-        if (!$request->user()->isStudent() || $request->user()->student_id) {
+        $user = $request->user();
+        
+        // Only students need this page
+        if (!$user->isStudent()) {
             return redirect()->route('dashboard');
         }
         
         return Inertia::render('auth/complete-student-profile', [
-            'user' => $request->user(),
+            'user' => $user,
         ]);
     }
 
@@ -50,8 +53,11 @@ class CompleteStudentProfileController extends Controller
 
         // Set custom metadata for UserObserver before updating
         UserObserver::$customMetadata = [
-            'action' => 'profile_completion',
-            'note' => 'Student completed profile after first login',
+            'source' => $user->created_by_admin 
+                ? UserAuditLog::SOURCE_ADMIN_CREATED 
+                : UserAuditLog::SOURCE_GOOGLE_SSO,
+            'context' => UserAuditLog::CONTEXT_PROFILE_COMPLETION,
+            'note' => 'Profile completed',
         ];
         
         // Update user with profile data and mark profile as complete

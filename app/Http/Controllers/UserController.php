@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\UserAuditLog;
 use App\Models\Role;
+use App\Mail\AccountCreatedMail;
+use App\Observers\UserObserver;
 use App\Services\FacultyService;
 use App\Services\AuditLogService;
 use App\Services\UserStatisticsService;
@@ -16,6 +18,7 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Response;
 use Inertia\Inertia;
 
@@ -112,8 +115,8 @@ class UserController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * Pre-register a user so when they sign in with Google SSO for the first time,
-     * the system will update their existing record with the correct roles and IDs.
+     * Create a user account for admin-created accounts (Faculty, Student, Admin, or Staff).
+     * Sends account creation email with login instructions.
      */
     public function store(StoreUserRequest $request): RedirectResponse
     {
@@ -121,15 +124,24 @@ class UserController extends Controller
         $roleIds = $userData['role_ids'];
         unset($userData['role_ids']);
 
-        // Determine if Faculty role is being assigned
+        // Determine role requirements
         $isFaculty = false;
+        $isStudent = false;
+        $needsProfileCompletion = false;
+        
         foreach ($roleIds as $roleId) {
-            $role = \App\Models\Role::find($roleId);
-            if ($role && $role->name === 'Faculty') {
+            $role = Role::find($roleId);
+            if (!$role) continue;
+            
+            if ($role->name === 'Faculty') {
                 $isFaculty = true;
-                break;
+            } elseif ($role->name === 'Student') {
+                $isStudent = true;
             }
         }
+
+        // Profile completion needed only for Faculty/Student roles
+        $needsProfileCompletion = $isFaculty || $isStudent;
 
         if ($isFaculty) {
             // Lookup faculty by email
@@ -145,25 +157,36 @@ class UserController extends Controller
         }
 
         // If Student role, allow student_id to be set/edited. Otherwise, clear it.
-        $isStudent = false;
-        foreach ($roleIds as $roleId) {
-            $role = \App\Models\Role::find($roleId);
-            if ($role && $role->name === 'Student') {
-                $isStudent = true;
-                break;
-            }
-        }
         if (!$isStudent) {
             $userData['student_id'] = null;
         }
 
         try {
+            // Set audit metadata before user creation
+            UserObserver::$customMetadata = [
+                'source' => UserAuditLog::SOURCE_ADMIN_CREATED,
+                'context' => UserAuditLog::CONTEXT_USER_REGISTRATION,
+                'note' => 'Account created',
+            ];
+
+            // Create user with admin-created flags
             $user = User::create([
                 ...$userData,
-                'password' => null, // No password - Google SSO only
-                'email_verified_at' => null, // Will be verified on first Google sign-in
+                'created_by_admin' => true,
+                'profile_completed' => !$needsProfileCompletion,
+                'first_login_completed' => false,
+                'password' => null,
+                'email_verified_at' => null,
             ]);
-            $user->roles()->attach($roleIds);
+
+            // Attach roles after user creation
+            if (!empty($roleIds)) {
+                $user->roles()->attach($roleIds);
+            }
+
+            // Send account creation email
+            Mail::queue(new AccountCreatedMail($user));
+
         } catch (\Throwable $e) {
             \Log::error('User store failed', [
                 'message' => $e->getMessage(),
@@ -174,7 +197,7 @@ class UserController extends Controller
         }
 
         return redirect()->route('users.index')
-            ->with('success', 'User pre-registered successfully. They can now sign in with Google using their USeP email.');
+            ->with('success', 'User created successfully. Account creation email has been sent.');
     }
 
 

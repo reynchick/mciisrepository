@@ -39,11 +39,15 @@ class User extends Authenticatable
         'email',
         'password',
         'student_id',
+        'faculty_id',
         'contact_number',
         'profile_completed',
         'first_login_completed',
         'email_verified_at',
         'remember_token',
+        'created_by_admin',
+        'google_id',
+        'avatar',
     ];
 
     public function userAuditLogs(): HasMany
@@ -70,6 +74,17 @@ class User extends Authenticatable
     public function facultyAuditLogs(): HasMany
     {
         return $this->hasMany(FacultyAuditLog::class, 'modified_by');
+    }
+
+    /**
+     * Get the faculty record associated with this user.
+     * 
+     * Note: Both user.faculty_id and Faculty.faculty_id are strings (e.g., "F001", "F002")
+     * We match on the faculty_id string column, not the id primary key
+     */
+    public function faculty(): BelongsTo
+    {
+        return $this->belongsTo(Faculty::class, 'faculty_id', 'faculty_id');
     }
 
     /**

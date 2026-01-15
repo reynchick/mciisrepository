@@ -36,7 +36,7 @@ interface Faculty {
 
 interface Props {
     user: User;
-    faculty: Faculty;
+    faculty: Faculty | null;
 }
 
 export default function CompleteFacultyProfile({ user, faculty }: Props) {
@@ -44,13 +44,13 @@ export default function CompleteFacultyProfile({ user, faculty }: Props) {
         first_name: user.first_name || '',
         middle_name: user.middle_name || '',
         last_name: user.last_name || '',
-        position: faculty.position || '',
-        designation: faculty.designation || '',
-        orcid: faculty.orcid || '',
-        contact_number: user.contact_number || faculty.contact_number || '',
-        educational_attainment: faculty.educational_attainment || '',
-        field_of_specialization: faculty.field_of_specialization || '',
-        research_interest: faculty.research_interest || '',
+        position: faculty?.position || '',
+        designation: faculty?.designation || '',
+        orcid: faculty?.orcid || '',
+        contact_number: user.contact_number || faculty?.contact_number || '',
+        educational_attainment: faculty?.educational_attainment || '',
+        field_of_specialization: faculty?.field_of_specialization || '',
+        research_interest: faculty?.research_interest || '',
     });
 
     const submit = (e: React.FormEvent) => {
@@ -87,10 +87,12 @@ export default function CompleteFacultyProfile({ user, faculty }: Props) {
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                            <div>
-                                <span className="text-muted-foreground">Faculty ID:</span>
-                                <span className="ml-2 font-mono font-medium">{faculty.faculty_id}</span>
-                            </div>
+                            {faculty?.faculty_id && (
+                                <div>
+                                    <span className="text-muted-foreground">Faculty ID:</span>
+                                    <span className="ml-2 font-mono font-medium">{faculty.faculty_id}</span>
+                                </div>
+                            )}
                         </div>
                     </div>
 

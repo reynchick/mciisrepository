@@ -23,10 +23,9 @@ class FacultyObserver
             self::$customMetadata = null;
             return;
         }
-        $metadata = array_merge(
-            ['event' => 'created'],
-            self::$customMetadata ?? []
-        );
+        
+        // Extract and structure metadata
+        $metadata = $this->structureMetadata(self::$customMetadata ?? [], 'created');
 
         $this->logFacultyAudit(
             $faculty,
@@ -52,9 +51,13 @@ class FacultyObserver
         $changes = $faculty->getChanges();
 
         if (!empty($changes)) {
-            $metadata = array_merge(
-                ['changed' => array_keys($changes)],
-                self::$customMetadata ?? []
+            // Extract and structure metadata
+            $metadata = $this->structureMetadata(
+                array_merge(
+                    self::$customMetadata ?? [],
+                    ['changed' => array_keys($changes)]
+                ),
+                'updated'
             );
 
             $this->logFacultyAudit(
@@ -123,5 +126,63 @@ class FacultyObserver
     protected function shouldLog(): bool
     {
         return !app()->runningInConsole() && request() !== null;
+    }
+
+    /**
+     * Structure metadata with source and context extracted from action string.
+     * Maps old 'action' key to 'source' and 'context' constants.
+     * Also accepts source/context keys directly (new format).
+     */
+    private function structureMetadata(array $customMetadata, string $event): array
+    {
+        $structured = [
+            'source' => null,
+            'context' => null,
+        ];
+
+        // If source/context are already provided (new format), use them directly
+        if (isset($customMetadata['source'])) {
+            $structured['source'] = $customMetadata['source'];
+        }
+        if (isset($customMetadata['context'])) {
+            $structured['context'] = $customMetadata['context'];
+        }
+
+        // Backward compatibility: Extract source/context from 'action' key if not already set
+        if (isset($customMetadata['action']) && !isset($customMetadata['source'])) {
+            $action = $customMetadata['action'];
+            
+            // Map source
+            if (str_contains($action, 'google_sso')) {
+                $structured['source'] = FacultyAuditLog::SOURCE_GOOGLE_SSO;
+            } elseif (str_contains($action, 'admin_created')) {
+                $structured['source'] = FacultyAuditLog::SOURCE_ADMIN_CREATED;
+            }
+        }
+        
+        if (isset($customMetadata['action']) && !isset($customMetadata['context'])) {
+            $action = $customMetadata['action'];
+            
+            // Map context
+            if (str_contains($action, 'profile_completion')) {
+                $structured['context'] = FacultyAuditLog::CONTEXT_PROFILE_COMPLETION;
+            } elseif (str_contains($action, 'import')) {
+                $structured['context'] = FacultyAuditLog::CONTEXT_FACULTY_IMPORT;
+            }
+        }
+
+        // Preserve note and other custom fields
+        if (isset($customMetadata['note'])) {
+            $structured['note'] = $customMetadata['note'];
+        }
+
+        // Keep other metadata fields (excluding ones we've already handled)
+        foreach ($customMetadata as $key => $value) {
+            if (!in_array($key, ['action', 'source', 'context', 'note'])) {
+                $structured[$key] = $value;
+            }
+        }
+
+        return $structured;
     }
 }

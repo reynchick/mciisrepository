@@ -395,7 +395,7 @@ export default function UsersIndex({ users, filters, roleDistribution, recentReg
             >
               Active Users
               <Badge variant={!showingDeleted ? 'secondary' : 'outline'} className="ml-2">
-                {users.total - deletedUsersCount}
+                {totalUsersCount}
               </Badge>
             </Button>
             <Button

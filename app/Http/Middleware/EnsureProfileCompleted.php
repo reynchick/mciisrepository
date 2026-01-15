@@ -36,19 +36,22 @@ class EnsureProfileCompleted
             return $next($request);
         }
 
-        // Redirect students without student_id to complete profile
-        if ($user->isStudent() && !$user->student_id) {
+        // At this point, user has profile_completed = false, so redirect to appropriate completion page
+        
+        // Redirect students to complete profile
+        if ($user->isStudent()) {
             return redirect()->route('student.profile.complete')
                 ->with('status', 'Please complete your profile to continue.');
         }
 
-        // Redirect faculty with profile_completed = false to verify/update their profile on first login
-        // Note: Faculty data is pre-seeded, so this is just to let them verify/update on first use
-        if ($user->isFaculty() && $user->faculty_id) {
+        // Redirect faculty to complete/verify profile
+        if ($user->isFaculty()) {
             return redirect()->route('faculty.profile.complete')
                 ->with('status', 'Welcome! Please verify and update your profile information.');
         }
 
+        // For other roles (Admin, Staff) with incomplete profiles, allow access
+        // They don't have a profile completion flow
         return $next($request);
     }
 }
