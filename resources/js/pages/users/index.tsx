@@ -48,12 +48,13 @@ interface Props {
     status?: 'active' | 'deleted'
   }
   roleDistribution: RoleItem[]
+  deletedRoleDistribution: RoleItem[]
   recentRegistrations: number
   totalUsersCount: number
   deletedUsersCount: number
 }
 
-export default function UsersIndex({ users, filters, roleDistribution, recentRegistrations, totalUsersCount, deletedUsersCount }: Props) {
+export default function UsersIndex({ users, filters, roleDistribution, deletedRoleDistribution, recentRegistrations, totalUsersCount, deletedUsersCount }: Props) {
   const { auth } = usePage<SharedData>().props
   const isAdmin = auth.user.roles?.some((role) => role.name === 'Administrator') ?? false
 
@@ -185,9 +186,13 @@ export default function UsersIndex({ users, filters, roleDistribution, recentReg
   }, []);
 
   // Segmented Filter Bar roles (All, Administrator, MCIS Staff, Faculty, Student)
+  // Use deleted role distribution when viewing deleted users, otherwise use active
+  const currentRoleDistribution = showingDeleted ? deletedRoleDistribution : roleDistribution;
+  const currentTotalCount = showingDeleted ? deletedUsersCount : totalUsersCount;
+  
   const filterRoles = [
-    { role: 'all', label: 'All', icon: null, count: totalUsersCount },
-    ...roleDistribution.map((item) => ({
+    { role: 'all', label: 'All', icon: null, count: currentTotalCount },
+    ...currentRoleDistribution.map((item) => ({
       role: item.role,
       label: item.role,
       icon: null, // Could add minimal icons if desired

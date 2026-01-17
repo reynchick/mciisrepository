@@ -11,7 +11,6 @@ interface PersonalInfoSectionProps {
     first_name: string
     middle_name: string
     last_name: string
-    send_welcome_email: boolean
   }
   errors: Record<string, string | undefined>
   clientErrors: Record<string, string | undefined>
@@ -146,24 +145,6 @@ export default function PersonalInfoSection({
             />
           </div>
         </div>
-
-        {mode === 'create' && (
-          <div className="pt-3 md:pt-4 border-t">
-            <label className="flex items-center gap-3 p-2 hover:bg-muted/50 rounded cursor-pointer transition-colors">
-              <input
-                id="welcome_email"
-                type="checkbox"
-                checked={data.send_welcome_email}
-                onChange={(e) => onDataChange('send_welcome_email', e.target.checked)}
-                className="h-5 w-5 cursor-pointer rounded border-input"
-              />
-              <span className="text-sm md:text-base font-medium">Send welcome email with credentials</span>
-            </label>
-            <p className="text-xs text-muted-foreground mt-2 ml-8 md:ml-10">
-              User will receive initial login credentials via email
-            </p>
-          </div>
-        )}
       </CardContent>
     </Card>
   )

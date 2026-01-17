@@ -15,15 +15,12 @@ class FacultyAuditLog extends Model
     public const ACTION_UPDATE = 'update_faculty';
     public const ACTION_DELETE = 'delete_faculty';
     
-    // Metadata: Source (how account was created)
-    public const SOURCE_ADMIN_CREATED = 'admin_created';
-    public const SOURCE_GOOGLE_SSO = 'google_sso';
-    public const SOURCE_SEED_INITIALIZATION = 'seed_initialization';
-    
-    // Metadata: Context (what triggered the action)
+    // Context (what triggered the action)
     public const CONTEXT_PROFILE_COMPLETION = 'profile_completion';
     public const CONTEXT_PROFILE_UPDATE = 'profile_update';
+    public const CONTEXT_ADMIN_UPDATE = 'admin_update';
     public const CONTEXT_FACULTY_IMPORT = 'faculty_import';
+    public const CONTEXT_SEED_INITIALIZATION = 'seed_initialization';
     
     protected $fillable = [
         'modified_by',

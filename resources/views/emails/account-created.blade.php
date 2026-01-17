@@ -5,6 +5,10 @@ Hello {{ $user->first_name }},
 
 Your account has been created successfully! We're excited to have you on board.
 
+**You have been assigned the following role(s):**
+
+{{ implode(' | ', $rolesWithEmojis) }}
+
 To get started, please log in to your account using your USeP email address. You'll authenticate via Google SSO for security.
 
 @component('mail::button', ['url' => route('login')])
