@@ -5,6 +5,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\Logs\LogController;
 use App\Http\Controllers\Logs\ResearchAccessLogController;
 use App\Http\Controllers\Logs\KeywordSearchLogController;
 use App\Http\Controllers\Logs\UserAuditLogController;
@@ -87,6 +88,8 @@ Route::get('/', function () { return redirect()->route('browse'); })->name('welc
     Route::post('/users/{user}/restore', [UserController::class, 'restore'])->name('users.restore')->withTrashed();
 
     // Log routes
+    Route::get('/logs/{type}', [LogController::class, 'index'])->name('logs.index');
+    
     Route::prefix('logs')->name('logs.')->group(function () {
         Route::resource('research-access', ResearchAccessLogController::class)->only('index');
         Route::resource('keyword-search', KeywordSearchLogController::class)->only('index');

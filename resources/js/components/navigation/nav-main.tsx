@@ -14,11 +14,11 @@ const baseMenu: MenuItem[] = [
   { id: 'faculty', label: 'View Faculty', icon: GraduationCap, route: '/faculty', roles: ['Administrator', 'MCIIS Staff', 'Faculty', 'Student'], activePattern: /^\/(faculty|staff\/faculty|faculty\/faculty-list|student\/faculty)/ },
   { id: 'my-researches', label: 'My Researches', icon: FolderOpen, route: '/faculty/my-researches', roles: ['Faculty'], activePattern: /^\/faculty\/my-researches/ },
   {
-    id: 'logs', label: 'View Logs', icon: FileText, route: '/logs', roles: ['Administrator'], activePattern: /^\/logs/,
+    id: 'logs', label: 'View Logs', icon: FileText, route: '/logs/user-audit', roles: ['Administrator'], activePattern: /^\/logs/,
     submenu: [
-      { id: 'log-user', label: 'User Audit Logs', icon: Activity, route: '/logs/user-audits', roles: ['Administrator'], activePattern: /^\/logs\/user-audits/ },
-      { id: 'log-faculty', label: 'Faculty Audit Logs', icon: Activity, route: '/logs/faculty-audits', roles: ['Administrator'], activePattern: /^\/logs\/faculty-audits/ },
-      { id: 'log-entry', label: 'Research Entry Logs', icon: FileText, route: '/logs/research-entries', roles: ['Administrator'], activePattern: /^\/logs\/research-entries/ },
+      { id: 'log-user', label: 'User Audit Logs', icon: Activity, route: '/logs/user-audit', roles: ['Administrator'], activePattern: /^\/logs\/user-audit/ },
+      { id: 'log-faculty', label: 'Faculty Audit Logs', icon: Activity, route: '/logs/faculty-audit', roles: ['Administrator'], activePattern: /^\/logs\/faculty-audit/ },
+      { id: 'log-entry', label: 'Research Entry Logs', icon: FileText, route: '/logs/research-entry', roles: ['Administrator'], activePattern: /^\/logs\/research-entry/ },
       { id: 'log-access', label: 'Research Access Logs', icon: TrendingUp, route: '/logs/research-access', roles: ['Administrator'], activePattern: /^\/logs\/research-access/ },
       { id: 'log-keyword', label: 'Keyword Search Logs', icon: Search, route: '/logs/keyword-search', roles: ['Administrator'], activePattern: /^\/logs\/keyword-search/ },
     ],

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
@@ -8,55 +9,36 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { Filter, SlidersHorizontal, X, Save, Clock, CalendarRange, Users, Tag } from 'lucide-react'
+import { Filter, SlidersHorizontal, X, CalendarRange } from 'lucide-react'
 
-type LogType = 'user_audit' | 'faculty_audit' | 'research_entry' | 'research_access' | 'keyword_search'
+type LogType = 'user-audit' | 'faculty-audit' | 'research-entry' | 'research-access' | 'keyword-search'
 
 type Option = { value: string | number; label: string }
 
 type FilterState = {
+  // Time-based filters (all log types)
   datePreset?: 'today' | 'yesterday' | 'last7' | 'last30' | 'thisMonth' | 'lastMonth' | 'custom'
   from?: string
   to?: string
-  timeOfDay?: 'morning' | 'afternoon' | 'evening' | 'night'
-  quickTime?: 'lastHour' | 'last24h' | 'lastWeek'
+  
+  // Action-based filters (user-audit, faculty-audit, research-entry)
   actionTypes?: string[]
+  
+  // User filters (research-entry)
   modifiedByUserId?: number
-  performedByUserId?: number
-  targetUserId?: number
-  accessedByUserId?: number
-  role?: 'Administrator' | 'MCIIS Staff' | 'Faculty'
-  targetFacultyId?: number
-  researchId?: number
-  researchProgramId?: number
-  year?: number
-  adviserId?: number
-  keywords?: Array<number | string>
-  keywordFrequency?: 'most' | 'least'
-  searchContext?: string
-  affectedEntities?: {
-    researchers?: boolean
-    keywords?: boolean
-    panelists?: boolean
-    themes?: boolean
-    basicInfo?: boolean
-  }
-  highUserFrequency?: boolean
-  batchOps?: boolean
-  accessPattern?: 'first' | 'repeat' | 'spike'
+  
+  // Research filters (research-access)
+  researchSearch?: string
+  
+  // Keyword filters (keyword-search)
+  keywordSearch?: string
 }
 
 type FilterOptions = {
-  users?: Option[]
-  roles?: Option[]
-  faculties?: Option[]
-  departments?: Option[]
-  positions?: Option[]
-  researches?: Option[]
-  programs?: Option[]
-  years?: Option[]
-  advisers?: Option[]
-  keywords?: Option[]
+  actions?: Option[]  // For user-audit, faculty-audit, research-entry
+  users?: Option[]     // For research-entry (modified by)
+  researches?: Option[] // For research-access
+  keywords?: Option[]   // For keyword-search
 }
 
 type Props = {
@@ -81,59 +63,44 @@ function removeField(value: FilterState, field: keyof FilterState) {
   return next
 }
 
-function usePresets(logType: LogType) {
-  const key = `log-filter-presets:${logType}`
-  const [presets, setPresets] = useState<Array<{ name: string; state: FilterState }>>([])
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(key)
-      setPresets(raw ? JSON.parse(raw) : [])
-    } catch {
-      setPresets([])
-    }
-  }, [key])
-  const save = (name: string, state: FilterState) => {
-    const next = [...presets.filter((p) => p.name !== name), { name, state }]
-    setPresets(next)
-    try { localStorage.setItem(key, JSON.stringify(next)) } catch {}
-  }
-  return { presets, save }
-}
-
 function activeChips(logType: LogType, value: FilterState, options?: FilterOptions) {
   const chips: Array<{ key: keyof FilterState; label: string; valueLabel?: string }> = []
-  if (value.datePreset && value.datePreset !== 'custom') chips.push({ key: 'datePreset', label: 'Date', valueLabel: value.datePreset })
-  if (value.from || value.to) chips.push({ key: 'from', label: 'From', valueLabel: value.from }, { key: 'to', label: 'To', valueLabel: value.to })
-  if (value.quickTime) chips.push({ key: 'quickTime', label: 'Quick', valueLabel: value.quickTime })
-  if (value.timeOfDay) chips.push({ key: 'timeOfDay', label: 'Time', valueLabel: value.timeOfDay })
-  if (value.actionTypes && value.actionTypes.length) chips.push({ key: 'actionTypes', label: 'Action', valueLabel: value.actionTypes.join(', ') })
   const optLabel = (opts?: Option[], id?: string | number) => opts?.find((o) => o.value === id)?.label
-  if (value.modifiedByUserId) chips.push({ key: 'modifiedByUserId', label: 'Modified By', valueLabel: optLabel(options?.users, value.modifiedByUserId) })
-  if (value.performedByUserId) chips.push({ key: 'performedByUserId', label: 'Performed By', valueLabel: optLabel(options?.users, value.performedByUserId) })
-  if (value.targetUserId) chips.push({ key: 'targetUserId', label: 'Target User', valueLabel: optLabel(options?.users, value.targetUserId) })
-  if (value.accessedByUserId) chips.push({ key: 'accessedByUserId', label: 'Accessed By', valueLabel: optLabel(options?.users, value.accessedByUserId) })
-  if (value.role) chips.push({ key: 'role', label: 'Role', valueLabel: value.role })
-  if (value.targetFacultyId) chips.push({ key: 'targetFacultyId', label: 'Faculty', valueLabel: optLabel(options?.faculties, value.targetFacultyId) })
-  if (value.researchId) chips.push({ key: 'researchId', label: 'Research', valueLabel: optLabel(options?.researches, value.researchId) })
-  if (value.researchProgramId) chips.push({ key: 'researchProgramId', label: 'Program', valueLabel: optLabel(options?.programs, value.researchProgramId) })
-  if (value.year) chips.push({ key: 'year', label: 'Year', valueLabel: String(value.year) })
-  if (value.adviserId) chips.push({ key: 'adviserId', label: 'Adviser', valueLabel: optLabel(options?.advisers, value.adviserId) })
-  if (value.keywords && value.keywords.length) chips.push({ key: 'keywords', label: 'Keywords', valueLabel: String(value.keywords.length) })
-  if (value.keywordFrequency) chips.push({ key: 'keywordFrequency', label: 'Keyword Freq', valueLabel: value.keywordFrequency })
-  if (value.searchContext) chips.push({ key: 'searchContext', label: 'Context', valueLabel: value.searchContext })
-  if (value.affectedEntities && Object.values(value.affectedEntities).some(Boolean)) chips.push({ key: 'affectedEntities', label: 'Entities', valueLabel: 'custom' })
-  if (value.highUserFrequency) chips.push({ key: 'highUserFrequency', label: 'Unusual Activity' })
-  if (value.batchOps) chips.push({ key: 'batchOps', label: 'Batch Ops' })
-  if (value.accessPattern) chips.push({ key: 'accessPattern', label: 'Access', valueLabel: value.accessPattern })
+  
+  // Time-based filters (all log types)
+  if (value.datePreset && value.datePreset !== 'custom') {
+    chips.push({ key: 'datePreset', label: 'Date', valueLabel: value.datePreset })
+  }
+  if (value.from) chips.push({ key: 'from', label: 'From', valueLabel: value.from })
+  if (value.to) chips.push({ key: 'to', label: 'To', valueLabel: value.to })
+  
+  // Action filters (user-audit, faculty-audit, research-entry)
+  if (value.actionTypes && value.actionTypes.length) {
+    chips.push({ key: 'actionTypes', label: 'Action', valueLabel: value.actionTypes.join(', ') })
+  }
+  
+  // Modified by filter (research-entry)
+  if (value.modifiedByUserId) {
+    chips.push({ key: 'modifiedByUserId', label: 'Modified By', valueLabel: optLabel(options?.users, value.modifiedByUserId) })
+  }
+  
+  // Research filter (research-access)
+  if (value.researchSearch) {
+    chips.push({ key: 'researchSearch', label: 'Research', valueLabel: value.researchSearch })
+  }
+  
+  // Keyword filter (keyword-search)
+  if (value.keywordSearch) {
+    chips.push({ key: 'keywordSearch', label: 'Keyword', valueLabel: value.keywordSearch })
+  }
+  
   return chips
 }
 
 export default function LogFilters({ logType, value, onChange, onApply, options, className, autoApply = false, debounceMs = 300 }: Props) {
   const isMobile = useIsMobile()
-  const { presets, save } = usePresets(logType)
   const chips = useMemo(() => activeChips(logType, value, options), [logType, value, options])
   const [open, setOpen] = useState(false)
-  const [presetName, setPresetName] = useState('')
 
   const set = (field: keyof FilterState, v: unknown) => onChange(setField(value, field as any, v as any))
   const clearAll = () => {
@@ -148,17 +115,23 @@ export default function LogFilters({ logType, value, onChange, onApply, options,
 
   const actionOptions = useMemo(() => {
     switch (logType) {
-      case 'user_audit':
-      case 'faculty_audit':
+      case 'user-audit':
         return [
-          { value: 'create', label: 'Create' },
-          { value: 'update', label: 'Update' },
-          { value: 'delete', label: 'Delete' },
+          { value: 'create_user', label: 'Created' },
+          { value: 'update_user', label: 'Updated' },
+          { value: 'deactivate_user', label: 'Deactivated' },
         ]
-      case 'research_entry':
+      case 'faculty-audit':
         return [
-          { value: 'create', label: 'Create' },
-          { value: 'modify', label: 'Modify' },
+          { value: 'create_faculty', label: 'Created' },
+          { value: 'update_faculty', label: 'Updated' },
+          { value: 'delete_faculty', label: 'Deleted' },
+        ]
+      case 'research-entry':
+        return [
+          { value: 'create_research_entry', label: 'Created' },
+          { value: 'update_research_entry', label: 'Updated' },
+          { value: 'archive_research_entry', label: 'Archive' },
         ]
       default:
         return []
@@ -168,262 +141,95 @@ export default function LogFilters({ logType, value, onChange, onApply, options,
   const renderFilters = () => (
     <div className="flex h-full flex-col gap-3 p-3">
       <div className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">{chips.length} filters applied</div>
-        <div className="flex items-center gap-2">
-          <Select onValueChange={(v) => {
-            const p = presets.find((x) => x.name === v)
-            if (p) onChange({ ...p.state })
-          }}>
-            <SelectTrigger className="h-8 w-[180px]"><SelectValue placeholder="Load preset" /></SelectTrigger>
-            <SelectContent>
-              {presets.map((p) => (<SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>))}
-            </SelectContent>
-          </Select>
-          <Input value={presetName} onChange={(e) => setPresetName(e.target.value)} placeholder="Preset name" className="h-8 w-[160px]" aria-label="Preset name" />
-          <Button size="sm" variant="outline" onClick={() => presetName && save(presetName, value)} aria-label="Save preset">
-            <Save className="mr-1 size-4" /> Save
+        <div className="text-sm text-muted-foreground">{chips.length} filter{chips.length !== 1 ? 's' : ''} applied</div>
+        {chips.length > 0 && (
+          <Button variant="ghost" size="sm" onClick={clearAll}>
+            Clear All
           </Button>
-          <Button size="sm" variant="ghost" onClick={clearAll} aria-label="Clear all filters">
-            <X className="mr-1 size-4" /> Clear all
-          </Button>
+        )}
+      </div>
+
+      {/* Active Filter Chips */}
+      {chips.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {chips.map((c, i) => (
+            <Badge key={`${String(c.key)}-${i}`} variant="secondary" className="flex items-center gap-2">
+              <span>{c.label}{c.valueLabel ? `: ${c.valueLabel}` : ''}</span>
+              <button className="rounded px-1 hover:bg-muted" aria-label={`Remove ${c.label}`} onClick={() => onChange(removeField(value, c.key))}>
+                <X className="size-3" />
+              </button>
+            </Badge>
+          ))}
         </div>
-      </div>
+      )}
 
-      <div className="flex flex-wrap gap-2">
-        {chips.map((c, i) => (
-          <Badge key={`${String(c.key)}-${i}`} variant="secondary" className="flex items-center gap-2">
-            <span>{c.label}{c.valueLabel ? `: ${c.valueLabel}` : ''}</span>
-            <button className="rounded px-1 hover:bg-muted" aria-label={`Remove ${c.label}`} onClick={() => onChange(removeField(value, c.key))}>
-              <X className="size-3" />
-            </button>
-          </Badge>
-        ))}
-      </div>
-
+      {/* Time-based Filters - All log types */}
       <Collapsible defaultOpen>
-        <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border p-2">
-          <span className="flex items-center gap-2"><CalendarRange className="size-4" /> Time-Based</span>
+        <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border p-2 hover:bg-accent">
+          <span className="flex items-center gap-2">
+            <CalendarRange className="size-4" />
+            <span className="text-sm font-medium">Time Filters</span>
+          </span>
           <SlidersHorizontal className="size-4" />
         </CollapsibleTrigger>
-        <CollapsibleContent className="p-2">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <Select value={value.datePreset} onValueChange={(v) => set('datePreset', v)}>
-              <SelectTrigger className="h-8"><SelectValue placeholder="Preset" /></SelectTrigger>
+        <CollapsibleContent className="mt-2 space-y-3 px-2">
+          <div className="space-y-2">
+            <Label className="text-xs">Date Preset</Label>
+            <Select value={value.datePreset || ''} onValueChange={(v) => set('datePreset', v || undefined)}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Select preset" />
+              </SelectTrigger>
               <SelectContent>
-                {['today','yesterday','last7','last30','thisMonth','lastMonth','custom'].map((p) => (
-                  <SelectItem key={p} value={p}>{p}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={value.quickTime} onValueChange={(v) => set('quickTime', v)}>
-              <SelectTrigger className="h-8"><SelectValue placeholder="Quick" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="lastHour">Last hour</SelectItem>
-                <SelectItem value="last24h">Last 24 hours</SelectItem>
-                <SelectItem value="lastWeek">Last week</SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="flex items-center gap-2">
-              <Input type="date" value={value.from ?? ''} onChange={(e) => set('from', e.target.value)} aria-label="From date" />
-              <Input type="date" value={value.to ?? ''} onChange={(e) => set('to', e.target.value)} aria-label="To date" />
-            </div>
-            <Select value={value.timeOfDay} onValueChange={(v) => set('timeOfDay', v)}>
-              <SelectTrigger className="h-8"><SelectValue placeholder="Time of day" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="morning">Morning (6-12)</SelectItem>
-                <SelectItem value="afternoon">Afternoon (12-6)</SelectItem>
-                <SelectItem value="evening">Evening (6-12)</SelectItem>
-                <SelectItem value="night">Night (12-6)</SelectItem>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="yesterday">Yesterday</SelectItem>
+                <SelectItem value="last7">Last 7 Days</SelectItem>
+                <SelectItem value="last30">Last 30 Days</SelectItem>
+                <SelectItem value="thisMonth">This Month</SelectItem>
+                <SelectItem value="lastMonth">Last Month</SelectItem>
+                <SelectItem value="custom">Custom Range</SelectItem>
               </SelectContent>
             </Select>
           </div>
-        </CollapsibleContent>
-      </Collapsible>
 
-      {(logType === 'user_audit' || logType === 'faculty_audit' || logType === 'research_entry') && (
-        <Collapsible defaultOpen>
-          <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border p-2">
-            <span className="flex items-center gap-2"><Clock className="size-4" /> Action-Based</span>
-            <SlidersHorizontal className="size-4" />
-          </CollapsibleTrigger>
-          <CollapsibleContent className="p-2">
-            <div className="grid grid-cols-2 gap-2">
-              {actionOptions.map((opt) => (
-                <label key={String(opt.value)} className="flex items-center gap-2 text-sm">
-                  <Checkbox
-                    checked={!!value.actionTypes?.includes(String(opt.value))}
-                    onCheckedChange={(v) => {
-                      const curr = new Set(value.actionTypes ?? [])
-                      if (v) curr.add(String(opt.value))
-                      else curr.delete(String(opt.value))
-                      set('actionTypes', Array.from(curr))
-                    }}
-                  />
-                  {opt.label}
-                </label>
-              ))}
-            </div>
-            {logType === 'research_entry' && (
-              <div className="mt-3 grid grid-cols-1 gap-2">
-                <label className="flex items-center gap-2 text-sm">
-                  <Checkbox checked={!!value.affectedEntities?.basicInfo} onCheckedChange={(v) => set('affectedEntities', { ...value.affectedEntities, basicInfo: !!v })} />
-                  Only changes to research metadata
-                </label>
-                <label className="flex items-center gap-2 text-sm">
-                  <Checkbox checked={!!value.affectedEntities?.keywords} onCheckedChange={(v) => set('affectedEntities', { ...value.affectedEntities, keywords: !!v })} />
-                  Include entity changes (keywords)
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <label className="flex items-center gap-2 text-sm">
-                    <Checkbox checked={!!value.affectedEntities?.researchers} onCheckedChange={(v) => set('affectedEntities', { ...value.affectedEntities, researchers: !!v })} />
-                    Changes to researchers
-                  </label>
-                  <label className="flex items-center gap-2 text-sm">
-                    <Checkbox checked={!!value.affectedEntities?.panelists} onCheckedChange={(v) => set('affectedEntities', { ...value.affectedEntities, panelists: !!v })} />
-                    Changes to panelists
-                  </label>
-                  <label className="flex items-center gap-2 text-sm">
-                    <Checkbox checked={!!value.affectedEntities?.themes} onCheckedChange={(v) => set('affectedEntities', { ...value.affectedEntities, themes: !!v })} />
-                    Changes to themes (Agenda, SDG, SRIG)
-                  </label>
-                </div>
+          {value.datePreset === 'custom' && (
+            <div className="space-y-2">
+              <div>
+                <Label className="text-xs">From</Label>
+                <Input type="date" value={value.from || ''} onChange={(e) => set('from', e.target.value || undefined)} className="h-9 mt-1" />
               </div>
-            )}
-          </CollapsibleContent>
-        </Collapsible>
-      )}
-
-      <Collapsible defaultOpen>
-        <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border p-2">
-          <span className="flex items-center gap-2"><Users className="size-4" /> Users & Roles</span>
-          <SlidersHorizontal className="size-4" />
-        </CollapsibleTrigger>
-        <CollapsibleContent className="p-2">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {(logType === 'user_audit' || logType === 'faculty_audit') && (
-              <Select value={value.modifiedByUserId ? String(value.modifiedByUserId) : undefined} onValueChange={(v) => set('modifiedByUserId', Number(v))}>
-                <SelectTrigger className="h-8"><SelectValue placeholder="Modified By" /></SelectTrigger>
-                <SelectContent>
-                  {options?.users?.map((u) => (<SelectItem key={String(u.value)} value={String(u.value)}>{u.label}</SelectItem>))}
-                </SelectContent>
-              </Select>
-            )}
-            {logType === 'research_entry' && (
-              <Select value={value.performedByUserId ? String(value.performedByUserId) : undefined} onValueChange={(v) => set('performedByUserId', Number(v))}>
-                <SelectTrigger className="h-8"><SelectValue placeholder="Performed By" /></SelectTrigger>
-                <SelectContent>
-                  {options?.users?.map((u) => (<SelectItem key={String(u.value)} value={String(u.value)}>{u.label}</SelectItem>))}
-                </SelectContent>
-              </Select>
-            )}
-            {logType === 'user_audit' && (
-              <Select value={value.targetUserId ? String(value.targetUserId) : undefined} onValueChange={(v) => set('targetUserId', Number(v))}>
-                <SelectTrigger className="h-8"><SelectValue placeholder="Target User" /></SelectTrigger>
-                <SelectContent>
-                  {options?.users?.map((u) => (<SelectItem key={String(u.value)} value={String(u.value)}>{u.label}</SelectItem>))}
-                </SelectContent>
-              </Select>
-            )}
-            {logType === 'research_access' && (
-              <Select value={value.accessedByUserId ? String(value.accessedByUserId) : undefined} onValueChange={(v) => set('accessedByUserId', Number(v))}>
-                <SelectTrigger className="h-8"><SelectValue placeholder="Accessed By" /></SelectTrigger>
-                <SelectContent>
-                  {options?.users?.map((u) => (<SelectItem key={String(u.value)} value={String(u.value)}>{u.label}</SelectItem>))}
-                </SelectContent>
-              </Select>
-            )}
-            <Select value={value.role} onValueChange={(v) => set('role', v)}>
-              <SelectTrigger className="h-8"><SelectValue placeholder="Role" /></SelectTrigger>
-              <SelectContent>
-                {['Administrator', 'MCIIS Staff', 'Faculty'].map((r) => (<SelectItem key={r} value={r}>{r}</SelectItem>))}
-              </SelectContent>
-            </Select>
-          </div>
+              <div>
+                <Label className="text-xs">To</Label>
+                <Input type="date" value={value.to || ''} onChange={(e) => set('to', e.target.value || undefined)} className="h-9 mt-1" />
+              </div>
+            </div>
+          )}
         </CollapsibleContent>
       </Collapsible>
 
-      {(logType === 'faculty_audit' || logType === 'research_entry' || logType === 'research_access') && (
+      {/* Action-based Filters - user-audit, faculty-audit, research-entry */}
+      {(logType === 'user-audit' || logType === 'faculty-audit' || logType === 'research-entry') && (
         <Collapsible defaultOpen>
-          <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border p-2">
-            <span className="flex items-center gap-2"><Filter className="size-4" /> Entities</span>
+          <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border p-2 hover:bg-accent">
+            <span className="text-sm font-medium">Action Filters</span>
             <SlidersHorizontal className="size-4" />
           </CollapsibleTrigger>
-          <CollapsibleContent className="p-2">
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {logType === 'faculty_audit' && (
-                <Select value={value.targetFacultyId ? String(value.targetFacultyId) : undefined} onValueChange={(v) => set('targetFacultyId', Number(v))}>
-                  <SelectTrigger className="h-8"><SelectValue placeholder="Target Faculty" /></SelectTrigger>
-                  <SelectContent>
-                    {options?.faculties?.map((f) => (<SelectItem key={String(f.value)} value={String(f.value)}>{f.label}</SelectItem>))}
-                  </SelectContent>
-                </Select>
-              )}
-              {(logType === 'research_entry' || logType === 'research_access') && (
-                <Select value={value.researchId ? String(value.researchId) : undefined} onValueChange={(v) => set('researchId', Number(v))}>
-                  <SelectTrigger className="h-8"><SelectValue placeholder="Research" /></SelectTrigger>
-                  <SelectContent>
-                    {options?.researches?.map((r) => (<SelectItem key={String(r.value)} value={String(r.value)}>{r.label}</SelectItem>))}
-                  </SelectContent>
-                </Select>
-              )}
-              {(logType === 'research_entry' || logType === 'research_access') && (
-                <Select value={value.researchProgramId ? String(value.researchProgramId) : undefined} onValueChange={(v) => set('researchProgramId', Number(v))}>
-                  <SelectTrigger className="h-8"><SelectValue placeholder="Program" /></SelectTrigger>
-                  <SelectContent>
-                    {options?.programs?.map((p) => (<SelectItem key={String(p.value)} value={String(p.value)}>{p.label}</SelectItem>))}
-                  </SelectContent>
-                </Select>
-              )}
-              {(logType === 'research_entry' || logType === 'research_access') && (
-                <Select value={value.year ? String(value.year) : undefined} onValueChange={(v) => set('year', Number(v))}>
-                  <SelectTrigger className="h-8"><SelectValue placeholder="Year" /></SelectTrigger>
-                  <SelectContent>
-                    {options?.years?.map((y) => (<SelectItem key={String(y.value)} value={String(y.value)}>{y.label}</SelectItem>))}
-                  </SelectContent>
-                </Select>
-              )}
-              {(logType === 'research_entry' || logType === 'research_access') && (
-                <Select value={value.adviserId ? String(value.adviserId) : undefined} onValueChange={(v) => set('adviserId', Number(v))}>
-                  <SelectTrigger className="h-8"><SelectValue placeholder="Adviser" /></SelectTrigger>
-                  <SelectContent>
-                    {options?.advisers?.map((a) => (<SelectItem key={String(a.value)} value={String(a.value)}>{a.label}</SelectItem>))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      )}
-
-      {(logType === 'keyword_search') && (
-        <Collapsible defaultOpen>
-          <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border p-2">
-            <span className="flex items-center gap-2"><Tag className="size-4" /> Keyword Filters</span>
-            <SlidersHorizontal className="size-4" />
-          </CollapsibleTrigger>
-          <CollapsibleContent className="p-2">
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <Select value={value.keywordFrequency} onValueChange={(v) => set('keywordFrequency', v)}>
-                <SelectTrigger className="h-8"><SelectValue placeholder="Frequency" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="most">Most searched</SelectItem>
-                  <SelectItem value="least">Least searched</SelectItem>
-                </SelectContent>
-              </Select>
-              <Input value={value.searchContext ?? ''} onChange={(e) => set('searchContext', e.target.value)} placeholder="Search context" className="h-8" />
-              <div className="col-span-1 sm:col-span-2 grid grid-cols-2 gap-2">
-                {(options?.keywords ?? []).map((k) => (
-                  <label key={String(k.value)} className="flex items-center gap-2 text-sm">
+          <CollapsibleContent className="mt-2 space-y-3 px-2">
+            <div className="space-y-2">
+              <Label className="text-xs">Action Types</Label>
+              <div className="flex flex-col gap-2">
+                {actionOptions.map((action) => (
+                  <label key={action.value} className="flex items-center gap-2 text-sm cursor-pointer">
                     <Checkbox
-                      checked={!!value.keywords?.includes(k.value)}
-                      onCheckedChange={(v) => {
-                        const curr = new Set(value.keywords ?? [])
-                        if (v) curr.add(k.value)
-                        else curr.delete(k.value)
-                        set('keywords', Array.from(curr))
+                      checked={value.actionTypes?.includes(action.value) || false}
+                      onCheckedChange={(checked) => {
+                        const current = value.actionTypes || []
+                        const next = checked
+                          ? [...current, action.value]
+                          : current.filter((a) => a !== action.value)
+                        set('actionTypes', next.length ? next : undefined)
                       }}
                     />
-                    {k.label}
+                    {action.label}
                   </label>
                 ))}
               </div>
@@ -432,38 +238,83 @@ export default function LogFilters({ logType, value, onChange, onApply, options,
         </Collapsible>
       )}
 
-      <Collapsible defaultOpen>
-        <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border p-2">
-          <span className="flex items-center gap-2"><SlidersHorizontal className="size-4" /> Patterns</span>
-          <SlidersHorizontal className="size-4" />
-        </CollapsibleTrigger>
-        <CollapsibleContent className="p-2">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <label className="flex items-center gap-2 text-sm">
-              <Checkbox checked={!!value.highUserFrequency} onCheckedChange={(v) => set('highUserFrequency', !!v)} />
-              Show unusual activity
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <Checkbox checked={!!value.batchOps} onCheckedChange={(v) => set('batchOps', !!v)} />
-              Show batch operations
-            </label>
-            {logType === 'research_access' && (
-              <Select value={value.accessPattern} onValueChange={(v) => set('accessPattern', v)}>
-                <SelectTrigger className="h-8"><SelectValue placeholder="Access pattern" /></SelectTrigger>
+      {/* Modified By Filter - research-entry only */}
+      {logType === 'research-entry' && options?.users && options.users.length > 0 && (
+        <Collapsible defaultOpen>
+          <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border p-2 hover:bg-accent">
+            <span className="text-sm font-medium">User Filters</span>
+            <SlidersHorizontal className="size-4" />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-2 space-y-3 px-2">
+            <div className="space-y-2">
+              <Label className="text-xs">Modified By</Label>
+              <Select value={value.modifiedByUserId?.toString() || ''} onValueChange={(v) => set('modifiedByUserId', v ? Number(v) : undefined)}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select user" />
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="first">First-time access</SelectItem>
-                  <SelectItem value="repeat">Repeated access</SelectItem>
-                  <SelectItem value="spike">Access spike</SelectItem>
+                  {options.users.map((user) => (
+                    <SelectItem key={user.value} value={user.value.toString()}>
+                      {user.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-            )}
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
 
-      <div className="mt-auto flex items-center justify-end gap-2">
-        <Button variant="outline" onClick={clearAll}><X className="mr-1 size-4" /> Reset</Button>
-        <Button onClick={() => onApply?.(value)}><Filter className="mr-1 size-4" /> Apply</Button>
+      {/* Research Filter - research-access only */}
+      {logType === 'research-access' && (
+        <Collapsible defaultOpen>
+          <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border p-2 hover:bg-accent">
+            <span className="text-sm font-medium">Research Filters</span>
+            <SlidersHorizontal className="size-4" />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-2 space-y-3 px-2">
+            <div className="space-y-2">
+              <Label className="text-xs">Search Research</Label>
+              <Input
+                type="text"
+                placeholder="Search by keyword or title..."
+                value={value.researchSearch || ''}
+                onChange={(e) => set('researchSearch', e.target.value || undefined)}
+                className="h-9"
+              />
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+
+      {/* Keyword Filter - keyword-search only */}
+      {logType === 'keyword-search' && (
+        <Collapsible defaultOpen>
+          <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border p-2 hover:bg-accent">
+            <span className="text-sm font-medium">Keyword Filters</span>
+            <SlidersHorizontal className="size-4" />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-2 space-y-3 px-2">
+            <div className="space-y-2">
+              <Label className="text-xs">Search Keyword</Label>
+              <Input
+                type="text"
+                placeholder="Search by keyword name..."
+                value={value.keywordSearch || ''}
+                onChange={(e) => set('keywordSearch', e.target.value || undefined)}
+                className="h-9"
+              />
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+
+      {/* Apply Filters Button */}
+      <div className="mt-auto flex items-center justify-end gap-2 pt-3 border-t">
+        <Button onClick={() => onApply?.(value)} disabled={!onApply} size="sm" className="w-full">
+          <Filter className="mr-2 size-4" />
+          Apply Filters
+        </Button>
       </div>
     </div>
   )
