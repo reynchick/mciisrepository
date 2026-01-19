@@ -36,7 +36,7 @@ class LogController extends Controller
             'model' => ResearchAccessLog::class,
             'title' => 'Research Access Logs',
             'description' => 'Track research downloads and views',
-            'relations' => [],
+            'relations' => ['research', 'research.keywords'],
         ],
         'keyword-search' => [
             'model' => KeywordSearchLog::class,
@@ -57,11 +57,45 @@ class LogController extends Controller
         $query = $modelClass::query()->with($relations);
 
         // Apply date filters
-        if ($dateFrom = $request->input('date_from')) {
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
+        
+        // Handle date presets
+        if ($preset = $request->input('date_preset')) {
+            $now = now();
+            switch ($preset) {
+                case 'today':
+                    $dateFrom = $now->toDateString();
+                    $dateTo = $now->toDateString();
+                    break;
+                case 'yesterday':
+                    $dateFrom = $now->subDay()->toDateString();
+                    $dateTo = $dateFrom;
+                    break;
+                case 'last7':
+                    $dateFrom = $now->subDays(6)->toDateString();
+                    $dateTo = now()->toDateString();
+                    break;
+                case 'last30':
+                    $dateFrom = $now->subDays(29)->toDateString();
+                    $dateTo = now()->toDateString();
+                    break;
+                case 'thisMonth':
+                    $dateFrom = $now->startOfMonth()->toDateString();
+                    $dateTo = now()->toDateString();
+                    break;
+                case 'lastMonth':
+                    $dateFrom = $now->subMonth()->startOfMonth()->toDateString();
+                    $dateTo = $now->subMonth()->endOfMonth()->toDateString();
+                    break;
+            }
+        }
+        
+        if ($dateFrom) {
             $query->whereDate('created_at', '>=', $dateFrom);
         }
 
-        if ($dateTo = $request->input('date_to')) {
+        if ($dateTo) {
             $query->whereDate('created_at', '<=', $dateTo);
         }
 
@@ -82,9 +116,12 @@ class LogController extends Controller
         // Apply research search filter (research-access)
         if ($researchSearch = $request->input('research_search')) {
             if ($type === 'research-access') {
-                $query->whereHas('research', function ($q) use ($researchSearch) {
-                    $q->where('title', 'like', '%' . $researchSearch . '%')
-                      ->orWhere('description', 'like', '%' . $researchSearch . '%');
+                $searchTerm = trim($researchSearch);
+                $query->whereHas('research', function ($q) use ($searchTerm) {
+                    $q->where('research_title', 'like', '%' . $searchTerm . '%')
+                      ->orWhereHas('keywords', function ($kq) use ($searchTerm) {
+                          $kq->where('keyword_name', 'like', '%' . $searchTerm . '%');
+                      });
                 });
             }
         }
@@ -92,8 +129,11 @@ class LogController extends Controller
         // Apply keyword search filter (keyword-search)
         if ($keywordSearch = $request->input('keyword_search')) {
             if ($type === 'keyword-search') {
-                $query->whereHas('keyword', function ($q) use ($keywordSearch) {
-                    $q->where('name', 'like', '%' . $keywordSearch . '%');
+                $query->where(function ($q) use ($keywordSearch) {
+                    $q->where('search_term', 'like', '%' . $keywordSearch . '%')
+                      ->orWhereHas('keyword', function ($kq) use ($keywordSearch) {
+                          $kq->where('keyword_name', 'like', '%' . $keywordSearch . '%');
+                      });
                 });
             }
         }
