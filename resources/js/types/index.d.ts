@@ -113,6 +113,24 @@ export type Researcher = {
   name?: string | null
 }
 
+export type SDG = {
+  id: number
+  name: string
+  description?: string | null
+}
+
+export type SRIG = {
+  id: number
+  name: string
+  description?: string | null
+}
+
+export type Agenda = {
+  id: number
+  name: string
+  description?: string | null
+}
+
 export type Research = {
   id: number
   research_title: string
@@ -128,4 +146,7 @@ export type Research = {
   program?: Program | null
   keywords?: Keyword[]
   panelists?: Faculty[]
+  sdgs?: SDG[]
+  srigs?: SRIG[]
+  agendas?: Agenda[]
 }

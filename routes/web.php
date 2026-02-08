@@ -11,6 +11,8 @@ use App\Http\Controllers\Auth\CompleteFacultyProfileController;
 use App\Http\Controllers\ResearchController;
 use App\Http\Controllers\ResearchDownloadController;
 use App\Http\Controllers\ResearchSearchController;
+use App\Http\Controllers\ResearchMatrixController;
+use App\Http\Controllers\FacultyProductivityController;
 
 /*
  |---------------------------------------------------------------------------
@@ -74,6 +76,7 @@ Route::get('/', function () { return redirect()->route('browse'); })->name('welc
 
     // Unified log routes (handles all 5 log types)
     Route::get('/logs/{type}', [LogController::class, 'index'])->name('logs.index');
+    Route::get('/logs/{type}/{id}/details', [LogController::class, 'show'])->name('logs.show');
 
     // Research access logging (auth required)
     Route::post('/api/research-access', [ResearchSearchController::class, 'logAccess'])->name('research.access.log');
@@ -86,6 +89,9 @@ Route::get('/', function () { return redirect()->route('browse'); })->name('welc
     
     // Keyword search logging (on submit)
     Route::post('/api/keyword-search', [ResearchSearchController::class, 'logKeywordSearch'])->name('keyword.search.log');
+
+    // Reports & Analytics (Matrix Report)
+    Route::get('/reports', [ResearchMatrixController::class, 'index'])->name('reports.index');
 
 });
 
