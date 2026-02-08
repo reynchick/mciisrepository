@@ -54,6 +54,14 @@ class FacultyAuditLog extends Model
     }
 
     /**
+     * Alias for modifiedBy - for consistency with frontend expectations.
+     */
+    public function modifiedByUser(): BelongsTo
+    {
+        return $this->modifiedBy();
+    }
+
+    /**
      * Get the faculty record that was modified.
      */
     public function targetFaculty(): BelongsTo

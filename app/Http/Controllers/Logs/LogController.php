@@ -219,4 +219,39 @@ class LogController extends Controller
 
         return $options;
     }
+
+    public function show(Request $request, string $type, int $id)
+    {
+        abort_unless(isset(self::LOG_TYPES[$type]), 404);
+
+        $config = self::LOG_TYPES[$type];
+        $modelClass = $config['model'];
+        
+        // Define relations based on log type
+        $relations = [];
+        
+        switch ($type) {
+            case 'user-audit':
+                $relations = ['targetUser', 'modifiedByUser'];
+                break;
+            case 'faculty-audit':
+                $relations = ['targetFaculty', 'modifiedByUser'];
+                break;
+            case 'research-entry':
+                $relations = ['targetResearch', 'modifiedByUser'];
+                break;
+            case 'research-access':
+                $relations = ['research', 'user'];
+                break;
+            case 'keyword-search':
+                $relations = ['keyword', 'user'];
+                break;
+        }
+
+        $log = $modelClass::with($relations)->findOrFail($id);
+
+        return response()->json([
+            'data' => $log,
+        ]);
+    }
 }

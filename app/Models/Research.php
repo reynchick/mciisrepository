@@ -204,6 +204,14 @@ class Research extends Model
         
         return (string) $this->published_year;
     }
+
+    /**
+     * Get the title attribute (alias for research_title).
+     */
+    public function getTitleAttribute(): string
+    {
+        return $this->research_title ?? '';
+    }
     
     /**
      * Clean up files when research is deleted.

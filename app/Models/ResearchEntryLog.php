@@ -42,6 +42,14 @@ class ResearchEntryLog extends Model
     }
 
     /**
+     * Alias for modifiedBy - for consistency with frontend expectations.
+     */
+    public function modifiedByUser(): BelongsTo
+    {
+        return $this->modifiedBy();
+    }
+
+    /**
      * Get the research record that was modified.
      */
     public function targetResearch(): BelongsTo

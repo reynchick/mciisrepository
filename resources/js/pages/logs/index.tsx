@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import LogFilters from '@/components/logs/log-filters';
 import LogTable from '@/components/logs/log-table';
+import LogDetailsModal from '@/components/logs/log-details-modal';
 import type { LogFilterState, LogFilterOptions, LogType } from '@/components/logs/log-filters';
 import type { LogTableColumn } from '@/components/logs/log-table';
 
@@ -37,6 +38,7 @@ export default function LogsIndex({
 }: Props) {
     const [filterState, setFilterState] = useState<LogFilterState>(initialFilters);
     const [showFilters, setShowFilters] = useState(false);
+    const [selectedLogId, setSelectedLogId] = useState<number | null>(null);
 
     // Map action types to user-friendly labels
     const getActionLabel = (actionType: string): string => {
@@ -143,6 +145,11 @@ export default function LogsIndex({
     return (
         <AppLayout>
             <Head title={logConfig.title} />
+            <LogDetailsModal 
+                logType={logType}
+                logId={selectedLogId}
+                onClose={() => setSelectedLogId(null)}
+            />
             <div className="space-y-6 p-4 sm:p-6">
                 {/* Header with toggleable filters */}
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -197,6 +204,9 @@ export default function LogsIndex({
                                     data={logs.data}
                                     columns={getTableColumns()}
                                     getRowId={(row) => row.id}
+                                    actions={{
+                                        onRowClick: (row) => setSelectedLogId(row.id),
+                                    }}
                                     pagination={{
                                         meta: {
                                             current_page: logs.current_page,
