@@ -26,16 +26,18 @@ class ResearchFactory extends Factory
      */
     public function definition(): array
     {
+        $faker = $this->faker ?? \Faker\Factory::create();
+
         return [
             'uploaded_by'             => User::factory(),
-            'research_title'          => fake()->unique()->sentence(6),
+            'research_title'          => $faker->unique()->sentence(6),
             'research_adviser'        => null,
             'program_id'              => Program::query()->inRandomOrder()->firstOrFail()->id,
-            'published_month'         => fake()->optional()->numberBetween(1, 12),
-            'published_year'          => fake()->numberBetween(2015, (int) now()->year),
-            'research_abstract'       => fake()->paragraphs(nb: 3, asText: true),
-            'research_approval_sheet' => 'storage/research/approval_sheets/' . fake()->unique()->uuid() . '.jpg',
-            'research_manuscript'     => 'storage/research/manuscripts/' . fake()->unique()->uuid() . '.pdf',
+            'published_month'         => $faker->optional()->numberBetween(1, 12),
+            'published_year'          => $faker->numberBetween(2015, (int) now()->year),
+            'research_abstract'       => $faker->paragraphs(nb: 3, asText: true),
+            'research_approval_sheet' => 'storage/research/approval_sheets/' . $faker->unique()->uuid() . '.jpg',
+            'research_manuscript'     => 'storage/research/manuscripts/' . $faker->unique()->uuid() . '.pdf',
             'archived_at'             => null,
             'archived_by'             => null,
             'archive_reason'          => null,
@@ -44,7 +46,9 @@ class ResearchFactory extends Factory
 
     public function configure(): static
     {
-        return $this->afterCreating(function (Research $research) {
+        $faker = $this->faker ?? \Faker\Factory::create();
+
+        return $this->afterCreating(function (Research $research) use ($faker) {
             $now = Carbon::now();
 
             $agendas = Agenda::query()->inRandomOrder()->limit(random_int(1, 3))->pluck('id')->all();
@@ -67,12 +71,14 @@ class ResearchFactory extends Factory
             for ($i = 0; $i < $count; $i++) {
                 Researcher::create([
                     'research_id' => $research->id,
-                    'first_name' => fake()->firstName(),
-                    'middle_name' => fake()->optional()->firstName(),
-                    'last_name' => fake()->lastName(),
-                    'email' => fake()->boolean(80) ? fake()->unique()->safeEmail() : null,
+                    'first_name' => $faker->firstName(),
+                    'middle_name' => $faker->optional()->firstName(),
+                    'last_name' => $faker->lastName(),
+                    'email' => $faker->boolean(80) ? $faker->unique()->safeEmail() : null,
                 ]);
             }
         });
     }
 }
+
+
