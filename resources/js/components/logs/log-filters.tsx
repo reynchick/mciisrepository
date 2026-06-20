@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
@@ -21,8 +20,8 @@ type FilterState = {
   from?: string
   to?: string
   
-  // Action-based filters (user-audit, faculty-audit, research-entry)
-  actionTypes?: string[]
+  // Action-based filter (user-audit, faculty-audit, research-entry) - single selection
+  actionType?: string
   
   // User filters (research-entry)
   modifiedByUserId?: number
@@ -74,9 +73,10 @@ function activeChips(logType: LogType, value: FilterState, options?: FilterOptio
   if (value.from) chips.push({ key: 'from', label: 'From', valueLabel: value.from })
   if (value.to) chips.push({ key: 'to', label: 'To', valueLabel: value.to })
   
-  // Action filters (user-audit, faculty-audit, research-entry)
-  if (value.actionTypes && value.actionTypes.length) {
-    chips.push({ key: 'actionTypes', label: 'Action', valueLabel: value.actionTypes.join(', ') })
+  // Action filter (user-audit, faculty-audit, research-entry) - single selection
+  if (value.actionType) {
+    const actionLabel = options?.actions?.find(a => a.value === value.actionType)?.label || value.actionType
+    chips.push({ key: 'actionType', label: 'Action', valueLabel: actionLabel })
   }
   
   // Modified by filter (research-entry)
@@ -215,24 +215,19 @@ export default function LogFilters({ logType, value, onChange, onApply, options,
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-2 space-y-3 px-2">
             <div className="space-y-2">
-              <Label className="text-xs">Action Types</Label>
-              <div className="flex flex-col gap-2">
-                {actionOptions.map((action) => (
-                  <label key={action.value} className="flex items-center gap-2 text-sm cursor-pointer">
-                    <Checkbox
-                      checked={value.actionTypes?.includes(action.value) || false}
-                      onCheckedChange={(checked) => {
-                        const current = value.actionTypes || []
-                        const next = checked
-                          ? [...current, action.value]
-                          : current.filter((a) => a !== action.value)
-                        set('actionTypes', next.length ? next : undefined)
-                      }}
-                    />
-                    {action.label}
-                  </label>
-                ))}
-              </div>
+              <Label className="text-xs">Action Type</Label>
+              <Select value={value.actionType || ''} onValueChange={(v) => set('actionType', v || undefined)}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select action" />
+                </SelectTrigger>
+                <SelectContent>
+                  {actionOptions.map((action) => (
+                    <SelectItem key={action.value} value={action.value}>
+                      {action.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CollapsibleContent>
         </Collapsible>

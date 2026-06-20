@@ -55,6 +55,14 @@ class UserAuditLog extends Model
     }
 
     /**
+     * Alias for modifiedBy - for consistency with frontend expectations.
+     */
+    public function modifiedByUser(): BelongsTo
+    {
+        return $this->modifiedBy();
+    }
+
+    /**
      * Get the user account that was modified.
      */
     public function targetUser(): BelongsTo

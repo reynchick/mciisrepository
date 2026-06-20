@@ -23,13 +23,7 @@ const baseMenu: MenuItem[] = [
       { id: 'log-keyword', label: 'Keyword Search Logs', icon: Search, route: '/logs/keyword-search', roles: ['Administrator'], activePattern: /^\/logs\/keyword-search/ },
     ],
   },
-  {
-    id: 'reports', label: 'Reports & Analytics', icon: FileBarChart, route: '/reports', roles: ['Administrator', 'MCIIS Staff'], activePattern: /^\/(reports|staff\/reports)/,
-    submenu: [
-      { id: 'reports-matrix', label: 'Matrix Reports', icon: FileBarChart, route: '/reports/matrix', roles: ['Administrator', 'MCIIS Staff'], activePattern: /^\/(reports\/matrix|staff\/reports\/matrix)/ },
-      { id: 'reports-faculty-productivity', label: 'Faculty Productivity Reports', icon: TrendingUp, route: '/reports/faculty-productivity', roles: ['Administrator', 'MCIIS Staff'], activePattern: /^\/(reports\/faculty-productivity|staff\/reports\/faculty-productivity)/ },
-    ],
-  },
+  { id: 'reports', label: 'Reports & Analytics', icon: FileBarChart, route: '/reports', roles: ['Administrator', 'MCIIS Staff'], activePattern: /^\/(reports|staff\/reports)/ },
 ]
 
 export function NavMain({ items = [] }: { items?: Array<MenuItem | NavItem> }) {

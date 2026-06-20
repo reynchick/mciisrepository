@@ -1,12 +1,14 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
+import { Filter as FilterIcon } from 'lucide-react';
 import AppLayout from '@/layouts/app/app-layout';
 import Heading from '@/components/heading';
 import HeadingSmall from '@/components/heading-small';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import LogFilters from '@/components/logs/log-filters';
 import LogTable from '@/components/logs/log-table';
+import LogDetailsModal from '@/components/logs/log-details-modal';
 import type { LogFilterState, LogFilterOptions, LogType } from '@/components/logs/log-filters';
 import type { LogTableColumn } from '@/components/logs/log-table';
 
@@ -23,7 +25,6 @@ interface Props {
         title: string;
         description: string;
     };
-    availableTypes: Array<{ value: string; label: string }>;
     filters: Record<string, any>;
     filterOptions?: LogFilterOptions;
 }
@@ -32,12 +33,12 @@ export default function LogsIndex({
     logs, 
     logType, 
     logConfig, 
-    availableTypes, 
     filters: initialFilters,
     filterOptions = {}
 }: Props) {
-    const page = usePage();
     const [filterState, setFilterState] = useState<LogFilterState>(initialFilters);
+    const [showFilters, setShowFilters] = useState(false);
+    const [selectedLogId, setSelectedLogId] = useState<number | null>(null);
 
     // Map action types to user-friendly labels
     const getActionLabel = (actionType: string): string => {
@@ -58,10 +59,6 @@ export default function LogsIndex({
         return actionMap[actionType] || actionType;
     };
 
-    const handleTypeChange = (newType: string) => {
-        router.get(`/logs/${newType}`);
-    };
-
     const handleFilterChange = (newFilters: LogFilterState) => {
         setFilterState(newFilters);
     };
@@ -70,12 +67,16 @@ export default function LogsIndex({
         const params = new URLSearchParams();
         
         // Date filters
-        if (appliedFilters.from) params.append('date_from', appliedFilters.from);
-        if (appliedFilters.to) params.append('date_to', appliedFilters.to);
+        if (appliedFilters.datePreset && appliedFilters.datePreset !== 'custom') {
+            params.append('date_preset', appliedFilters.datePreset);
+        } else {
+            if (appliedFilters.from) params.append('date_from', appliedFilters.from);
+            if (appliedFilters.to) params.append('date_to', appliedFilters.to);
+        }
         
-        // Action filters (user-audit, faculty-audit, research-entry)
-        if (appliedFilters.actionTypes?.length) {
-            appliedFilters.actionTypes.forEach(action => params.append('action', action));
+        // Action filter - single selection only
+        if (appliedFilters.actionType) {
+            params.append('action', appliedFilters.actionType);
         }
         
         // Modified by filter (research-entry)
@@ -144,25 +145,26 @@ export default function LogsIndex({
     return (
         <AppLayout>
             <Head title={logConfig.title} />
+            <LogDetailsModal 
+                logType={logType}
+                logId={selectedLogId}
+                onClose={() => setSelectedLogId(null)}
+            />
             <div className="space-y-6 p-4 sm:p-6">
-                {/* Header with Log Type Selector */}
+                {/* Header with toggleable filters */}
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <Heading 
                         title="Activity Logs" 
                         description="Monitor system activities and changes" 
                     />
-                    <Select value={logType} onValueChange={handleTypeChange}>
-                        <SelectTrigger className="w-full sm:w-[250px]">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {availableTypes.map((type) => (
-                                <SelectItem key={type.value} value={type.value}>
-                                    {type.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <Button
+                        variant="outline"
+                        className="w-full sm:w-auto"
+                        onClick={() => setShowFilters((open) => !open)}
+                    >
+                        <FilterIcon className="mr-2 h-4 w-4" />
+                        {showFilters ? 'Hide Filters' : 'Show Filters'}
+                    </Button>
                 </div>
 
                 {/* Current Log Type Info */}
@@ -177,15 +179,16 @@ export default function LogsIndex({
 
                 {/* Filters and Table Layout */}
                 <div className="flex flex-col gap-6 lg:flex-row">
-                    {/* Filters Sidebar */}
-                    <LogFilters 
-                        logType={logType as LogType}
-                        value={filterState}
-                        onChange={handleFilterChange}
-                        onApply={handleApplyFilters}
-                        options={filterOptions}
-                        className="lg:sticky lg:top-6 lg:self-start"
-                    />
+                    {showFilters && (
+                        <LogFilters 
+                            logType={logType as LogType}
+                            value={filterState}
+                            onChange={handleFilterChange}
+                            onApply={handleApplyFilters}
+                            options={filterOptions}
+                            className="lg:sticky lg:top-6 lg:self-start"
+                        />
+                    )}
 
                     {/* Logs Table */}
                     <div className="flex-1">
@@ -201,6 +204,9 @@ export default function LogsIndex({
                                     data={logs.data}
                                     columns={getTableColumns()}
                                     getRowId={(row) => row.id}
+                                    actions={{
+                                        onRowClick: (row) => setSelectedLogId(row.id),
+                                    }}
                                     pagination={{
                                         meta: {
                                             current_page: logs.current_page,

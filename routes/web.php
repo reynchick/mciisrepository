@@ -6,17 +6,13 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Logs\LogController;
-use App\Http\Controllers\Logs\ResearchAccessLogController;
-use App\Http\Controllers\Logs\KeywordSearchLogController;
-use App\Http\Controllers\Logs\UserAuditLogController;
-use App\Http\Controllers\Logs\FacultyAuditLogController;
-use App\Http\Controllers\Logs\ResearchEntryLogController;
 use App\Http\Controllers\Auth\CompleteStudentProfileController;
 use App\Http\Controllers\Auth\CompleteFacultyProfileController;
 use App\Http\Controllers\ResearchController;
 use App\Http\Controllers\ResearchDownloadController;
 use App\Http\Controllers\ResearchSearchController;
-use App\Http\Controllers\BrowseController;
+use App\Http\Controllers\ResearchMatrixController;
+use App\Http\Controllers\FacultyProductivityController;
 
 /*
  |---------------------------------------------------------------------------
@@ -87,16 +83,9 @@ Route::get('/', function () { return redirect()->route('browse'); })->name('welc
     // User restore route (Admin only)
     Route::post('/users/{user}/restore', [UserController::class, 'restore'])->name('users.restore')->withTrashed();
 
-    // Log routes
+    // Unified log routes (handles all 5 log types)
     Route::get('/logs/{type}', [LogController::class, 'index'])->name('logs.index');
-    
-    Route::prefix('logs')->name('logs.')->group(function () {
-        Route::resource('research-access', ResearchAccessLogController::class)->only('index');
-        Route::resource('keyword-search', KeywordSearchLogController::class)->only('index');
-        Route::resource('user-audits', UserAuditLogController::class)->only('index');
-        Route::resource('faculty-audits', FacultyAuditLogController::class)->only('index');
-        Route::resource('research-entries', ResearchEntryLogController::class)->only('index');
-    });
+    Route::get('/logs/{type}/{id}/details', [LogController::class, 'show'])->name('logs.show');
 
     // Research access logging (auth required)
     Route::post('/api/research-access', [ResearchSearchController::class, 'logAccess'])->name('research.access.log');
@@ -109,6 +98,9 @@ Route::get('/', function () { return redirect()->route('browse'); })->name('welc
     
     // Keyword search logging (on submit)
     Route::post('/api/keyword-search', [ResearchSearchController::class, 'logKeywordSearch'])->name('keyword.search.log');
+
+    // Reports & Analytics (Matrix Report)
+    Route::get('/reports', [ResearchMatrixController::class, 'index'])->name('reports.index');
 
 });
 

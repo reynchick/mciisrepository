@@ -28,15 +28,15 @@ interface GroupedData {
   }[]
 }
 
-export default function ResearchMatrixReport({ researches, programs, filters }: Props) {
+export default function MatrixReport({ researches, programs, filters }: Props) {
   const [search, setSearch] = useState(String(filters.search ?? ''))
   const [program, setProgram] = useState(String(filters.program ?? ''))
   const [year, setYear] = useState(String(filters.year ?? ''))
 
   // Debug logging
   useEffect(() => {
-    console.log('Research Matrix Page Loaded Successfully!')
-    console.log('Research Matrix Data:', { 
+    console.log('Reports & Analytics Page Loaded Successfully!')
+    console.log('Research Data:', { 
       researchCount: researches?.length, 
       programCount: programs?.length,
       researches: researches,
@@ -111,7 +111,7 @@ export default function ResearchMatrixReport({ researches, programs, filters }: 
     if (program) params.program = program
     if (year) params.year = year
     
-    router.get('/reports/matrix', params, { 
+    router.get('/reports', params, { 
       preserveState: true, 
       preserveScroll: true 
     })
@@ -121,9 +121,9 @@ export default function ResearchMatrixReport({ researches, programs, filters }: 
     setSearch('')
     setProgram('')
     setYear('')
-    router.get('/reports/matrix', {}, { 
-      preserveState: true, 
-      preserveScroll: true 
+    router.get('/reports', {}, { 
+      preserveState: false, 
+      preserveScroll: false 
     })
   }
 
@@ -163,12 +163,12 @@ export default function ResearchMatrixReport({ researches, programs, filters }: 
 
   return (
     <AppLayout>
-      <Head title="Research Matrix Report" />
+      <Head title="Reports & Analytics" />
       
       <div className="space-y-6 p-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Research Matrix Report</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Reports & Analytics</h1>
             <p className="text-muted-foreground">
               Comprehensive research overview grouped by program and year
             </p>
@@ -204,12 +204,11 @@ export default function ResearchMatrixReport({ researches, programs, filters }: 
                   />
                 </div>
               </div>
-              <Select value={program} onValueChange={setProgram}>
+              <Select value={program || undefined} onValueChange={setProgram}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Programs" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Programs</SelectItem>
                   {programs.map((p) => (
                     <SelectItem key={p.id} value={String(p.id)}>
                       {p.name}
@@ -217,12 +216,11 @@ export default function ResearchMatrixReport({ researches, programs, filters }: 
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={year} onValueChange={setYear}>
+              <Select value={year || undefined} onValueChange={setYear}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Years" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Years</SelectItem>
                   {years.map((y) => (
                     <SelectItem key={y} value={String(y)}>
                       {y}
