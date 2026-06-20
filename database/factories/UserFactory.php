@@ -24,15 +24,16 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
-        $localPart = Str::lower(Str::slug(fake()->unique()->userName()));
+        $faker     = $this->faker;
+        $localPart = Str::lower(Str::slug($faker->unique()->userName()));
         $email     = $localPart . '@usep.edu.ph';
 
         return [
             'student_id'        => null,
-            'first_name'        => fake()->firstName(),
-            'middle_name'       => fake()->optional()->randomLetter() . '.',
-            'last_name'         => fake()->lastName(),
-            'contact_number'    => fake()->optional()->regexify('09\d{9}'),
+            'first_name'        => $faker->firstName(),
+            'middle_name'       => $faker->optional()->randomLetter() . '.',
+            'last_name'         => $faker->lastName(),
+            'contact_number'    => $faker->optional()->regexify('09\d{9}'),
             'email'             => $email,
             'email_verified_at' => now(),
             'password'          => static::$password ??= Hash::make('password'),
@@ -104,12 +105,16 @@ class UserFactory extends Factory
      */
     public function asStudent(): static
     {
+        $faker = $this->faker;
+
         return $this->afterCreating(function (\App\Models\User $user) {
             $role = Role::firstOrCreate(['name' => 'Student'], ['description' => 'Student']);
             $user->roles()->sync([$role->id]);
-        })->state(fn (array $attributes) => [
-            'student_id' => fake()->numberBetween(2015, (int) now()->year) . '-' . str_pad((string) fake()->numberBetween(0, 99999), 5, '0', STR_PAD_LEFT),
-        ]);
+        })->state(function (array $attributes) use ($faker) {
+            return [
+                'student_id' => $faker->numberBetween(2015, (int) now()->year) . '-' . str_pad((string) $faker->numberBetween(0, 99999), 5, '0', STR_PAD_LEFT),
+            ];
+        });
     }
 
     /**
@@ -139,3 +144,4 @@ class UserFactory extends Factory
         return Role::whereIn('name', $roles)->inRandomOrder()->first();
     }
 }
+

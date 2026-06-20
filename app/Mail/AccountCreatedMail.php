@@ -25,8 +25,25 @@ class AccountCreatedMail extends Mailable
 
     public function content(): Content
     {
+        // Map roles to emoji icons
+        $roleEmojis = [
+            'Faculty' => '🎓',
+            'Student' => '👨‍🎓',
+            'Administrator' => '👤',
+            'MCIIS Staff' => '👥',
+        ];
+
+        // Build formatted roles with emojis
+        $rolesWithEmojis = $this->user->roles->map(function ($role) use ($roleEmojis) {
+            $emoji = $roleEmojis[$role->name] ?? '•';
+            return "{$emoji} {$role->name}";
+        })->toArray();
+
         return new Content(
             markdown: 'emails.account-created',
+            with: [
+                'rolesWithEmojis' => $rolesWithEmojis,
+            ],
         );
     }
 }

@@ -256,7 +256,7 @@ export default function AccountRoleSection({
                       placeholder="Auto-filled when faculty email matches"
                       className="h-11 md:h-10 text-base md:text-sm bg-muted/50"
                       aria-describedby={
-                        hasFacultyError && touchedFields.faculty_id ? 'faculty_id-error' : showHint ? 'faculty_id-hint' : undefined
+                        hasFacultyError ? 'faculty_id-error' : showHint ? 'faculty_id-hint' : undefined
                       }
                     />
                     {showHint && (
@@ -271,9 +271,7 @@ export default function AccountRoleSection({
                     )}
                     <InputError
                       id="faculty_id-error"
-                      message={
-                        touchedFields.faculty_id || touchedFields.email ? errors.faculty_id || clientErrors.faculty_id : undefined
-                      }
+                      message={errors.faculty_id || clientErrors.faculty_id}
                       className="text-xs md:text-sm"
                     />
                   </>

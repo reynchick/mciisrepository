@@ -129,37 +129,22 @@ class FacultyObserver
     }
 
     /**
-     * Structure metadata with source and context extracted from action string.
-     * Maps old 'action' key to 'source' and 'context' constants.
-     * Also accepts source/context keys directly (new format).
+     * Structure metadata with context extracted from action string.
+     * Maps old 'action' key to 'context' constants.
+     * Also accepts context key directly (new format).
      */
     private function structureMetadata(array $customMetadata, string $event): array
     {
         $structured = [
-            'source' => null,
             'context' => null,
         ];
 
-        // If source/context are already provided (new format), use them directly
-        if (isset($customMetadata['source'])) {
-            $structured['source'] = $customMetadata['source'];
-        }
+        // If context is already provided (new format), use it directly
         if (isset($customMetadata['context'])) {
             $structured['context'] = $customMetadata['context'];
         }
 
-        // Backward compatibility: Extract source/context from 'action' key if not already set
-        if (isset($customMetadata['action']) && !isset($customMetadata['source'])) {
-            $action = $customMetadata['action'];
-            
-            // Map source
-            if (str_contains($action, 'google_sso')) {
-                $structured['source'] = FacultyAuditLog::SOURCE_GOOGLE_SSO;
-            } elseif (str_contains($action, 'admin_created')) {
-                $structured['source'] = FacultyAuditLog::SOURCE_ADMIN_CREATED;
-            }
-        }
-        
+        // Backward compatibility: Extract context from 'action' key if not already set
         if (isset($customMetadata['action']) && !isset($customMetadata['context'])) {
             $action = $customMetadata['action'];
             
@@ -168,6 +153,10 @@ class FacultyObserver
                 $structured['context'] = FacultyAuditLog::CONTEXT_PROFILE_COMPLETION;
             } elseif (str_contains($action, 'import')) {
                 $structured['context'] = FacultyAuditLog::CONTEXT_FACULTY_IMPORT;
+            } elseif (str_contains($action, 'admin')) {
+                $structured['context'] = FacultyAuditLog::CONTEXT_ADMIN_UPDATE;
+            } elseif (str_contains($action, 'seed')) {
+                $structured['context'] = FacultyAuditLog::CONTEXT_SEED_INITIALIZATION;
             }
         }
 
@@ -178,7 +167,7 @@ class FacultyObserver
 
         // Keep other metadata fields (excluding ones we've already handled)
         foreach ($customMetadata as $key => $value) {
-            if (!in_array($key, ['action', 'source', 'context', 'note'])) {
+            if (!in_array($key, ['action', 'context', 'note'])) {
                 $structured[$key] = $value;
             }
         }
