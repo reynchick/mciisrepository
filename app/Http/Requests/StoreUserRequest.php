@@ -8,6 +8,8 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
+use App\Models\User;
 
 
 class StoreUserRequest extends FormRequest
@@ -35,7 +37,7 @@ class StoreUserRequest extends FormRequest
                 'bail',
                 'required',
                 'email',
-                'unique:users,email',
+                Rule::unique('users', 'email')->whereNull('deleted_at'),
                 'regex:/^[^@]+@usep\\.edu\\.ph$/'
             ],
             'role_ids' => ['required', 'array', 'min:1'],
@@ -44,7 +46,7 @@ class StoreUserRequest extends FormRequest
 
         if ($isFaculty) {
             $rules['faculty_id'] = [
-                'required', 'string', 'max:255', 'unique:users,faculty_id',
+                'required', 'string', 'max:255', Rule::unique('users', 'faculty_id')->whereNull('deleted_at'),
                 function ($attribute, $value, $fail) {
                     $faculty = \App\Models\Faculty::whereRaw('LOWER(email) = ?', [strtolower($this->input('email'))])->first();
                     if (!$faculty) {
@@ -56,7 +58,7 @@ class StoreUserRequest extends FormRequest
             ];
             $rules['student_id'] = ['nullable'];
         } elseif ($isStudent) {
-            $rules['student_id'] = ['required', 'string', 'max:255', 'unique:users,student_id'];
+            $rules['student_id'] = ['required', 'string', 'max:255', Rule::unique('users', 'student_id')->whereNull('deleted_at')];
             $rules['faculty_id'] = ['nullable'];
         } else {
             $rules['student_id'] = ['nullable'];
@@ -64,6 +66,43 @@ class StoreUserRequest extends FormRequest
         }
 
         return $rules;
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function ($validator) {
+            $email = strtolower((string) $this->input('email'));
+            $facultyId = $this->input('faculty_id');
+            $studentId = $this->input('student_id');
+
+            // If a soft-deleted user already owns this email, prompt restore instead of creating a duplicate
+            $trashedByEmail = User::withTrashed()->where('email', $email)->first();
+            if ($trashedByEmail && $trashedByEmail->trashed()) {
+                $validator->errors()->add('email', 'This email belongs to a deleted user. Please restore that account instead of creating a new one.');
+                // Also surface on faculty_id/student_id if they match the trashed account so the user sees all conflicts
+                if ($facultyId && $trashedByEmail->faculty_id === $facultyId) {
+                    $validator->errors()->add('faculty_id', 'This faculty ID belongs to a deleted user. Please restore that account instead of reusing the ID.');
+                }
+                if ($studentId && $trashedByEmail->student_id === $studentId) {
+                    $validator->errors()->add('student_id', 'This student ID belongs to a deleted user. Please restore that account instead of reusing the ID.');
+                }
+            }
+
+            // Same idea for faculty_id and student_id to avoid reusing IDs from soft-deleted accounts
+            if ($facultyId) {
+                $trashedFaculty = User::withTrashed()->where('faculty_id', $facultyId)->first();
+                if ($trashedFaculty && $trashedFaculty->trashed()) {
+                    $validator->errors()->add('faculty_id', 'This faculty ID belongs to a deleted user. Please restore that account instead of reusing the ID.');
+                }
+            }
+
+            if ($studentId) {
+                $trashedStudent = User::withTrashed()->where('student_id', $studentId)->first();
+                if ($trashedStudent && $trashedStudent->trashed()) {
+                    $validator->errors()->add('student_id', 'This student ID belongs to a deleted user. Please restore that account instead of reusing the ID.');
+                }
+            }
+        });
     }
 
     protected function getFacultyRoleId()

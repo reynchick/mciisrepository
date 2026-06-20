@@ -58,8 +58,6 @@ export default function UserForm({ mode, initial, roles, onCancelHref = '/users'
     role_ids: initial?.roles?.map((r) => r.id) ?? [],
     student_id: initial?.student_id ?? '',
     faculty_id: initial?.faculty_id ?? '',
-    // password fields removed for SSO
-    send_welcome_email: false,
   })
 
   const [clientErrors, setClientErrors] = useState<Record<string, string | undefined>>({})
@@ -314,7 +312,6 @@ export default function UserForm({ mode, initial, roles, onCancelHref = '/users'
       student_id: isStudentRole ? data.student_id.trim() : null,
       faculty_id: isFaculty ? data.faculty_id || null : null,
     }
-    if (mode === 'create' && (data.send_welcome_email as boolean)) payload.send_welcome_email = true
 
     Object.entries(payload).forEach(([k, v]) => setData(k as keyof typeof data, v as never))
     const opts = {
@@ -364,7 +361,6 @@ export default function UserForm({ mode, initial, roles, onCancelHref = '/users'
       student_id: isStudentRole ? data.student_id.trim() : null,
       faculty_id: isFacultyRole ? data.faculty_id || null : null,
     }
-    if (mode === 'create' && (data.send_welcome_email as boolean)) payload.send_welcome_email = true
 
     // Update form state with the payload before submitting
     Object.entries(payload).forEach(([k, v]) => setData(k as keyof typeof data, v as never))
@@ -413,6 +409,15 @@ export default function UserForm({ mode, initial, roles, onCancelHref = '/users'
         </Alert>
       )}
 
+      {mode === 'create' && (
+        <Alert className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
+          <AlertTitle className="text-blue-900 dark:text-blue-100">Account Creation Notice</AlertTitle>
+          <AlertDescription className="text-blue-800 dark:text-blue-200">
+            An account creation email with login instructions will be automatically sent to the user.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <PersonalInfoSection
           mode={mode}
@@ -420,7 +425,6 @@ export default function UserForm({ mode, initial, roles, onCancelHref = '/users'
             first_name: data.first_name,
             middle_name: data.middle_name,
             last_name: data.last_name,
-            send_welcome_email: data.send_welcome_email as boolean,
           }}
           errors={errors}
           clientErrors={clientErrors}

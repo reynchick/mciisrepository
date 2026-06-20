@@ -36,6 +36,15 @@ Route::get('/', function () { return redirect()->route('browse'); })->name('welc
 
     // Landing page (Browse grid with filters)
     Route::get('/browse', [ResearchSearchController::class, 'browse'])->name('browse');
+    
+    // Faculty browse (same as main browse)
+    Route::get('/faculty/browse', [ResearchSearchController::class, 'browse'])->name('faculty.browse');
+    
+    // Student browse (same as main browse)
+    Route::get('/student/browse', [ResearchSearchController::class, 'browse'])->name('student.browse');
+    
+    // Staff browse (same as main browse)
+    Route::get('/staff/browse', [ResearchSearchController::class, 'browse'])->name('staff.browse');
 
     // Inline research details & file downloads
     Route::get('/research/{research}/details', [ResearchSearchController::class, 'details'])->name('research.details');

@@ -93,6 +93,7 @@ class UserController extends Controller
                 'status' => request('status'),
             ],
             'roleDistribution' => $statistics['roleDistribution'],
+            'deletedRoleDistribution' => $statistics['deletedRoleDistribution'],
             'recentRegistrations' => $statistics['recentRegistrations'],
             'totalUsersCount' => $statistics['totalUsersCount'],
             'deletedUsersCount' => $statistics['deletedUsersCount'],
